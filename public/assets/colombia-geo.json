@@ -1,0 +1,169 @@
+{
+  "departamentos": [
+    {
+      "id": "05",
+      "nombre": "Antioquia",
+      "ciudades": ["Medellín", "Bello", "Itagüí", "Envigado", "Apartadó", "Turbo", "Rionegro", "Sabaneta", "Caucasia", "La Estrella"]
+    },
+    {
+      "id": "08",
+      "nombre": "Atlántico",
+      "ciudades": ["Barranquilla", "Soledad", "Malambo", "Sabanalarga", "Puerto Colombia", "Galapa", "Baranoa", "Juan de Acosta", "Tubará", "Usiacurí"]
+    },
+    {
+      "id": "11",
+      "nombre": "Bogotá D.C.",
+      "ciudades": ["Bogotá D.C."]
+    },
+    {
+      "id": "13",
+      "nombre": "Bolívar",
+      "ciudades": ["Cartagena", "Magangué", "Turbaco", "Arjona", "El Carmen de Bolívar", "Mompós", "San Pablo", "Santa Rosa", "Simití", "Córdoba"]
+    },
+    {
+      "id": "15",
+      "nombre": "Boyacá",
+      "ciudades": ["Tunja", "Duitama", "Sogamoso", "Chiquinquirá", "Puerto Boyacá", "Villa de Leyva", "Paipa", "Moniquirá", "Ramiriquí", "Samacá"]
+    },
+    {
+      "id": "17",
+      "nombre": "Caldas",
+      "ciudades": ["Manizales", "Villamaría", "La Dorada", "Chinchiná", "Riosucio", "Anserma", "Palestina", "Neira", "Aguadas", "Salamina"]
+    },
+    {
+      "id": "18",
+      "nombre": "Caquetá",
+      "ciudades": ["Florencia", "Puerto Rico", "San Vicente del Caguán", "El Doncello", "El Paujil", "La Montañita", "Belén de los Andaquíes", "Cartagena del Chairá", "Morelia", "Albania"]
+    },
+    {
+      "id": "19",
+      "nombre": "Cauca",
+      "ciudades": ["Popayán", "Santander de Quilichao", "Puerto Tejada", "Patía", "Corinto", "Miranda", "Villa Rica", "Guapi", "Piendamó", "Cajibío"]
+    },
+    {
+      "id": "20",
+      "nombre": "Cesar",
+      "ciudades": ["Valledupar", "Aguachica", "Bosconia", "Codazzi", "Curumaní", "Chimichagua", "La Jagua de Ibirico", "Pelaya", "San Diego", "El Copey"]
+    },
+    {
+      "id": "23",
+      "nombre": "Córdoba",
+      "ciudades": ["Montería", "Cereté", "Lorica", "Sahagún", "Montelíbano", "Planeta Rica", "Tierralta", "Chinú", "Ciénaga de Oro", "Ayapel"]
+    },
+    {
+      "id": "25",
+      "nombre": "Cundinamarca",
+      "ciudades": ["Soacha", "Fusagasugá", "Facatativá", "Zipaquirá", "Chía", "Mosquera", "Girardot", "Madrid", "Funza", "Cajicá"]
+    },
+    {
+      "id": "27",
+      "nombre": "Chocó",
+      "ciudades": ["Quibdó", "Istmina", "Condoto", "Tadó", "Acandí", "Riosucio", "Bahía Solano", "Nuquí", "El Carmen de Atrato", "Unguía"]
+    },
+    {
+      "id": "41",
+      "nombre": "Huila",
+      "ciudades": ["Neiva", "Pitalito", "Garzón", "La Plata", "Campoalegre", "Aipe", "Gigante", "Hobo", "Rivera", "Algeciras"]
+    },
+    {
+      "id": "44",
+      "nombre": "La Guajira",
+      "ciudades": ["Riohacha", "Maicao", "Uribia", "Manaure", "Albania", "Fonseca", "San Juan del Cesar", "Villanueva", "Dibulla", "Barrancas"]
+    },
+    {
+      "id": "47",
+      "nombre": "Magdalena",
+      "ciudades": ["Santa Marta", "Ciénaga", "Fundación", "Zona Bananera", "Plato", "El Banco", "Aracataca", "Pivijay", "Pueblo Viejo", "Sabanas de San Ángel"]
+    },
+    {
+      "id": "50",
+      "nombre": "Meta",
+      "ciudades": ["Villavicencio", "Acacías", "Granada", "Puerto López", "San Martín", "Cumaral", "Restrepo", "Guamal", "Castilla la Nueva", "Puerto Gaitán"]
+    },
+    {
+      "id": "52",
+      "nombre": "Nariño",
+      "ciudades": ["Pasto", "Tumaco", "Ipiales", "Túquerres", "La Unión", "Samaniego", "Barbacoas", "Ricaurte", "Cumbal", "La Cruz"]
+    },
+    {
+      "id": "54",
+      "nombre": "Norte de Santander",
+      "ciudades": ["Cúcuta", "Ocaña", "Villa del Rosario", "Los Patios", "Pamplona", "El Zulia", "Chinácota", "San Cayetano", "Toledo", "Durania"]
+    },
+    {
+      "id": "63",
+      "nombre": "Quindío",
+      "ciudades": ["Armenia", "Calarcá", "La Tebaida", "Montenegro", "Quimbaya", "Circasia", "Salento", "Filandia", "Génova", "Pijao"]
+    },
+    {
+      "id": "66",
+      "nombre": "Risaralda",
+      "ciudades": ["Pereira", "Dosquebradas", "La Virginia", "Santa Rosa de Cabal", "Marsella", "Belén de Umbría", "Santuario", "Apía", "Pueblo Rico", "Quinchía"]
+    },
+    {
+      "id": "68",
+      "nombre": "Santander",
+      "ciudades": ["Bucaramanga", "Floridablanca", "Girón", "Piedecuesta", "Barrancabermeja", "San Gil", "Socorro", "Málaga", "Barbosa", "Vélez"]
+    },
+    {
+      "id": "70",
+      "nombre": "Sucre",
+      "ciudades": ["Sincelejo", "Corozal", "Sampués", "San Marcos", "Tolú", "Coveñas", "Morroa", "Ovejas", "San Onofre", "Los Palmitos"]
+    },
+    {
+      "id": "73",
+      "nombre": "Tolima",
+      "ciudades": ["Ibagué", "Espinal", "Melgar", "Honda", "Chaparral", "Líbano", "Purificación", "Mariquita", "Fresno", "Flandes"]
+    },
+    {
+      "id": "76",
+      "nombre": "Valle del Cauca",
+      "ciudades": ["Cali", "Palmira", "Buenaventura", "Tuluá", "Cartago", "Buga", "Yumbo", "Jamundí", "Candelaria", "Florida"]
+    },
+    {
+      "id": "81",
+      "nombre": "Arauca",
+      "ciudades": ["Arauca", "Tame", "Saravena", "Arauquita", "Fortul", "Puerto Rondón", "Cravo Norte"]
+    },
+    {
+      "id": "85",
+      "nombre": "Casanare",
+      "ciudades": ["Yopal", "Aguazul", "Villanueva", "Monterrey", "Tauramena", "Paz de Ariporo", "Trinidad", "Maní", "Hato Corozal", "Sabanalarga"]
+    },
+    {
+      "id": "86",
+      "nombre": "Putumayo",
+      "ciudades": ["Mocoa", "Puerto Asís", "Valle del Guamuez", "Orito", "Puerto Guzmán", "Villagarzón", "Sibundoy", "San Miguel", "Santiago", "Colón"]
+    },
+    {
+      "id": "88",
+      "nombre": "Archipiélago de San Andrés, Providencia y Santa Catalina",
+      "ciudades": ["San Andrés", "Providencia"]
+    },
+    {
+      "id": "91",
+      "nombre": "Amazonas",
+      "ciudades": ["Leticia", "Puerto Nariño"]
+    },
+    {
+      "id": "94",
+      "nombre": "Guainía",
+      "ciudades": ["Inírida"]
+    },
+    {
+      "id": "95",
+      "nombre": "Guaviare",
+      "ciudades": ["San José del Guaviare", "Calamar", "El Retorno", "Miraflores"]
+    },
+    {
+      "id": "97",
+      "nombre": "Vaupés",
+      "ciudades": ["Mitú", "Caruru", "Taraira"]
+    },
+    {
+      "id": "99",
+      "nombre": "Vichada",
+      "ciudades": ["Puerto Carreño", "La Primavera", "Santa Rosalía", "Cumaribo"]
+    }
+  ]
+}

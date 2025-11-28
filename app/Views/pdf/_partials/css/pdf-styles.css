@@ -1,0 +1,702 @@
+/* ============================================
+   PSYRISK PDF STYLES
+   Estilos optimizados para wkhtmltopdf
+   ============================================ */
+
+/* Reset y configuración base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10pt;
+    line-height: 1.3;
+    color: #333;
+    background: white;
+}
+
+/* ============================================
+   ESTRUCTURA DE PÁGINA - Optimizado para wkhtmltopdf
+   ============================================ */
+.pdf-page {
+    width: 100%;
+    padding: 8mm 10mm;
+    background: white;
+    page-break-after: always;
+    page-break-inside: avoid;
+}
+
+.pdf-page:last-child {
+    page-break-after: auto;
+}
+
+.pdf-content {
+    width: 100%;
+}
+
+.page-break {
+    page-break-after: always;
+    height: 0;
+    clear: both;
+}
+
+/* Evitar cortes en elementos importantes */
+.no-break,
+.definition-box,
+.gauge-container,
+.data-table,
+.heatmap-table {
+    page-break-inside: avoid;
+}
+
+/* ============================================
+   HEADER - Usando table para compatibilidad con wkhtmltopdf
+   ============================================ */
+.pdf-header {
+    display: table;
+    width: 100%;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #0066cc;
+}
+
+.pdf-header > * {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.pdf-header .logo-left {
+    height: 35px;
+    text-align: left;
+}
+
+.pdf-header .logo-center {
+    height: 40px;
+    text-align: center;
+}
+
+.pdf-header .logo-right {
+    height: 35px;
+    text-align: right;
+}
+
+/* ============================================
+   FOOTER - Sin position absolute para wkhtmltopdf
+   ============================================ */
+.pdf-footer {
+    border-top: 1px solid #ccc;
+    padding-top: 5px;
+    margin-top: 10px;
+    font-size: 8pt;
+    color: #666;
+}
+
+.pdf-footer-text {
+    text-align: center;
+    font-style: italic;
+}
+
+.pdf-footer-page {
+    text-align: right;
+    margin-top: 3px;
+}
+
+/* ============================================
+   PORTADA - Ajustado para wkhtmltopdf
+   ============================================ */
+.portada {
+    text-align: center;
+    padding-top: 60px;
+}
+
+.portada-title {
+    font-size: 20pt;
+    font-weight: bold;
+    color: #0066cc;
+    margin-bottom: 80px;
+}
+
+.portada-company-label {
+    font-size: 11pt;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.portada-company-name {
+    font-size: 13pt;
+    font-style: italic;
+    margin-bottom: 60px;
+}
+
+.portada-consultant-label {
+    font-size: 11pt;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.portada-consultant-name {
+    font-size: 14pt;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.portada-consultant-title {
+    font-size: 10pt;
+    font-style: italic;
+    margin-bottom: 5px;
+}
+
+.portada-consultant-license {
+    font-size: 9pt;
+    color: #555;
+    margin-bottom: 50px;
+}
+
+.portada-date {
+    font-size: 11pt;
+    margin-bottom: 40px;
+}
+
+.portada-logos {
+    text-align: center;
+    margin-top: 40px;
+}
+
+.portada-logos img {
+    height: 30px;
+    margin: 0 15px;
+}
+
+/* ============================================
+   TÍTULOS Y ENCABEZADOS
+   ============================================ */
+.section-title {
+    font-size: 16pt;
+    font-weight: bold;
+    color: #0066cc;
+    text-align: center;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #0066cc;
+}
+
+.subsection-title {
+    font-size: 13pt;
+    font-weight: bold;
+    color: #333;
+    margin: 15px 0 10px 0;
+}
+
+.dimension-title {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #0066cc;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* ============================================
+   CAJA DE DEFINICIÓN
+   ============================================ */
+.definition-box {
+    border: 1px solid #ccc;
+    padding: 12px;
+    margin-bottom: 15px;
+    background: #f9f9f9;
+}
+
+.definition-box .label {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.definition-box .content {
+    font-size: 10pt;
+    text-align: justify;
+}
+
+/* ============================================
+   GAUGE (VELOCÍMETRO)
+   ============================================ */
+.gauge-container {
+    text-align: center;
+    margin: 10px 0;
+}
+
+.gauge-svg {
+    max-width: 200px;
+    height: auto;
+}
+
+.gauge-title {
+    font-size: 9pt;
+    font-weight: bold;
+    margin-bottom: 5px;
+    text-align: center;
+    border: 1px solid #ccc;
+    padding: 3px;
+    background: #f5f5f5;
+}
+
+.gauge-value {
+    font-size: 12pt;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 5px;
+}
+
+.gauge-label {
+    font-size: 8pt;
+    color: #666;
+    text-align: center;
+}
+
+/* Dual gauge (Forma A y B lado a lado) */
+.gauge-dual-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    width: 100%;
+    margin: 10px 0;
+}
+
+.gauge-dual-container .gauge-item {
+    width: 48%;
+    text-align: center;
+}
+
+/* ============================================
+   TABLA DE RANGOS DE RIESGO
+   ============================================ */
+.risk-ranges-table {
+    width: 100%;
+    font-size: 8pt;
+    border-collapse: collapse;
+    margin-top: 5px;
+}
+
+.risk-ranges-table td {
+    padding: 2px 4px;
+    border: 1px solid #ddd;
+    text-align: center;
+}
+
+.risk-ranges-table .range-header {
+    font-weight: bold;
+    font-size: 7pt;
+}
+
+/* Colores de riesgo */
+.risk-sin-riesgo { background-color: #4CAF50; color: white; }
+.risk-bajo { background-color: #8BC34A; color: white; }
+.risk-medio { background-color: #FFEB3B; color: #333; }
+.risk-alto { background-color: #FF9800; color: white; }
+.risk-muy-alto { background-color: #F44336; color: white; }
+
+/* ============================================
+   GRÁFICO DE BARRAS APILADAS
+   ============================================ */
+.stacked-bar-container {
+    margin: 15px 0;
+}
+
+.stacked-bar-title {
+    font-size: 10pt;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.stacked-bar {
+    display: flex;
+    width: 100%;
+    height: 25px;
+    border: 1px solid #ccc;
+    overflow: hidden;
+}
+
+.stacked-bar-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 7pt;
+    font-weight: bold;
+    color: white;
+}
+
+.stacked-bar-legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 6px;
+    font-size: 8pt;
+}
+
+.legend-item {
+    display: inline-block;
+    margin: 0 8px;
+}
+
+.legend-color {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 1px solid #ccc;
+    vertical-align: middle;
+    margin-right: 3px;
+}
+
+/* ============================================
+   GRÁFICO CIRCULAR (PIE)
+   ============================================ */
+.pie-chart-container {
+    text-align: center;
+    margin: 15px 0;
+}
+
+.pie-chart-svg {
+    max-width: 150px;
+    height: auto;
+}
+
+.pie-chart-legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 8px;
+    font-size: 8pt;
+}
+
+.pie-chart-legend > * {
+    margin: 2px 6px;
+}
+
+/* ============================================
+   ICONOS DE RIESGO (5-2)
+   ============================================ */
+.risk-icons-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin: 8px 0;
+    padding: 8px;
+    background: #f5f5f5;
+}
+
+.risk-icon {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    text-align: center;
+    font-size: 12pt;
+    font-weight: bold;
+    color: white;
+    margin-right: 5px;
+}
+
+.risk-icon-label {
+    font-size: 8pt;
+    margin-right: 15px;
+}
+
+/* ============================================
+   TABLAS GENERALES
+   ============================================ */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+    margin: 10px 0;
+}
+
+.data-table th,
+.data-table td {
+    border: 1px solid #ccc;
+    padding: 6px 8px;
+    text-align: left;
+}
+
+.data-table th {
+    background: #0066cc;
+    color: white;
+    font-weight: bold;
+}
+
+.data-table tr:nth-child(even) {
+    background: #f9f9f9;
+}
+
+.data-table .text-center {
+    text-align: center;
+}
+
+.data-table .text-right {
+    text-align: right;
+}
+
+/* ============================================
+   TABLA DE NIVELES DE RIESGO (como en el ejemplo)
+   ============================================ */
+.risk-levels-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9pt;
+    margin: 15px 0;
+}
+
+.risk-levels-table th,
+.risk-levels-table td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    vertical-align: top;
+}
+
+.risk-levels-table th {
+    background: #f0f0f0;
+    font-weight: bold;
+    width: 120px;
+}
+
+.risk-levels-table .risk-level-cell {
+    font-weight: bold;
+    text-align: center;
+    color: white;
+}
+
+/* ============================================
+   MAPA DE CALOR
+   ============================================ */
+.heatmap-container {
+    margin: 15px 0;
+}
+
+.heatmap-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8pt;
+}
+
+.heatmap-table th,
+.heatmap-table td {
+    border: 1px solid #999;
+    padding: 4px;
+    text-align: center;
+}
+
+.heatmap-table th {
+    background: #333;
+    color: white;
+    font-weight: bold;
+}
+
+.heatmap-cell {
+    font-weight: bold;
+}
+
+/* ============================================
+   FOCO OBJETIVO
+   ============================================ */
+.focus-box {
+    border: 2px solid #0066cc;
+    padding: 12px;
+    margin: 15px 0;
+    background: #f0f7ff;
+}
+
+.focus-box .focus-title {
+    font-weight: bold;
+    color: #0066cc;
+    margin-bottom: 8px;
+}
+
+.focus-box .focus-content {
+    font-size: 9pt;
+    text-align: justify;
+}
+
+/* ============================================
+   INTERPRETACIONES Y TEXTOS
+   ============================================ */
+.interpretation-text {
+    font-size: 10pt;
+    text-align: justify;
+    margin: 10px 0;
+    line-height: 1.5;
+}
+
+.highlight-text {
+    font-weight: bold;
+}
+
+.highlight-green { color: #4CAF50; }
+.highlight-yellow { color: #F9A825; }
+.highlight-orange { color: #FF9800; }
+.highlight-red { color: #F44336; }
+
+/* ============================================
+   ÁREAS CON RIESGO ALTO Y MUY ALTO
+   ============================================ */
+.high-risk-section {
+    margin: 20px 0;
+    padding: 15px;
+    border: 2px solid #F44336;
+    background: #fff5f5;
+}
+
+.high-risk-title {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #F44336;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.no-high-risk {
+    text-align: center;
+    font-size: 14pt;
+    color: #4CAF50;
+    padding: 30px;
+}
+
+/* ============================================
+   RECOMENDACIONES
+   ============================================ */
+.recommendations-list {
+    margin: 15px 0;
+    padding-left: 25px;
+}
+
+.recommendations-list li {
+    margin-bottom: 8px;
+    font-size: 10pt;
+    text-align: justify;
+}
+
+/* ============================================
+   FIRMA DEL CONSULTOR
+   ============================================ */
+.signature-section {
+    margin-top: 40px;
+    text-align: left;
+}
+
+.signature-closing {
+    margin-bottom: 20px;
+}
+
+.signature-image {
+    max-height: 60px;
+    margin-bottom: 5px;
+}
+
+.signature-name {
+    font-weight: bold;
+    font-size: 12pt;
+}
+
+.signature-title {
+    font-size: 10pt;
+    color: #666;
+}
+
+.signature-contact {
+    font-size: 9pt;
+    color: #0066cc;
+    margin-top: 5px;
+}
+
+/* ============================================
+   TABLA DE CONTENIDO
+   ============================================ */
+.toc-container {
+    margin: 15px 0;
+}
+
+.toc-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+    border-bottom: 1px dotted #ccc;
+}
+
+.toc-item > span:first-child {
+    flex: 1;
+}
+
+.toc-item.level-1 {
+    font-weight: bold;
+}
+
+.toc-item.level-2 > span:first-child {
+    padding-left: 12px;
+}
+
+.toc-item.level-3 > span:first-child {
+    padding-left: 24px;
+    font-size: 9pt;
+}
+
+.toc-page {
+    width: 30px;
+    text-align: right;
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-justify { text-align: justify; }
+
+.font-bold { font-weight: bold; }
+.font-italic { font-style: italic; }
+
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-20 { margin-bottom: 20px; }
+
+/* Utilidades flex */
+.flex { display: flex; }
+.flex-center { justify-content: center; align-items: center; }
+.flex-between { justify-content: space-between; }
+.flex-around { justify-content: space-around; }
+.gap-10 { gap: 10px; }
+.gap-20 { gap: 20px; }
+
+/* Rows y columns como alternativa */
+.row { display: table; width: 100%; }
+.col { display: table-cell; vertical-align: top; }
+.col-half { width: 50%; }
+.col-third { width: 33.33%; }
+.col-quarter { width: 25%; }
+
+/* ============================================
+   PRINT MEDIA QUERY
+   ============================================ */
+@media print {
+    body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .pdf-page {
+        page-break-after: always;
+    }
+
+    .page-break {
+        page-break-after: always;
+        break-after: page;
+    }
+
+    .no-break {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+}

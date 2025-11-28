@@ -1,0 +1,432 @@
+d,	Ap/icación de /a ficha de dalos genera/es: se recomienda suministrar a los participantes la ficha de datos generales una vez hayan respondido el cuestionario.
+
+Aplicación de otros cuestionarios de la batería:
+
+Si durante una sesión se decide aplicar otros cuestionarios de la batería (factores de riesgo psicosocial extralaboral o cuestionario de síntomas de estrés), se recomienda seguir la siguiente secuencia:
+1º Cuestionario de factores de riesgo psicosocial intralaboral. 2º Cuestionario de factores de riesgo psicosocial extralaboral. 3º  Cuestionario para la evaluación del estrés.
+4º  Ficha de datos generales.
+
+Esta secuencia es recomendada visto que los cuestionarios se administrarán según la cantidad de ítems de cada instrumento, de mayor a menor. De esta forma el trabajador hallará que los que responde después del intralaboral son más fáciles de contestar y por ende le tomarán menos tiempo.
+
+
+
+6.2 CALIFICACIÓN E INTERPRETACIÓN
+
+A continuación se explica paso a paso la forma de calificar el cuestionario de factores de riesgo psicosocial intralaboral con el fin de obtener una puntuación total y la puntuación por cada una de sus dimensiones y dominios.
+
+Los ítems, dimensiones y dominios son calificados de forma que se interpreta que a mayor puntaje obtenido, mayor es el riesgo psicosocial intralaboral, lo cual también aplica para la puntuación total del cuestionario.
+
+En la Figura 1 se presenta la síntesis del proceso de calificación del cuestionario.
+Cabe precisar que a los efectos de facilitar la calificación del cuestionario, los autores de la    75
+batería desarrollaron un aplicativo básico para la captura de los datos24 , el cual contiene toda la
+sintaxis necesaria para que sea el sistema de información el que efectúe los siguientes pasos:
+(1) calificación de los ítems; (2) obtención de los puntajes brutos; (3) transformación de los puntajes brutos; (4) comparación de los puntajes transformados con las tablas de baremos; y obtención del informe individual para cada trabajador.
+
+El aplicativo mencionado constituyó un desarrollo adicional al alcance previsto en la construcción de la batería de instrumentos de evaluación de factores de riesgo psicosocial; por lo tanto, el mismo no es objeto de desarrollos adicionales o de soporte técnico alguno y en consecuencia, los usurarios exoneran a los autores de toda responsabilidad por su uso. En consecuencia, este aplicativo para la automatización de la información debe entenderse como una herramienta
+
+24	EI apIicativo está desarroIIado en una hoja de cáIcuIo de ExceI cuyo requerimiento operativo es Ia versión 2007 de Office o posteriores.
+ 
+que agrega valor a la batería y que disminuye el esfuerzo de los usuarios en relación con el cálculo manual de resultados.
+
+Paso 1. Calificación de los ítems:
+
+Cada uno de los ítems del cuestionario debe ser calificado con valores (números enteros) que oscilan entre 0 y 4. Dichos valores permiten calcular los puntajes brutos de las dimensiones y dominios, así como el puntaje bruto total del cuestionario.
+
+Cada una de las opciones de respuesta de los ítems (siempre, casi siempre, a veces, casi nunca y nunca) tienen un valor, el cual debe indicar que a mayor puntuación del ítem, mayor riesgo psicosocial. Dichos valores pueden variar de acuerdo a la forma como está planteado cada ítem. Así que para un grupo de reactivos una respuesta de siempre tiene un valor igual a cero (0) y una respuesta de nunca tiene un valor de cuatro (4), mientras que otro grupo de reactivos se califican al contrario. En las tabla 21 y 22 se presentan los valores que se asignan a las opciones de respuesta para cada ítem de la forma A y de la forma B.
+
+En la situación en que un ítem no haya sido respondido o presente una doble marcación, se tomará como un dato perdido, sin calificación alguna.
+
+
+Figura 1. Proceso de calificación del cuestionario de factores de riesgo psicosocial intralaboral.
+
+
+
+
+76
+ 
+
+
+ 
+Tabla 21. Calificación de las opciones de respuesta de los ítems de la forma A.
+
+
+Ítems forma A	Calificación de las opciones de respuesta
+	Siempre	Casi siempre	Algunas veces	Casi nunca	Nunca
+4, 5, 6, 9, 12, 14, 32, 34, 39, 40,					
+41, 42, 43, 44, 45, 46, 47, 48, 49,					
+50, 51, 53, 54, 55, 56, 57, 58, 59,					
+60, 61, 62, 63, 64, 65, 66, 67, 68,
+69, 70, 71, 72, 73, 74, 75, 76, 77,	0	1	2	3	4
+78, 79, 81, 82, 83, 84, 85, 86, 87,					
+88, 89, 90, 91, 92, 93, 94, 95, 96,					
+97, 98, 99, 100, 101, 102, 103, 104,					
+105.					
+1, 2, 3, 7, 8, 10, 11, 13, 15, 16, 17,					
+18, 19, 20, 21, 22, 23, 24, 25, 26,					
+27, 28, 29, 30, 31, 33, 35, 36, 37,
+38, 52, 80, 106, 107, 108, 109, 110,	4	3	2	1	0
+111, 112, 113, 114, 115, 116, 117,					
+118, 119, 120, 121, 122, 123.					
+
+
+Tabla 22. Calificación de las opciones de respuesta de los ítems de la forma B.
+
+
+
+
+
+
+
+
+
+
+
+77
+
+
+
+
+Paso 2. Obtención de los puntajes brutos:
+
+a.	Puntajes brutos de las dimensiones
+Se obtienen sumando las calificaciones obtenidas en los ítems que las conforman. De esta manera resulta indispensable conocer cuáles son los ítems que componen cada dimensión para cada forma del cuestionario, lo cual se sintetiza en la Tabla 23.
+ 
+
+Tabla 23. Ítems que integran cada dimensión del cuestionario de factores de riesgo psicosocial intralaboral (formas A y B).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+78
+ 
+
+ 
+
+
+b.	Puntajes brutos de los dominios:
+El puntaje bruto de cada dominio se calcula sumando los puntajes brutos de las dimensiones que lo integran.
+Si no es posible obtener el puntaje bruto de una dimensión, por haber ítems sin respuesta, no se podrá calcular el puntaje bruto del dominio al cual pertenece.
+c.	Puntaje bruto total general:
+El puntaje bruto total general del cuestionario de factores de riesgo psicosocial intralaboral    79
+(formas A o B), se obtiene calculando la sumatoria de los puntajes brutos obtenidos para
+cada uno de los dominios. En caso de que no sea posible calcular el puntaje bruto de un dominio por ausencia de respuestas, tampoco se podrá obtener el puntaje bruto total general del cuestionario.
+d.	Puntaje bruto total general de la evaluación de factores de riesgo psicosocial:
+En caso de que a un mismo trabajador se apliquen los cuestionarios de factores de riesgo psicosocial intralaboral y extralaboral será posible calcular un puntaje bruto total general de la evaluación de factores de riesgo psicosocial, el cual se obtiene de la sumatoria de los puntajes brutos totales de los dos cuestionarios aplicados.
+
+En la Tabla 24 se presenta la síntesis de los lineamientos establecidos para calcular los puntajes brutos por dimensión, dominio y total general.
+ 
+Tabla 24. Lineamientos para calcular los puntajes brutos por dimensión, dominio y total general.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+80
+ 
+Paso 3. Transformación de los puntajes brutos:
+
+Con el fin de lograr mejores comparaciones de los puntajes obtenidos en las dimensiones, en los dominios y por el total, el siguiente paso consiste en realizar una transformación lineal de los puntajes brutos a una escala de puntajes que van de 0 a 100. Para realizar esta transformación se utiliza la siguiente fórmula:
+Punlaje brulo
+Punlaje lransformado =	X 100
+Faclor de lransformación
+
+
+
+Los factores de transformación para cada una de las dimensiones se encuentran en la Tabla 25.
+
+
+Tabla 25. Factores de transformación para las dimensiones de las formas A y B.
+
+
+
+
+81
+
+
+
+
+
+
+
+
+
+
+
+
+25	Aproximar un número a una determinada cifra por redondeo impIica observar Ia cifra que está a su derecha, si ésta es mayor o iguaI a 5 se Ie suma un 1 a Ia cifra anterior, es decir, a Ia que está a su izquierda¡ si por eI contrario, Ia cifra es menor que 5, Ia anterior no se aItera. Por ejempIo, si se obtiene un puntaje de 29,15, será aproximada a 29,2¡ si se obtiene 29,14, se mantiene en 29,1.
+ 
+
+Dimensión	Factores de transformación
+	Forma A	Forma B
+Demandas emocionales	36	36
+Demandas cuantitativas	24	12
+Influencia del trabajo sobre el entorno extralaboral	16	16
+Exigencias de responsabilidad del cargo	24	No evalúa
+Demandas de carga mental	20	20
+Consistencia del rol	20	No evalúa
+Demandas de la jornada de trabajo	12	24
+Recompensas derivadas de la pertenencia a la organización y del trabajo
+que se realiza	20	16
+Reconocimiento y compensación	24	24
+
+Ejemplo 1. Si un trabajador a quien se le aplicó la forma A obtuvo un puntaje bruto igual a 34 en la dimensión “re/aciones socia/es en e/ lrabajo”, su puntaje transformado sería de 60,7, el cual se obtiene de la siguiente forma:
+34
+X 100 = 60,7
+56
+
+Ejemplo 2. Si un participante a quien se le aplicó la forma B tuvo un puntaje bruto igual a 7 en la dimensión “demandas de /a jornada de lrabajo”, su puntaje transformado sería de 29,2, que resulta de la siguiente manera:
+7
+X 100 = 29,2
+24
+
+Los factores de transformación para cada una de los dominios del cuestionario de factores de riesgo psicosocial intralaboral (forma A y B) se encuentran en la Tabla 26.
+82
+Tabla 26. Factores de transformación para los dominios de las formas A y B.
+
+	Factores de transformación Forma A	Forma B
+Dominios	Liderazgo y relaciones sociales en el trabajo	164	120
+Control sobre el trabajo	84	72
+Demandas del trabajo	200	156
+Recompensas	44	40
+
+Ejemplo 3. Si un trabajador a quien se le aplicó la forma A obtuvo un puntaje bruto igual a 81 en el dominio “demandas de/ lrabajo”, su puntaje transformado sería de 40,5, que se halla según la siguiente operación:
+ 
+81
+200
+ 
+
+X 100 = 40,5
+ 
+Ejemplo 4. Si una persona a quien se le aplicó la forma B obtuvo un puntaje bruto igual a 17 en el dominio “conlro/ sobre e/ lrabajo”, su puntaje transformado sería de 23,6, que se da así:
+17
+X 100 = 23,6
+72
+
+Los factores de transformación para el total del cuestionario de factores de riesgo psicosocial intralaboral formas A y B se presenta en la Tabla 27.
+
+
+Tabla 27. Factores de transformación para el total del cuestionario de factores de riesgo psicosocial intralaboral formas A y B.
+
+	Factores de transformación Forma A	Forma B
+Puntaje total del cuestionario de factores de riesgo psicosocial intralaboral	492	388
+
+Ejemplo 5. Si un trabajador a quien se le aplicó la forma A obtuvo un puntaje bruto total igual a 278, su puntaje transformado sería de 56,5, el cual se halla del siguiente modo:
+278
+X 100 = 56,5
+492
+
+Los factores de transformación para el total de la evaluación general de factores de riesgo psicosocial, tanto cuando se aplica la forma A, como cuando se aplica la forma B se presentan en la Tabla 28.
+
+
+Tabla 28. Factores de transformación para el total de la evaluación general de factores de riesgo psicosocial, forma A y B
+83
+
+
+
+Ejemplo 6: Si a una persona a quien se le aplicó el cuestionario de factores de riesgo psicosocial intralaboral forma A y también se le aplicó el cuestionario de factores de riesgo psicosocial extralaboral obtuvo un puntaje bruto de la evaluación general de factores de riesgo psicosocial (sumatoria del puntaje total intralaboral y extralaboral) de 306, su puntaje transformado sería igual a 49,7, el cual se calcula así:
+
+ 
+306
+616
+ 
+
+X 100 = 49,7
+ 
+Paso 4. Comparación de los puntajes transformados con las tablas de baremos:
+
+EI paso siguiente consiste en comparar Ios puntajes transformados con Ias tabIas de baremos, que indicarán eI niveI de riesgo que representan Ias puntuaciones transformadas de Ias dimensiones, de Ios dominios y deI puntaje totaI.
+
+En Ias tabIas 29, 30, 31, 32 y 33 se presentan Ios baremos de Ias forma A y B para cada una de Ias dimensiones, dominios y para eI totaI deI cuestionario.
+
+
+Tabla 29. Baremos para las dimensiones de la forma A.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+84
+
+
+EjempIo 6. Retomando Ios resuItados deI ejempIo 1, eI puntaje transformado iguaI a 60,7 en Ia dimensión “re/aciones socia/es en e/ lrabajo” de Ia forma A, equivaIdría a un niveI de riesgo muy aIto en esta dimensión.
+ 
+Tabla 30. Baremos para las dimensiones de la forma B.
+
+	Sin riesgo o riesgo despreciable	
+Riesgo bajo	
+Riesgo medio	
+Riesgo alto	
+Riesgo muy alto
+Características del liderazgo	0,0 - 3,8	3,9 - 13,5	13,6 - 25,0	25,1 - 38,5	38,6 - 100
+Relaciones sociales en el trabajo	0,0 - 6,3	6,4 - 14,6	14,7 - 27,1	27,2 - 37,5	37,6 - 100
+Retroalimentación del desempeño	0,0 - 5,0	5,1 - 20,0	20,1 - 30,0	30,1 - 50,0	50,1 - 100
+Claridad de rol	0,0 - 0,9	1,0 - 5,0	5,1 - 15,0	15,1 - 30,0	30,1 - 100
+Capacitación	0,0 - 0,9	1,0 - 16,7	16,8 - 25,0	25,1 - 50,0	50,1 - 100
+Participación y manejo del cambio	0,0 - 16,7	16,8 - 33,3	33,4 - 41,7	41,8 - 58,3	58,4 - 100
+Oportunidades para el uso y desarrollo de habilidades y conocimientos	0,0 - 12,5	12,6 - 25,0	25,1 - 37,5	37,6 - 56,3	56,4 - 100
+Control y autonomía sobre el trabajo	0,0 - 33,3	33,4 - 50,0	50,1 - 66,7	66,8 - 75,0	75,1 - 100
+Demandas ambientales y de esfuerzo físico	0,0 - 22,9	23,0 - 31,3	31,4 - 39,6	39,7 - 47,9	48,0 - 100
+Demandas emocionales	0,0 - 19,4	19,5 - 27,8	27,9 - 38,9	39,0 - 47,2	47,3 - 100
+Demandas cuantitativas	0,0 - 16,7	16,8 - 33,3	33,4 - 41,7	41,8 - 50,0	50,1 - 100
+Influencia del trabajo sobre el entorno
+extralaboral	0,0 - 12,5	12,6 - 25,0	25,1 - 31,3	31,4 - 50,0	50,1 - 100
+Demandas de carga mental	0,0 - 50,0	50,1 - 65,0	65,1 - 75,0	75,1 - 85,0	85,1 - 100
+Demandas de la jornada de trabajo	0,0 - 25,0	25,1 - 37,5	37,6 - 45,8	45,9 - 58,3	58,4 - 100
+Recompensas derivadas de la pertenencia a la organización y del trabajo que se realiza	0,0 - 0,9	1,0 - 6,3	6,4 - 12,5	12,6 - 18,8	18,9 - 100
+Reconocimiento y compensación	0,0 - 0,9	1,0 - 12,5	12,6 - 25,0	25,1 - 37,5	37,6 - 100
+
+
+Tabla 31. Baremos para los dominios de la forma A.
+
+
+
+
+
+
+
+85
+
+Tabla 32. Baremos para los dominios de la forma B.
+
+	Sin riesgo o riesgo despreciable	
+Riesgo bajo	
+Riesgo medio	
+Riesgo alto	
+Riesgo muy alto
+Liderazgo y relaciones sociales en el trabajo	0,0 - 8,3	8,4 - 17,5	17,6 - 26,7	26,8 - 38,3	38,4 - 100
+Control sobre el trabajo	0,0 - 19,4	19,5 - 26,4	26,5 - 34,7	34,8 - 43,1	43,2 - 100
+Demandas del trabajo	0,0 - 26,9	27,0 - 33,3	33,4 - 37,8	37,9 - 44,2	44,3 - 100
+Recompensas	0,0 - 2,5	2,6 - 10,0	10,1 - 17,5	17,6 - 27,5	27,6 - 100
+ 
+Ejemplo 7. Según los datos del ejemplo 4, el puntaje transformado igual a 23,6 en el dominio
+“conlro/ sobre e/ lrabajo” de la forma B, equivaldría a un nivel de riesgo bajo para este dominio.
+
+
+Tabla 33. Baremos para el puntaje total del cuestionario de factores de riesgo psicosocial intralaboral (formas A y B).
+
+	Sin riesgo o riesgo despreciable	Riesgo bajo	Riesgo medio	Riesgo alto	Riesgo muy alto
+Forma A	0,0 - 19,7	19,8 - 25,8	25,9 - 31,5	31,6 - 38,0	38,1 - 100
+Forma B	0,0 - 20,6	20,7 - 26,0	26,1 - 31,2	31,3 - 38,7	38,8 - 100
+
+
+Como ya se ha dicho, en caso de que a un mismo trabajador se apliquen los cuestionarios de factores de riesgo psicosocial intralaboral y extralaboral será posible calcular un puntaje total general de la evaluación de factores de riesgo psicosocial, cuyos baremos, tanto cuando se aplica la forma A, como cuando se aplica la forma B se presentan en la Tabla 34.
+
+
+Tabla 34. Baremos para el puntaje total general de factores de riesgo psicosocial
+(formas A y B).
+
+
+
+
+
+
+
+
+
+
+
+86
+
+Ejemplo 8. Con base en los resultados del ejemplo 6, si una persona a quien se le aplicaron los cuestionarios de factores de riesgo psicosocial intralaboral – forma Ay el cuestionario extralaboral obtiene un puntaje transformado igual a 49,7, este indicaría un nivel de riesgo muy alto para el total general de factores de riesgo psicosocial.
+
+
+Paso 5. Interpretación del nivel de riesgo:
+
+Comparados los puntajes transformados con los baremos que les correspondan, según si se trata de una dimensión, un dominio o el puntaje total del cuestionario, se podrá identificar el nivel de riesgo psicosocial intralaboral que representan.
+ 
+Cada uno de los posibles niveles de riesgo tiene interpretaciones particulares que se reseñan a continuación:
+
+•	Sin riesgo o riesgo despreciab/e: ausencia de riesgo o riesgo tan bajo que no amerita desarrollar actividades de intervención. Las dimensiones y dominios que se encuentren bajo esta categoría serán objeto de acciones o programas de promoción.
+•	Riesgo bajo: no se espera que los factores psicosociales que obtengan puntuaciones de este nivel estén relacionados con síntomas o respuestas de estrés significativas. Las dimensiones y dominios que se encuentren bajo esta categoría serán objeto de acciones o programas de intervención, a fin de mantenerlos en los niveles de riesgo más bajos posibles.
+•	Riesgo medio: nivel de riesgo en el que se esperaría una respuesta de estrés moderada. Las dimensiones y dominios que se encuentren bajo esta categoría ameritan observación y acciones sistemáticas de intervención para prevenir efectos perjudiciales en la salud.
+•	Riesgo a/lo: nivel de riesgo que tiene una importante posibilidad de asociación con respuestas de estrés alto y por tanto, las dimensiones y dominios que se encuentren bajo esta categoría requieren intervención en el marco de un sistema de vigilancia epidemiológica.
+•	Riesgo muy alto: nivel de riesgo con amplia posibilidad de asociarse a respuestas muy altas de estrés. Por consiguiente las dimensiones y dominios que se encuentren bajo esta categoría requieren intervención inmediata en el marco de un sistema de vigilancia epidemiológica.
+
+En los Anexos 4 y 5 se presentan los formatos modelo para presentar un informe de los resultados individuales de la aplicación del cuestionario de factores de riesgo psicosocial intralaboral (formas A y B).
+
+
+REFERENCIAS
+
+Barraza Macías, A. Apuntes sobre metodología de la investigación. Confiabilidad. En: Investigación educativa. No. 6. 2007. Universidad Pedagógica de Durango. Disponible: www.dialnet.unirioja.es
+
+Colombia. Ministerio de Trabajo y Seguridad Social. Programa de vigilancia epidemiológica de factores de riesgo psicosocial. Elaborado por Villalobos Fajardo, G.H. Bogotá. 1996. 174 p.
+
+Colombia. Ministerio de la Protección Social. Resolución 2646 de julio 17 de 2008. 10 p.
+
+Villalobos Fajardo, G. Diseño de un sistema de vigilancia epidemiológica de factores de riesgo psicosocial en el trabajo. Tesis doctoral para la obtención del grado científico de Doctor en Ciencias de la Salud. 2005. Escuela Nacional de Salud Pública- La Habana Cuba.
+
+Ware, J.E., y cols. User's Manual for the SF-36v2® Health Survey. 2 ed. Lincoln, R.I. Quality Metric Incorporated. 2007.

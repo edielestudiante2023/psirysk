@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejemplo: Gráfico de Velocímetro con Baremos - PsyRisk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        body {
+            background: #f5f5f5;
+            padding: 2rem;
+        }
+        .gauge-container {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .gauge-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .gauge-score {
+            text-align: center;
+            margin-top: -60px;
+            margin-bottom: 1rem;
+        }
+        .gauge-score-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: white;
+            padding: 0.3rem 1rem;
+            border-radius: 5px;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .gauge-label {
+            background: black;
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+        .baremos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .baremo-card {
+            border: 2px solid;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .baremo-card.sin-riesgo {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .baremo-card.riesgo-bajo {
+            border-color: #90ee90;
+            background-color: #e8f8e8;
+        }
+        .baremo-card.riesgo-medio {
+            border-color: #ffc107;
+            background-color: #fff9e6;
+        }
+        .baremo-card.riesgo-alto {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+        .baremo-card.riesgo-muy-alto {
+            border-color: #8b0000;
+            background-color: #ffe0e0;
+        }
+        .baremo-header {
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .baremo-values {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+        .baremo-badge {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            color: white;
+        }
+        .baremo-badge.sin-riesgo { background-color: #28a745; }
+        .baremo-badge.riesgo-bajo { background-color: #90ee90; color: #333; }
+        .baremo-badge.riesgo-medio { background-color: #ffc107; color: #333; }
+        .baremo-badge.riesgo-alto { background-color: #dc3545; }
+        .baremo-badge.riesgo-muy-alto { background-color: #8b0000; }
+        .baremo-label {
+            flex: 1;
+            font-size: 0.85rem;
+            text-align: left;
+            padding-left: 0.5rem;
+        }
+        .needle {
+            position: absolute;
+            width: 4px;
+            height: 80px;
+            background: black;
+            transform-origin: bottom center;
+            bottom: 50%;
+            left: 50%;
+            margin-left: -2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center mb-4">Ejemplo: Gráficos de Velocímetro con Baremos</h2>
+        <p class="text-center text-muted mb-4">Similares a los de la imagen proporcionada</p>
+
+        <!-- Ejemplo 1: Liderazgo y relaciones sociales en el trabajo -->
+        <div class="gauge-container">
+            <div class="gauge-title">Liderazgo y relaciones sociales en el trabajo</div>
+            <div style="position: relative; height: 250px; margin-bottom: 1rem;">
+                <canvas id="gaugeChart1"></canvas>
+            </div>
+            <div class="gauge-score">
+                <div class="gauge-score-value">12.5</div>
+                <div class="gauge-label">Puntaje Obtenido</div>
+            </div>
+
+            <!-- Baremos -->
+            <div class="baremos-grid">
+                <div class="baremo-card sin-riesgo">
+                    <div class="baremo-header">1-Sin Riesgo o Riesgo<br>Despreciable</div>
+                    <div class="baremo-values">
+                        <div class="baremo-badge sin-riesgo">0</div>
+                        <div class="baremo-label">0.0 - 9.1</div>
+                    </div>
+                </div>
+                <div class="baremo-card riesgo-bajo">
+                    <div class="baremo-header">2-Riesgo Bajo</div>
+                    <div class="baremo-values">
+                        <div class="baremo-badge riesgo-bajo">9.2</div>
+                        <div class="baremo-label">9.2 - 17.7</div>
+                    </div>
+                </div>
+                <div class="baremo-card riesgo-medio">
+                    <div class="baremo-header">3-Riesgo Medio</div>
+                    <div class="baremo-values">
+                        <div class="baremo-badge riesgo-medio">17.8</div>
+                        <div class="baremo-label">17.8 - 25.6</div>
+                    </div>
+                </div>
+                <div class="baremo-card riesgo-alto">
+                    <div class="baremo-header">4-Riesgo Alto</div>
+                    <div class="baremo-values">
+                        <div class="baremo-badge riesgo-alto">25.7</div>
+                        <div class="baremo-label">25.7 - 34.8</div>
+                    </div>
+                </div>
+                <div class="baremo-card riesgo-muy-alto">
+                    <div class="baremo-header">5-Riesgo Muy Alto</div>
+                    <div class="baremo-values">
+                        <div class="baremo-badge riesgo-muy-alto">34.9</div>
+                        <div class="baremo-label">34.9 - 100</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ejemplo 2: Control sobre el trabajo -->
+        <div class="gauge-container">
+            <div class="gauge-title">Control sobre el trabajo</div>
+            <div style="position: relative; height: 250px; margin-bottom: 1rem;">
+                <canvas id="gaugeChart2"></canvas>
+            </div>
+            <div class="gauge-score">
+                <div class="gauge-score-value">38.5</div>
+                <div class="gauge-label">Puntaje Obtenido</div>
+            </div>
+
+            <!-- Baremos -->
+            <div class="baremos-grid">
+                <div class="baremo-card sin-riesgo">
+                    <div class="baremo-header">1-Sin Riesgo o Riesgo<br>Despreciable</div>
+                    <div class="baremo-values">
+                        <div class="baremo-badge sin-riesgo">0</div>
+                        <div class="baremo-label">0.0 - 15.3</div>
+                    </div>
+                </div>
+                <div class="baremo-card riesgo-bajo">
+                    <div class="baremo-header">2-Riesgo Bajo</div>
+                    <div class="baremo-values">
+                        <div class="baremo-badge riesgo-bajo">15.4</div>
+                        <div class="baremo-label">15.4 - 30.6</div>
+                    </div>
+                </div>
+                <div class="baremo-card riesgo-medio">
+                    <div class="baremo-header">3-Riesgo Medio</div>
+                    <div class="baremo-values">
+                        <div class="baremo-badge riesgo-medio">30.7</div>
+                        <div class="baremo-label">30.7 - 45.9</div>
+                    </div>
+                </div>
+                <div class="baremo-card riesgo-alto">
+                    <div class="baremo-header">4-Riesgo Alto</div>
+                    <div class="baremo-values">
+                        <div class="baremo-badge riesgo-alto">46.0</div>
+                        <div class="baremo-label">46.0 - 69.0</div>
+                    </div>
+                </div>
+                <div class="baremo-card riesgo-muy-alto">
+                    <div class="baremo-header">5-Riesgo Muy Alto</div>
+                    <div class="baremo-values">
+                        <div class="baremo-badge riesgo-muy-alto">69.1</div>
+                        <div class="baremo-label">69.1 - 100</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instrucciones de uso -->
+        <div class="alert alert-info mt-4">
+            <h5><i class="fas fa-info-circle"></i> Cómo usar este código:</h5>
+            <ol>
+                <li>Este ejemplo usa <strong>Chart.js 4.x</strong> (ya incluido en tu proyecto)</li>
+                <li>Puedes ajustar los colores, rangos y valores según tus baremos específicos</li>
+                <li>La aguja negra se puede añadir con CSS/SVG para apuntar al puntaje obtenido</li>
+                <li>Los baremos se adaptan automáticamente con CSS Grid responsive</li>
+                <li>Para integrarlo en tus vistas PHP, simplemente copia el HTML y JavaScript necesario</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Plugin para dibujar la aguja
+        const needlePlugin = {
+            id: 'needlePlugin',
+            afterDatasetsDraw(chart, args, options) {
+                const { ctx, chartArea: { width, height, top, left } } = chart;
+                const cx = left + width / 2;
+                const cy = top + height;
+                const score = options.score;
+                const baremos = options.baremos;
+
+                // Calcular el ángulo basado en el puntaje (0-100 mapeado a -90° a 90°)
+                const angle = ((score / 100) * 180 - 90) * (Math.PI / 180);
+
+                // Dibujar la aguja
+                const needleLength = height * 0.85;
+                const needleWidth = 4;
+
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(angle);
+
+                // Aguja
+                ctx.beginPath();
+                ctx.moveTo(0, -needleWidth / 2);
+                ctx.lineTo(needleLength, 0);
+                ctx.lineTo(0, needleWidth / 2);
+                ctx.fillStyle = '#000';
+                ctx.fill();
+
+                ctx.restore();
+
+                // Centro de la aguja (círculo)
+                ctx.beginPath();
+                ctx.arc(cx, cy, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = '#000';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        };
+
+        // Función para crear gráfico de velocímetro
+        function createGaugeChart(canvasId, score, baremos) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+
+            // Calcular los tamaños de cada segmento proporcionalmente
+            const total = 100;
+            const segments = [
+                baremos.sin_riesgo[1] - baremos.sin_riesgo[0],
+                baremos.riesgo_bajo[1] - baremos.riesgo_bajo[0],
+                baremos.riesgo_medio[1] - baremos.riesgo_medio[0],
+                baremos.riesgo_alto[1] - baremos.riesgo_alto[0],
+                baremos.riesgo_muy_alto[1] - baremos.riesgo_muy_alto[0]
+            ];
+
+            // Configuración de datos
+            const data = {
+                datasets: [{
+                    data: [...segments, total], // Añadir la mitad invisible
+                    backgroundColor: [
+                        '#28a745', // Verde - Sin riesgo
+                        '#90ee90', // Verde claro - Riesgo bajo
+                        '#FFFF00', // Amarillo - Riesgo medio
+                        '#dc3545', // Rojo - Riesgo alto
+                        '#8b0000', // Rojo oscuro - Riesgo muy alto
+                        'transparent' // Espacio vacío (mitad inferior)
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff',
+                    circumference: 180,
+                    rotation: 270,
+                }]
+            };
+
+            // Configuración del gráfico
+            const config = {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        },
+                        needlePlugin: {
+                            score: score,
+                            baremos: baremos
+                        }
+                    },
+                    cutout: '70%'
+                },
+                plugins: [needlePlugin]
+            };
+
+            // Crear gráfico
+            const chart = new Chart(ctx, config);
+            return chart;
+        }
+
+        // Ejemplo 1: Liderazgo y relaciones sociales en el trabajo (Tabla 31 - Dominios Forma A)
+        const baremos1 = {
+            sin_riesgo: [0.0, 9.1],
+            riesgo_bajo: [9.2, 17.7],
+            riesgo_medio: [17.8, 25.6],
+            riesgo_alto: [25.7, 34.8],
+            riesgo_muy_alto: [34.9, 100.0]
+        };
+        createGaugeChart('gaugeChart1', 12.5, baremos1);
+
+        // Ejemplo 2: Otro dominio de ejemplo
+        const baremos2 = {
+            sin_riesgo: [0.0, 15.3],
+            riesgo_bajo: [15.4, 30.6],
+            riesgo_medio: [30.7, 45.9],
+            riesgo_alto: [46.0, 69.0],
+            riesgo_muy_alto: [69.1, 100.0]
+        };
+        createGaugeChart('gaugeChart2', 38.5, baremos2);
+    </script>
+</body>
+</html>

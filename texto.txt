@@ -1,0 +1,986 @@
+
+
+EVALUACIÓN DE FACTORES DE RIESGO PSICOSOCIAL
+
+
+NOMBRE DE LA EMPRESA
+
+
+
+IRS VIAL S.A.S
+
+
+
+ASESORADO POR
+
+EDISON E. CUERVO S.
+Psicólogo, Administrador de empresas, Esp. Seguridad y Salud en el Trabajo, Esp. Gerencia de Proyectos
+
+
+
+INFORME INTERACTIVO
+
+https://n9.cl/informe_interactivo_iris
+
+
+Bogotá D.C., octubre de 2025
+
+Contenido
+Introducción	4
+Marco Conceptual	4
+Condiciones Intralaborales:	5
+Condiciones Extralaborales:	6
+Condiciones Individuales:	6
+Marco Legal	7
+Objetivos	8
+Objetivo General	8
+Objetivos Específicos	8
+Metodología	9
+Instrumentos	9
+Procedimiento	9
+Resultados	10
+Conclusión Total De Aplicación Batería De Riesgo Psicosocial	11
+Conclusión Del Profesional	11
+Variables Sociodemográficas	12
+Resultados Ocupacionales	13
+Riesgo Psicosocial IRS VIAL S.A.S	14
+Factores De Riesgo Psicosocial General	17
+Riesgo Psicosocial Intralaboral	18
+Dominio Liderazgo Y Relaciones Sociales En El Trabajo	19
+Dimensión Características Del Liderazgo	20
+Dimensión Relaciones Sociales En El Trabajo	21
+Dimensión Retroalimentación Del Desempeño	22
+Dimensión Relación Con Los Colaboradores (Subordinados)	23
+Dominio Control Sobre El Trabajo	24
+Dimensión Claridad Del Rol	25
+Dimensión Capacitación	26
+Dimensión Participación Y Manejo Del Cambio	27
+Dimensión Oportunidades Para El Uso Y Desarrollo De Habilidades Y Conocimientos	28
+Dimensión Control Y Autonomía Sobre El Trabajo	29
+Dominio Demandas Del Trabajo	30
+Dimensión Demandas Ambientales Y De Esfuerzo Físico	31
+Dimensión Demandas Emocionales	32
+Dimensión Demandas Cuantitativas	33
+Dimensión Influencia Del Trabajo Sobre El Entorno Extralaboral	34
+Dimensión Exigencias De Responsabilidad Del Cargo	35
+Dimensión Demanda De Carga Mental	36
+Dimensión Consistencia Del Rol	37
+Dimensión Demandas De La Jornada De Trabajo	38
+Dominio Recompensas	39
+Dimensión Recompensas Derivadas De La Pertenencia A La Organización Y Del Trabajo Que Se Realiza	40
+Dimensión Reconocimiento Y Compensación	41
+Riesgo Psicosocial Extralaboral	42
+Dimensión Tiempo Fuera Del Trabajo	43
+Dimensión Relaciones Familiares	44
+Dimensión Comunicación Y Relaciones Interpersonales	45
+Dimensión Situación Económica Del Grupo Familiar	46
+Dimensión Características De La Vivienda Y De Su Entorno	47
+Dimensión Influencia Del Entorno Extralaboral En El Trabajo	48
+Dimensión Desplazamiento Vivienda – Trabajo – Vivienda	49
+Nivel De Estrés	50
+Recomendaciones Y Propuesta De Intervención	51
+
+
+
+
+ 
+Introducción
+
+Este informe tiene como finalidad identificar y evaluar los factores de riesgo psicosocial en los colaboradores de la empresa IRS VIAL S.A.S; en la ciudad de Bogotá D.C, en donde (22) personas han dado respuesta a la Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial avalada por el Ministerio de Trabajo de Colombia junto al Auto reporte de síntomas de estrés las cuales están evalúan alteraciones asociadas a condiciones estresantes del trabajo. Se dividieron en 20 personas para Forma A y 2 Personas para forma B. 
+Lo anterior es una acción de cumplimiento frente a la Resolución 2646 de julio de 2008 declarada por el Ministerio de la Protección Social de Colombia y ante la reciente Resolución 2764 de 2022 emitida por el Ministerio de Trabajo de Colombia, reglamentan las responsabilidades empresariales en cuanto a la identificación, evaluación, prevención, intervención y control permanente a la exposición de los factores de riesgo psicosocial y; estudio y determinación de origen de las patologías presuntamente causadas por estrés ocupacional. 
+De acuerdo con el Ministerio de Trabajo Partiendo definió el estrés ocupacional como: 
+“el conjunto de reacciones de carácter psicológico (mentales, emocionales y de comportamiento), que se producen cuando la persona debe enfrentar a demandas derivadas de su interacción con las condiciones de un entorno laboral, entendidas como factores de riesgo psicosocial, ante las cuales su capacidad de afrontamiento es insuficiente, causando una alteración en su bienestar físico, mental y emocional”. 
+En este orden de ideas, la empresa IRS VIAL S.A.S, aprovecha este ejercicio diagnóstico para ejecutar una intervención eficiente y oportuna, por medio de la implementación de un Sistema de Vigilancia para el control del estrés y de los factores de riesgo psicosociales, en aras de crear una cultura de salud y seguridad en todos sus colaboradores.
+Marco Conceptual
+Los factores psicosociales se encuentran definidos como todas aquellas condiciones del trabajo, del entorno, o de la persona, que en una interrelación dinámica generan percepciones y experiencias, que influyen negativamente en su salud y en desempeño laboral de las personas (Ministerio de Trabajo, 2014). Dichas se determinan y comprenden a través de tres tipos de condiciones: 
+1) Intralaborales
+2) Extralaborales
+3) Individuales
+El Ministerio de Protección Social en 2010, actualmente el Ministerio de Trabajo en convenio con la Pontificia Universidad Javeriana diseño una Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial que permiten la valoración de los factores psicosociales para las empresas públicas y privadas en Colombia y evaluando las siguientes condiciones: 
+Condiciones Intralaborales:
+
+Se entienden como aquellas características del trabajo y de su organización que influyen en la salud y bienestar de los colaboradores; el modelo en el que se basa la batería retoma elementos de los modelos de demanda-control-apoyo social del Karasek, Theorell (1990) y Jonhson, del modelo de desequilibrio esfuerzo-recompensa de Siegrist (1996 y 2008) y del modelo dinámico de los factores de riesgo psicosocial de Villalobos (2005) (Ministerio de Protección Social, 2010). Para esta condición el instrumento establece cuatro dominios que cada uno agrupa un conjunto dimensiones que actúan como posibles fuentes de riesgo permitiendo su identificación y valoración Véase Tabla siguiente. Los dominios que corresponden al factor intralaboral son:
+ 
+1. Demandas del trabajo: Se refieren a las exigencias que el trabajo impone al colaborador, éstas pueden ser de diversa naturaleza, como cognitivas o mentales, emocionales, de responsabilidad, del ambiente laboral y de jornada de trabajo. 
+2. Control sobre el trabajo: Posibilidad que el trabajo ofrece al colaborador para influir y tomar decisiones sobre los diversos aspectos que intervienen en su realización. La iniciativa y autonomía; el uso y desarrollo de habilidades y conocimientos; la participación y manejo del cambio; la claridad del rol y; la capacitación son algunos de estos aspectos. 
+3. Liderazgo y relaciones sociales en el trabajo: Por un lado, el liderazgo alude a un tipo particular de relación social que se establece entre los superiores jerárquicos y sus colaboradores y cuyas características influyen en la forma de trabajar y en el ambiente de relaciones de un área. Por otro lado, el concepto de relaciones sociales en el trabajo indica la interacción que se establece con otras personas en el contexto laboral y abarca aspectos funcionales de las interacciones tales como la retroalimentación del desempeño, el trabajo en equipo, el apoyo social y los aspectos emocionales, como la cohesión.
+4. Recompensas: Este término trata de la retribución que el colaborador obtiene a cambio de sus contribuciones o esfuerzos laborales. Este dominio comprende diversos tipos de retribución: a) la financiera o compensación económica; b) de estima o compensación psicológica, la cual comprende el reconocimiento del grupo social y el trato justo en el trabajo y de posibilidades de promoción y seguridad en el trabajo. Otras formas de retribución que se consideran en este dominio comprenden las posibilidades de educación, la satisfacción y la identificación con el trabajo y con la organización. 
+
+Condiciones Extralaborales:
+
+Comprenden todos aquellos aspectos del entorno familiar, social y económico del colaborador. A su vez abarcan las condiciones del lugar de vivienda, que pueden influir en la salud y bienestar de las personas.
+ 
+Condiciones Individuales:
+
+Aluden una serie de características sociodemográficas de cada colaborador como lo son el sexo, la edad, el estado civil, el nivel educativo, la profesión u oficio, el lugar de residencia, el estrato socioeconómico, el tipo de vivienda y el número de dependientes. Estas características sociodemográficas pueden modular la percepción y el efecto de los factores de riesgo Intralaborales y Extralaborales. Al igual que las características sociodemográficas, existen otros aspectos ocupacionales de los colaboradores que también pueden modular los factores psicosociales tales como la antigüedad en la empresa, el cargo, el tipo de contratación y la modalidad de pago, entre otras, las cuales se indagan con los instrumentos de la batería para la evaluación de los factores psicosociales.
+
+
+
+Marco Legal
+
+A continuación, se relaciona algunas normatividades aplicables para la valoración en salud y factores de riesgo psicosocial en entornos laborales colombianos: 
+•	Decreto 614 de 1984 en el literal c del artículo 2 señala como objeto de la salud ocupacional, proteger a la persona contra los riesgos relacionados con agentes físicos, químicos, biológicos, psicosociales, mecánicos, eléctricos y otros derivados de la organización laboral que puedan afectar la salud individual y colectiva en los lugares de trabajo. 
+•	Resoluciones 1016 de 1989 y 1075 de 1992 se emite que los empleadores públicos y privados, incluirán dentro de las actividades del subprograma de medicina preventiva, campañas específicas tendientes a fomentar la prevención y el control sustancias psicoactivas, alcoholismo y tabaquismo en sus colaboradores. Y en el numeral 12 del artículo 10, una de las actividades del mismo subprograma es diseñar y ejecutar actividades orientadas a la prevención y control de enfermedades generadas por los riesgos psicosociales.
+•	Ley 1010 de 2006 por medio de la cual se adoptan medidas para prevenir el acoso laboral y otros hostigamientos en el marco de las relaciones de trabajo. 
+•	Resolución 2646 de 2008 por la cual se establecen las disposiciones y se definen responsabilidades para la identificación, evaluación, prevención, intervención y monitoreo permanente de la exposición a factores de riesgo psicosocial en el trabajo y para la determinación del origen de las patologías causadas por el estrés ocupacional. 
+•	Resolución 652 de 2012 en donde se establece la exigencia de la conformación y funcionamiento del Comité de Convivencia Laboral, el cual pretende prevenir la aparición de acoso laboral el cual se encuentra claramente definido en la Ley 1010 de 2006. Que el artículo 3 de la resolución 2646 del 2008, se establecen las disposiciones y se definen responsabilidades para la identificación, evaluación, prevención, intervención y monitoreo permanente de la exposición a factores de riesgo psicosocial en el trabajo y para la determinación del origen de las patologías causadas por el estrés ocupacional y, adopta la definición de Acoso Laboral así: 
+
+“es toda conducta persistente y demostrable, ejercida sobre un empleado, trabajador por parte de un empleador, un jefe o superior jerárquico inmediato o mediato, un compañero de trabajo o un subalterno, encaminada a infundir miedo, intimidación, terror y angustia, a causar perjuicio laboral, generar desmotivación en el trabajo, o inducir la renuncia del mismo, conforme lo establece la Ley 1010 de 2006. (…)”. 
+
+•	Decreto 472 de 2015 por el cual se reglamenta los criterios de graduación de las multas por infracción a las normas de Seguridad y Salud en el Trabajo y Riesgos Laborales, se señalan normas para la aplicación de la orden de clausura del lugar o cierre definitivo de la empresa y paralización o prohibición inmediata de trabajos o tareas y se dictan otras disposiciones: 
+
+o	Parágrafo 1: las empresas en las cuales se ha identificado un nivel de riesgo medio o bajo deben realizar acciones preventivas y correctivas, y una vez implementadas, realizar la evaluación correspondiente como mínimo cada dos años, para hacer seguimiento a los factores de riesgo y contar con información actualizada. 
+
+o	Parágrafo 2: el informe de accidente de trabajo o enfermedad laboral se considera una prueba, entre otras, para la determinación del origen por parte de las instancias establecidas por ley. En ningún caso reemplaza el procedimiento establecido para tal determinación ni es requisito para el pago de prestaciones asistenciales o económicas al colaborador, pero una vez radicado en la administradora de riesgos laborales da inicio la asignación de la reserva correspondiente. 
+
+•	Resolución 2764 de 2022 tiene por objeto adoptar como referentes técnicos mínimos obligatorios para la identificación, evaluación, monitoreo permanente e intervención de los factores de riesgo psicosocial, de los Instrumentos de Evaluación y Guías de Intervención dispuestos por el ministerio de trabajo. Esta misma resolución en su artículo 3 decreta que la evaluación de los factores de riesgo psicosocial debe realizarse de forma periódica, de acuerdo con el nivel de riesgo de las empresas. 
+o	Parágrafo 1: las empresas en las cuales se ha identificado un nivel de factores psicosociales nocivos evaluados como de alto riesgo o que están causando efectos negativos en la salud, en el bienestar o en el trabajo, deben realizar la evaluación de forma anual, enmarcado dentro del sistema de vigilancia epidemiológica de factores de riesgo psicosociales.
+Objetivos
+ Objetivo General 
+•	Identificar los factores de riesgo psicosocial en la empresa IRS VIAL S.A.S, a través de la Batería de Instrumentos para la Evaluación de Factores de Riesgo Psicosocial avalada por el Ministerio de Trabajo de Colombia en las resoluciones 2646 de 2008 y 2764 de 2022 con el fin establecer acciones que disminuyan los riesgos que puedan estar afectando a sus colaboradores.
+Objetivos Específicos 
+•	Realizar la caracterización sociodemográfica de los colaboradores de manera individual. 
+•	Identificar y evaluar las condiciones de riesgo intralaboral, extralaboral y efectos del estrés percibidos por los colaboradores. 
+•	Generar recomendaciones que permitan la intervención y el mejoramiento de las condiciones de trabajo previniendo y/o aminorando el riesgo de alteraciones físicas, sociales, intelectuales y emocionales de los colaboradores en su lugar de trabajo. 
+
+Metodología
+
+Instrumentos 
+Se presenta a continuación los cuestionarios que se usaron en este ejercicio diagnóstico avalados por el Ministerio de Trabajo y elaborados por la Pontificia Universidad Javeriana descritos en la Tabla instrumento - objetivo, con el acompañamiento permanente de un profesional en Psicología, Especialista en Gestión de la Seguridad y Salud en el Trabajo, con licencia vigente. 
+
+Instrumento	Objetivo
+Factores de riesgo Intralaboral (Forma A y B)		Objetivo: identificar los factores de riesgo psicosocial intralaboral y su nivel de riesgo
+	Tipo de instrumento: cuestionario que recopila información subjetiva del colaborador que lo responde
+	Duración de la aplicación: entre 28 a 33 minutos
+	Forma A: orientado a personas que ocupan cargos de jefatura, profesionales y técnicos
+	Forma B: orientado a personas que ocupan cargos dentro de los grupos auxiliares y operarios
+Cuestionario de Factores Psicosociales Extralaborales		Objetivo: identificar los factores de riesgo psicosocial extralaboral y sus niveles de riesgo
+	Tipo de instrumento: cuestionario que recopila información subjetiva del colaborador
+	Duración de la aplicación: 7 minutos
+Cuestionario para la evaluación del estrés		Objetivos: identificar los síntomas fisiológicos, de comportamiento social y laboral, intelectuales y psicoemocionales del estrés
+	Tipo de instrumento: cuestionario que recopila información subjetiva del trabajador que lo responde
+	Duración: 7 minutos
+Ficha de datos generales		Objetivo: caracterización de la población de acuerdo con:
+	Información sociodemográfica: sexo, edad, estado civil, escolaridad, lugar de residencia, estrato socioeconómico, tipo vivienda y número personas a cargo
+	Información ocupacional: lugar de trabajo, antigüedad, tipo cargo, departamento, sección o área donde trabaja, tipo de contrato, horas diarias de trabajo y modalidad de pago.
+Procedimiento 
+	Para iniciar el proceso de valoración del riesgo psicosocial se solicitó: 
+	Una entrevista con el responsable del Sistema de Gestión de Seguridad y Salud en el Trabajo, para conocer el alcance y planificación de la intervención. 
+	Se definió el plan de intervención y definición de fechas de toma de la encuesta, así mismo el plan de socialización y capacitación de: 
+a. ¿Qué es el riesgo psicosocial? 
+b. Normatividad legal Riesgo psicosocial 
+c. Objetivo y metodología de la aplicación.
+	Se solicitó por medio de un consentimiento informado, la autorización de los colaboradores para el procedimiento de evaluación del riesgo psicosocial y cumplimiento con lo establecido en la Ley 1090. 
+Posterior a la aplicación, se registra los resultados a un sistema de información y se realiza un análisis generando una calificación de riesgo de acuerdo con la Tabla de niveles de riesgo, con esto se aprovechará los hallazgos para definir recomendaciones generales y específicas asociadas al control del riesgo psicosocial en la organización.
+
+Nivel de riesgo	Descripción
+Sin riesgo	Ausencia de riesgo o riesgo tan bajo que no amerita desarrollar actividades de
+Intervención
+Riesgo bajo	No se espera que los factores psicosociales que obtengan puntuaciones de este nivel estén relacionados con síntomas o respuestas significativas
+
+Riesgo medio	Se esperaría una respuesta de estrés moderada. Las dimensiones y dominios que se
+encuentren bajo esta categoría ameritan observación y acciones de intervención preventivas
+
+Riesgo alto	Tiene una importante posibilidad de asociación con respuestas de estrés alto y por tanto las dimensiones y dominios que se encuentren bajo esta categoría requieren intervención en el marco de un sistema de vigilancia epidemiológica
+
+Riesgo muy alto	Tiene una amplia posibilidad de asociarse a respuestas muy altas de estrés. Por consiguiente, las dimensiones y dominios que se encuentren bajo esta categoría requieren intervención inmediata en el marco de un sistema de vigilancia
+Epidemiológica
+Resultados
+Se contó con la participación de 22 personas vinculadas a IRS VIAL S.A.S, de los cuales 20 personas son equivalentes al 90,91% con el cuestionario intralaboral Tipo A y 2 personas fueron evaluados con el formato intralaboral Tipo B, equivalente al 9,09%. Al mismo tiempo, el 100% de los participantes diligenciaron el Cuestionario de evaluación riesgo psicosocial Intralaboral, extralaboral, el cuestionario de estrés y la ficha de datos generales; así como el consentimiento informado. 
+Los resultados obtenidos se presentan en el siguiente orden: 
+1)	Resultados de las condiciones individuales – Información sociodemográfica y ocupacional.
+2)	Resultados de la evaluación de factores de riesgo psicosocial (intralaboral, extralaboral).
+3)	Resultados de la evaluación de estrés ocupacional. 
+
+Resultados de las condiciones individuales - Información sociodemográfica y ocupacional 
+Estas hacen referencia a algunas características propias del colaborador como sexo, edad, estado civil, nivel educativo, escala socioeconómica, tipo de personas, véase la Tabla de variables sociodemográficas, y algunos aspectos ocupacionales como antigüedad de la empresa, el cargo, tipo de contratación y modalidad de pago, véase Tabla de resultados ocupacionales.
+
+Conclusión Total De Aplicación Batería De Riesgo Psicosocial
+
+Los dominios principales de la batería de riesgo psicosocial como sus respectivas dimensiones son calificadas a partir de la interpretación del mayor puntaje obtenido, siendo este el factor determinante para establecer el panorama de riesgo psicosocial. Los resultados obtenidos del nivel de riesgo psicosocial a nivel general en IRS VIAL S.A.S Se clasifican en Riesgo Bajo (Cuestionario Tipo A = Calificación de 20,39 catalogado como Riesgo Bajo / cuestionario Tipo B con una calificación de 12,79 catalogado como Sin Riesgo). Las dimensiones y dominios que se encuentren bajo esta categoría serán objeto de acciones o programas de intervención, a fin de mantenerlos en los niveles de riesgo más bajos posibles. De acuerdo con el artículo 3 de la resolución 2764 del 2022, el periodo de la próxima medición se establece de acuerdo con el puntaje de la dimensión principal intralaboral observado anteriormente. Asimismo, se debe realizar una nueva medición en un plazo máximo de dos años.
+
+
+Conclusión Del Profesional
+
+El entorno de análisis de la batería de riesgo psicosocial consta de tres dimensiones principales las cuales constantemente interactúan entre sí; Al observar la perspectiva global se denota el nivel de Riesgo Alto en la dimensión principal de estrés (Cuestionario Tipo A = Calificación de 18,75 catalogado como Riesgo Alto Cuestionario Tipo B = Calificación de 12,78 catalogado como Riesgo Medio) Se sugiere proceder mediante la Acción Inmediata del Programa de vigilancia epidemiológico: Concentración elevada de niveles de estrés sobre este grupo poblacional, Diseño de Programas De Vigilancia Epidemiológica En Riesgo Psicosocial. El factor de riesgo causa, o podría causar, alteraciones serias en la salud del trabajador, aumentando en consecuencia el número de incapacidades laborales. Se sugiere realizar una nueva medición dentro de un año en función de llevar a cabo un correcto seguimiento de efectividad en la dimensión estrés.
+
+
+
+Variables Sociodemográficas
+
+El 54.55% de los empleados son hombres y el 45.45% restante corresponde a mujeres, siendo acorde a la actividad económica.	 
+
+La composición por edades en los colaboradores demuestra que la mayoría de los colaboradores el 63,64%, tiene entre 25 y 34,9 años, mientras que un 18,18% se encuentra entre 45 y 54,9 años, un 13,64% entre 35 y 44,9 años y solo un 4,55% es menor de 25 años.	
+ 
+La mayoría de los colaboradores el 68,18%, reside en Bogotá D.C., mientras que un 4,55% vive en cada una de las siguientes ciudades: Pereira, Armenia, Malambo, Barranquilla, Soacha, Pacho y Bucaramanga.	
+ 
+
+El estado civil de los trabajadores se observa que La mayoría de los colaboradores, el 45,45%, se encuentra soltero, seguido por un 31,82% en unión libre, mientras que un 22,73% está casado.	
+ 
+
+La mayoría de los colaboradores el 36,36%, posee formación profesional completa; le siguen aquellos con formación técnica o tecnológica (31,82%) y postgrado (22,73%), mientras que un 9,09% cuenta con bachillerato completo.	 
+Los colaboradores en su mayoría el 40,91%, pertenece al estrato 3; le siguen los de estratos 1 y 2 con 18,18% cada uno, mientras que un 13,64% se ubica en el estrato 4 y un 4,55% en estrato 5 o finca.	 
+
+La mayoría de los colaboradores vive en viviendas arrendadas o familiares (ambos con 36,36%), mientras que un 27,27% posee vivienda propia.	 
+
+Una gran parte de los colaboradores el 45,45%, no tiene personas a su cargo, mientras que un 22,73% sostiene a una persona y un 18,18% mantiene a tres. En menor medida, el 9,09% tiene dos dependientes y el 4,55% cuatro, evidenciando que la mayor parte del grupo presenta una baja carga económica familiar.	 
+
+
+
+
+Resultados Ocupacionales
+
+La mayoría de los colaboradores el 31,82%, tiene más de 10 años en la organización, seguido de un 27,27% con 4 años y un 13,64% con 3 años de antigüedad. En menor medida, un 9,09% tiene entre 6 y 10 años, mientras que el 4,55% lleva 1, 2, 5 o menos de un año, evidenciando una plantilla con amplia permanencia en la empresa.	 
+
+Todos los colaboradores cuentan con contratos a término indefinido.	
+ 
+
+El 86,36% de los colaboradores recibe un salario fijo. Por otro lado, un 9,09% tiene una remuneración combinada entre parte fija y variable, mientras que un 4,55% trabaja con un salario completamente variable.	
+ 
+
+
+La mayoría de los colaboradores, el 77,27%, labora 8 horas diarias. Por otro lado, un 13,64% cumple jornadas de 9 horas, mientras que un 9,09% trabaja 10 horas al día.	
+ 
+
+
+Riesgo Psicosocial IRS VIAL S.A.S  
+
+ 
+ 
+  
+ 
+ 
+ 
+ 
+ 
+  
+ 
+
+
+
+
+
+Factores De Riesgo Psicosocial General
+
+Definición: 
+Comprende los aspectos Intralaborales, Extralaborales o externos a la organización y las condiciones individuales o características intrínsecas del colaborador, los cuales, en una interrelación dinámica, mediante percepciones y experiencias, influyen en la salud y desempeño de las personas
+ 	 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 22,28 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 14,98 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 18.2% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 13.6% restante están en un nivel de riesgo Medio y el 68.2% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Conclusión Total Ejercicio
+
+Tanto los dominios como sus respectivas dimensiones son calificadas de tal manera que se interpreta que: a mayor puntaje obtenido mayor es el riesgo psicosocial Los resultados obtenidos del nivel de riesgo psicosocial a nivel general en IRS VIAL S.A.S Se clasifican en BAJO Y SIN RIESGO no se espera que los factores psicosociales que obtengan puntuaciones de este nivel estén relacionados con síntomas o respuestas de estrés significativas. Las dimensiones y dominios que se encuentren bajo esta categoría serán objeto de acciones o programas de intervención, a fin de mantenerlos en los niveles de riesgo más bajos posibles.
+
+
+Riesgo Psicosocial Intralaboral
+
+Definición: 
+Las condiciones Intralaborales son entendidas como aquellas características del trabajo y de su organización que influyen en la salud y bienestar del individuo.
+ 
+ 
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 20,39 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 12,79 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 	Se evidencia que el 9.1% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 13.6% restante están en un nivel de riesgo Medio y el 77.3% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dominio Liderazgo Y Relaciones Sociales En El Trabajo
+
+Definición: 
+El liderazgo alude a un tipo particular de relación social que se establece entre los superiores jerárquicos y sus colaboradores y cuyas características influyen en la forma de trabajar y en el ambiente de relaciones de un área. El concepto de relaciones sociales en el trabajo indica la interacción que se establece con otras personas en el contexto laboral y abarca aspectos como la posibilidad de contactos, las características de las interacciones, los aspectos funcionales de las interacciones como la retroalimentación del desempeño, el trabajo en equipo y el apoyo social, y los aspectos emocionales, como la cohesión.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 17,20 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 14,42 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 27.3% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 18.2% restante están en un nivel de riesgo Medio y el 54.5% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dimensión Características Del Liderazgo
+
+Definición: 
+Se refiere a los atributos de la gestión de los jefes inmediatos en relación con la planificación y asignación del trabajo, consecución de resultados, resolución de conflictos, participación, motivación, apoyo, interacción y comunicación con sus colaboradores.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 20,10 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 14,42 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las acciones que permitan factores protectores y que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 22.7% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 22.7% restante están en un nivel de riesgo Medio y el 54.5% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos - Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+
+Dimensión Relaciones Sociales En El Trabajo
+
+Definición: 
+Son las interacciones que se establecen con otras personas en el trabajo, particularmente en lo referente a la posibilidad de establecer contacto con otras personas en el ejercicio de la actividad laboral; las características y calidad de las interacciones entre compañeros; el apoyo social que se recibe de compañeros; el trabajo en equipo (entendido como el emprender y realizar acciones que implican colaboración para lograr un objetivo común) y; la cohesión (entendida como la fuerza que atrae y vincula a los miembros de un grupo, cuyo fin es la integración).
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 21,25 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.
+	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 18,75 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las acciones que permitan factores protectores y que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 27.3% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 22.7% restante están en un nivel de riesgo Medio y el 50.0% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos - Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+
+ 
+
+
+Dimensión Retroalimentación Del Desempeño
+
+Definición: 
+Describe la información que un colaborador recibe sobre la forma como realiza su trabajo. Esta información le permite identificar sus fortalezas y debilidades y tomar acciones para mantener o mejorar su desempeño.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 20,50 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 17,50 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 22.7% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 18.2% restante están en un nivel de riesgo Medio y el 59.1% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+
+
+
+
+Dimensión Relación Con Los Colaboradores (Subordinados)
+
+Definición: 
+Trata de los atributos de la gestión de los subordinados en relación con la ejecución del trabajo, consecución de resultados, resolución de conflictos y participación. Además, se consideran las características de interacción y formas de comunicación con la jefatura.
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 6,94 denominándose SIN RIESGO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 10.0% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 50.0% restante están en un nivel de riesgo Medio y el 85.0% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dominio Control Sobre El Trabajo
+
+Definición: 
+Posibilidad que el trabajo ofrece a la persona para influir y tomar decisiones sobre los diversos aspectos que intervienen en su realización. La iniciativa y autonomía, el uso y desarrollo de habilidades y conocimientos, la participación y manejo del cambio, la claridad de rol y la capacitación son aspectos que le dan a la persona la posibilidad de influir sobre su trabajo. 
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 16,92 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 13,88 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 13.6% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 18.2% restante están en un nivel de riesgo Medio y el 68.2% restante está en un riesgo Bajo y sin riesgo. 
+
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+
+ 
+
+Dimensión Claridad Del Rol
+
+Definición: 
+Es la definición y comunicación del papel que se espera que el colaborador desempeñe en la organización, específicamente en torno a los objetivos del trabajo, funciones y resultados, el margen de autonomía y el impacto del ejercicio del cargo en la empresa.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 12,50 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 10,00 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las acciones que permitan factores protectores y que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 27.3% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 9.1% restante están en un nivel de riesgo Medio y el 63.6% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos - Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+
+ 
+
+
+Dimensión Capacitación
+
+Definición: 
+Se entiende por las actividades de inducción, entrenamiento y formación que la organización brinda al colaborador con el fin de desarrollar y fortalecer sus conocimientos y habilidades.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 14,17 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 0,00 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 18.2% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 9.1% restante están en un nivel de riesgo Medio y el 72.7% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+
+ 
+
+
+
+Dimensión Participación Y Manejo Del Cambio
+
+Definición: 
+Se entiende como el conjunto de mecanismos organizacionales orientados a incrementar la capacidad de adaptación de los colaboradores a las diferentes transformaciones que se presentan en el contexto laboral. Entre estos dispositivos organizacionales se encuentran la información (clara, suficiente y oportuna) y la participación de los colaboradores.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 22,81 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 12,50 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 13.6% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 18.2% restante están en un nivel de riesgo Medio y el 68.2% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dimensión Oportunidades Para El Uso Y Desarrollo De Habilidades Y Conocimientos
+
+Definición: 
+Se refiere a la posibilidad que el trabajo le brinda a la persona de aplicar, aprender y desarrollar sus habilidades y conocimientos.
+ 	 
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 8,44 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 21,88 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 13.6% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 18.2% restante están en un nivel de riesgo Medio y el 68.2% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dimensión Control Y Autonomía Sobre El Trabajo
+
+Definición: 
+Se refiere a la posibilidad que el trabajo le brinda a la persona de aplicar, aprender y desarrollar sus habilidades y conocimientos.
+ 	 
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 26,67 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 25,00 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 34.1% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 13.6% restante están en un nivel de riesgo Medio y el 63.6% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+  
+
+
+Dominio Demandas Del Trabajo
+
+Definición: 
+Se refieren a las exigencias que el trabajo impone al individuo. Pueden ser de diversa naturaleza, como cuantitativas, cognitivas o mentales, emocionales, de responsabilidad, del ambiente físico laboral y de la jornada de trabajo.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 34,99 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 17,27 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 22.7% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 13.6% restante están en un nivel de riesgo Medio y el 63.6% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+
+Dimensión Demandas Ambientales Y De Esfuerzo Físico
+
+Definición: 
+Las demandas ambientales y de esfuerzo físico de la ocupación hacen referencia a las condiciones del lugar de trabajo y a la carga física que involucran las actividades que se desarrollan, que bajo ciertas circunstancias exigen a la persona un esfuerzo de adaptación. Las demandas de esta dimensión son condiciones de tipo físico (ruido, iluminación, temperatura, ventilación), químico, biológico (virus, bacterias, hongos o animales), de diseño del puesto de trabajo, de saneamiento (orden y aseo), de carga física y de seguridad industrial.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 20,00 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 10,42 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 9.1% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 31.8% restante están en un nivel de riesgo Medio y el 59.1% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dimensión Demandas Emocionales
+
+Definición: 
+Situaciones afectivas y emocionales propias del contenido de la tarea que tienen el potencial de interferir con los sentimientos y emociones del colaborador. La exposición a las exigencias emocionales demanda del trabajador habilidad para: a) entender las situaciones y sentimientos de otras personas y b) ejercer autocontrol de las emociones o sentimientos propios con el fin de no afectar el desempeño de la labor.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 27,36 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 11,11 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 31.8% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 9.1% restante están en un nivel de riesgo Medio y el 59.1% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Auxiliares U Operativos - Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+
+Dimensión Demandas Cuantitativas
+
+Definición: 
+Son las exigencias relativas a la cantidad de trabajo que se debe ejecutar, en relación con el tiempo disponible para hacerlo.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 28,75 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 12,50 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 9.1% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 18.2% restante están en un nivel de riesgo Medio y el 72.7% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dimensión Influencia Del Trabajo Sobre El Entorno Extralaboral
+
+Definición: 
+Condición que se presenta cuando las exigencias de tiempo y esfuerzo que se hacen una persona en su trabajo impactan su vida extralaboral.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 39,06 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 12,50 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 27.3% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 31.8% restante están en un nivel de riesgo Medio y el 40.9% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+
+
+
+Dimensión Exigencias De Responsabilidad Del Cargo
+
+Definición: 
+Las exigencias de responsabilidad directa en el trabajo hacen alusión al conjunto de obligaciones implícitas en el desempeño de un cargo, cuyos resultados no pueden ser transferidos a otras personas. En particular, esta dimensión considera la responsabilidad por resultados, dirección, bienes, información confidencial, salud y seguridad de otros, que tienen un impacto importante en el área (sección), en la empresa o en las personas. Adicionalmente, los resultados frente a tales responsabilidades están determinados por diversos factores y circunstancias, algunas bajo el control y otras fuera del control del colaborador.
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 47,08 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 10.0% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 25.0% restante están en un nivel de riesgo Medio y el 65.0% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+
+Dimensión Demanda De Carga Mental
+
+Definición: 
+Las exigencias de carga mental se refieren a las demandas de procesamiento cognitivo que implica la tarea y que involucran procesos mentales superiores de atención, memoria y análisis de información para generar una respuesta. La carga mental está determinada por las características de la información (cantidad, complejidad y detalle) y los tiempos de que se dispone para procesarla.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 73,50 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 42,50 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 31.8% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 13.6% restante están en un nivel de riesgo Medio y el 54.5% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+
+
+Dimensión Consistencia Del Rol
+
+Definición: 
+Se refiere a la compatibilidad o consistencia entre las diversas exigencias relacionadas con los principios de eficiencia, calidad técnica y ética, propios del servicio o producto, que tiene un trabajador en el desempeño de su cargo.
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 23,75 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 25.0% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 20.0% restante están en un nivel de riesgo Medio y el 55.0% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+
+  
+
+
+
+Dimensión Demandas De La Jornada De Trabajo
+
+Definición: 
+Las demandas de la jornada de trabajo son las exigencias del tiempo laboral en términos de la duración y el horario de la jornada, así como de los periodos destinados a pausas y descansos periódicos.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 20,42 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 14,58 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 18.2% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 9.1% restante están en un nivel de riesgo Medio y el 72.7% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+
+ 
+
+
+
+Dominio Recompensas
+
+Definición: 
+Este término trata de la retribución que el colaborador obtiene a cambio de sus contribuciones o esfuerzos laborales. Este dominio comprende diversos tipos de retribución: la financiera (compensación económica por el trabajo), de estima (compensación psicológica, que comprende el reconocimiento del grupo social y el trato justo en el trabajo) y de posibilidades de promoción y seguridad en el trabajo. Otras formas de retribución que se consideran en este dominio comprenden las posibilidades de educación, la satisfacción y la identificación con el trabajo y con la organización.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 12,46 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 3,13 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 18.2% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 22.7% restante están en un nivel de riesgo Medio y el 59.1% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dimensión Recompensas Derivadas De La Pertenencia A La Organización Y Del Trabajo Que Se Realiza
+
+Definición: 
+Se refieren al sentimiento de orgullo y a la percepción de estabilidad laboral que experimenta el colaborador por estar vinculado a una organización, así como el sentimiento de autorrealización que experimenta por efectuar su trabajo.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 5,75 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 0,00 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 13.6% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 9.1% restante están en un nivel de riesgo Medio y el 77.3% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dimensión Reconocimiento Y Compensación
+
+Definición: 
+Es el conjunto de retribuciones que la organización le otorga al trabajador en contraprestación al esfuerzo realizado en el trabajo. Estas retribuciones corresponden a reconocimiento, remuneración económica, acceso a los servicios de bienestar y posibilidades de desarrollo.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 19,17 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 6,25 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 27.3% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 13.6% restante están en un nivel de riesgo Medio y el 59.1% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+
+
+
+Riesgo Psicosocial Extralaboral
+
+Definición: 
+Comprenden los aspectos del entorno familiar, social y económico del colaborador. A su vez, abarcan las condiciones del lugar de vivienda, que pueden influir en su salud y bienestar.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 24,17 denominándose RIESGO ALTO, por lo que se debe INTERVENIR INMEDIATAMENTE con acciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 17,17 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 50.0% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 22.7% restante están en un nivel de riesgo Medio y el 27.3% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción Inmediato Programa de vigilancia epidemiológico: Concentración elevada de niveles de estrés sobre este grupo poblacional, Diseño de Programas De Vigilancia Epidemiológica En Riesgo Psicosocial. El factor de riesgo causa, o podría causar, alteraciones serias en la salud del trabajador (por ejemplo, enfermedad o síntomas que ocasionan incapacidad o muerte), o en la vida laboral (retiro, despido, efectos altamente negativos en los resultados, en la imagen o en la estabilidad de la organización o de sus unidades funcionales; graves conflictos con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, rupturas familiares o alteraciones significativas en la dinámica familiar por causas relacionadas con el trabajo).
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dimensión Tiempo Fuera Del Trabajo
+
+Definición: 
+Se refiere al tiempo que cada persona dedica a actividades diferentes a las laborales, como descansar, compartir con familia y amigos, atender responsabilidades personales o domésticas, realizar actividades de recreación y ocio.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 25,63 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 15,63 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 22.7% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 13.6% restante están en un nivel de riesgo Medio y el 63.6% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dimensión Relaciones Familiares
+
+Definición: 
+Propiedades que caracterizan las interacciones del colaborador con su núcleo familiar.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 13,75 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 4,17 denominándose SIN RIESGO, por lo que se debe MANTENER con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 9.1% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto y el 90.9% restante está en un riesgo Bajo y sin riesgo.
+
+Foco objetivo: Todos los cargos – Acción continuar con los programas actuales: El factor de riesgo causa, o podría causar, leves alteraciones en la salud del trabajador (por ejemplo, síntomas pasajeros u ocasionales que no afectan el desempeño cotidiano), o en la vida laboral (errores fácilmente corregibles, llamados de atención, u otros similares que no afectan el desempeño laboral del trabajador o que no ponen en riesgo los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; desavenencias menores con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones menores o pasajeras relacionadas con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto 
+
+ 
+
+
+
+
+Dimensión Comunicación Y Relaciones Interpersonales
+
+Definición: 
+Cualidades que caracterizan la comunicación e interacciones del colaborador con sus allegados y amigos.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 16,75 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 15,00 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 40.9% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 9.1% restante están en un nivel de riesgo Medio y el 50.0% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+
+ 
+
+
+Dimensión Situación Económica Del Grupo Familiar
+
+Definición: 
+Trata de la disponibilidad de medios económicos para que el colaborador y su grupo familiar atiendan sus gastos básicos.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 32,08 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las intervenciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 25,00 denominándose RIESGO BAJO, por lo que se debe MANTENER las intervenciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 31.8% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 27.3% restante están en un nivel de riesgo Medio y el 40.9% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción reforzar los programas actuales: El factor de riesgo causa, o podría causar, alteraciones moderadas pero manejables en la salud del trabajador (por ejemplo, síntomas que ocasionan molestia, malestar o fatiga frecuente), o en la vida laboral (disminución del desempeño, sanciones, u otras de naturaleza similar que no representan un riesgo mayor para la estabilidad laboral del trabajador o los resultados, la imagen o la estabilidad de la organización o de sus unidades funcionales; dificultades moderadas en las relaciones con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, discusiones o conflictos frecuentes relacionados con el trabajo)
+
+Áreas con Riesgo Alto y Muy Alto
+
+
+ 
+
+
+Dimensión Características De La Vivienda Y De Su Entorno
+
+Definición: 
+Se refiere a las condiciones de infraestructura, ubicación y entorno de las instalaciones físicas del lugar habitual de residencia del colaborador y de su grupo familiar.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 17,22 denominándose RIESGO ALTO, por lo que se debe INTERVENIR INMEDIATAMENTE con acciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 12,50 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las acciones que permitan factores protectores y que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 54.5% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 9.1% restante están en un nivel de riesgo Medio y el 36.4% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción Inmediato Programa de vigilancia epidemiológico: Concentración elevada de niveles de estrés sobre este grupo poblacional, Diseño de Programas De Vigilancia Epidemiológica En Riesgo Psicosocial. El factor de riesgo causa, o podría causar, alteraciones serias en la salud del trabajador (por ejemplo, enfermedad o síntomas que ocasionan incapacidad o muerte), o en la vida laboral (retiro, despido, efectos altamente negativos en los resultados, en la imagen o en la estabilidad de la organización o de sus unidades funcionales; graves conflictos con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, rupturas familiares o alteraciones significativas en la dinámica familiar por causas relacionadas con el trabajo).
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+
+Dimensión Influencia Del Entorno Extralaboral En El Trabajo
+
+Definición: 
+Corresponde al influjo de las exigencias de los roles familiares y personales en el bienestar y en la actividad laboral del colaborador.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 30,00 denominándose RIESGO ALTO, por lo que se debe INTERVENIR INMEDIATAMENTE con acciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 29,17 denominándose RIESGO ALTO, por lo que se debe INTERVENIR INMEDIATAMENTE con acciones que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 50.0% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 22.7% restante están en un nivel de riesgo Medio y el 27.3% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Todos los cargos - Acción Inmediato Programa de vigilancia epidemiológico: Concentración elevada de niveles de estrés sobre este grupo poblacional, Diseño de Programas De Vigilancia Epidemiológica En Riesgo Psicosocial. El factor de riesgo causa, o podría causar, alteraciones serias en la salud del trabajador (por ejemplo, enfermedad o síntomas que ocasionan incapacidad o muerte), o en la vida laboral (retiro, despido, efectos altamente negativos en los resultados, en la imagen o en la estabilidad de la organización o de sus unidades funcionales; graves conflictos con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, rupturas familiares o alteraciones significativas en la dinámica familiar por causas relacionadas con el trabajo). 
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Dimensión Desplazamiento Vivienda – Trabajo – Vivienda
+
+Definición: 
+Son las condiciones en que se realiza el traslado del trabajador desde su sitio de vivienda hasta su lugar de trabajo y viceversa. Comprende la facilidad, la comodidad del transporte y la duración del recorrido.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 33,75 denominándose RIESGO ALTO, por lo que se debe INTERVENIR INMEDIATAMENTE con acciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 18,75 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las acciones que permitan factores protectores y que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 45.5% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 9.1% restante están en un nivel de riesgo Medio y el 45.5% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción Inmediato Programa de vigilancia epidemiológico: Concentración elevada de niveles de estrés sobre este grupo poblacional, Diseño de Programas De Vigilancia Epidemiológica En Riesgo Psicosocial. El factor de riesgo causa, o podría causar, alteraciones serias en la salud del trabajador (por ejemplo, enfermedad o síntomas que ocasionan incapacidad o muerte), o en la vida laboral (retiro, despido, efectos altamente negativos en los resultados, en la imagen o en la estabilidad de la organización o de sus unidades funcionales; graves conflictos con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, rupturas familiares o alteraciones significativas en la dinámica familiar por causas relacionadas con el trabajo).
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Nivel De Estrés
+
+Definición: 
+En esta sesión se evalúan los síntomas reveladores de la presencia de reacciones de estrés, distribuidos en cuatro categorías principales según el tipo de síntomas de estrés: a) fisiológicos, b) comportamiento social c) intelectuales y laborales y d) emocionales.
+ 
+ 
+
+Para el cuestionario Tipo A se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 18,75 denominándose RIESGO ALTO, por lo que se debe INTERVENIR INMEDIATAMENTE con acciones que se realicen para los cargos profesionales o de jefatura.	Para el cuestionario Tipo B se evidencio que el nivel de riesgo psicosocial se encuentra con un valor de 12,78 denominándose RIESGO MEDIO, por lo que se debe REFORZAR las acciones que permitan factores protectores y que se realicen para los cargos auxiliares u operativos.
+Porcentajes de distribución por Niveles de Riesgo
+ 
+Se evidencia que el 36.4% de los encuestados con el cuestionario Tipo A y Tipo B están en un nivel de Riesgo Alto y muy alto el siguiente 18.2% restante están en un nivel de riesgo Medio y el 45.5% restante está en un riesgo Bajo y sin riesgo. 
+
+Foco objetivo: Cargos Profesionales O De Jefatura- Acción Inmediato Programa de vigilancia epidemiológico: Concentración elevada de niveles de estrés sobre este grupo poblacional, Diseño de Programas De Vigilancia Epidemiológica En Riesgo Psicosocial. El factor de riesgo causa, o podría causar, alteraciones serias en la salud del trabajador (por ejemplo, enfermedad o síntomas que ocasionan incapacidad o muerte), o en la vida laboral (retiro, despido, efectos altamente negativos en los resultados, en la imagen o en la estabilidad de la organización o de sus unidades funcionales; graves conflictos con otras unidades funcionales, con clientes, con trabajadores, con proveedores, con la comunidad o con usuarios, entre otros), o en el entorno familiar del trabajador (por ejemplo, rupturas familiares o alteraciones significativas en la dinámica familiar por causas relacionadas con el trabajo).
+
+Áreas con Riesgo Alto y Muy Alto
+
+ 
+
+
+Recomendaciones Y Propuesta De Intervención
+
+De acuerdo con los resultados podemos evidenciar que las actividades o intervenciones que se implementen deben ir orientadas a todo el personal, especialmente a jefes y profesionales, sin embargo, éstas también deben ir orientadas de acuerdo con los resultados de cada dominio y dimensión.
+Inicialmente se recomienda aplicación de la resolución 2764 - 2022 el cual sugiere adoptar como estándares mínimos de la intervención psicosocial con las siguientes guías de intervención:
+	Guía técnica general para la promoción, prevención e intervención de los factores psicosociales y sus efectos en la población trabajadora.
+	Protocolo de acciones de promoción, prevención e intervención de los factores psicosociales y sus efectos en el entorno laboral.
+	Protocolo de prevención y actuación – Acoso laboral.
+	Protocolo de prevención y actuación – Síndrome de agotamiento – “Burnout”.
+	Protocolo de prevención y actuación en el entorno laboral – Depresión.
+	Protocolo de actuación temprana y manejo de casos en el entorno laboral – Trastorno de estrés postraumático.
+	Protocolo de prevención y actuación en el entorno laboral – Reacción a estrés agudo.
+	Protocolo de actuación en el entorno laboral – Situaciones de duelo
+Por otro lado, se recomienda establecer un Sistema de Vigilancia Epidemiológica en Riesgo Psicosocial con el objetivo de promover la compilación de información de casos de ausentismo y enfermedades relacionadas con niveles de estrés, así mismo, fortalecer un sistema de información que oriente las intervenciones desde la prevención de enfermedades originadas por altos niveles de estrés. 
+Para lograrlo es indispensable que todos los colaboradores conozcan el Sistema de Vigilancia, cómo funciona y qué deben hacer para facilitar su funcionamiento. Del mismo modo, se requiere de la recopilación de información constante para generar acciones preventivas. 
+La idea de promover este Sistema es identificar la influencia que puede estar generando un nivel de riesgo psicosocial elevado en los colaboradores, en cuanto a su salud y prevenirlo oportunamente. 
+Así mismo, se presenta las siguientes recomendaciones adicionales que ayudarán a disminuir el riesgo psicosocial alto por lo que la empresa de manera voluntaria decidirá cuál y de qué manera se aplicarán y ejecutarán. 
+Para los grupos de Riesgo Intralaboral con riesgo Alto se sugiere crear los Grupos de Exposición Similar -GES- entre los conjuntos de colaboradores quienes obtuvieron puntuaciones de riesgo alto para llevar a cabo la intervención de sus problemáticas y el seguimiento de sus condiciones. 
+Se propone para su manejo grupos focales de cada área para evaluar las dimensiones que manifiestan dificultades y proponer intervenciones tendientes al cambio y solución de conflictos. 
+
+Para los grupos con riesgos medio y bajo se proponen las siguientes alternativas: 
+	Fomento de autocuidado psicológico. 
+	Implementar o mejorar un programa de formación y capacitación respondiendo a las necesidades técnicas y sociales de las áreas apoyándose de herramientas tecnológicas que permitan su identificación y cumplimento. 
+	Programa de inducción y reinducción que garanticen el conocimiento de sus funciones, responsabilidades y procesos de la organización. 
+	Establecer con los grupos de mayor riesgo un análisis de puesto de trabajo con enfoque de riesgo psicosocial y poder valorar la carga mental para establecer estrategias para la ejecución de las labores. 
+	Implementar un proceso de gestión del desempeño con el fin de generar desarrollo y reconocimientos a los trabajadores por la ejecución de sus funciones. 
+	Programa de bienestar orientado en: 
+	Mejorar la comunicación del personal. 
+	Fondos y programas de ahorro. 
+	Adquisición de vivienda. 
+	Capacitación en gestión financiera personal y familiar. 
+	Actividades que permitan la integración con la familia. 
+	Incentivo para el uso de alternativas de movilidad.
+
+
+Cordialmente,
+
+
+
+
+
+Edison Cuervo
+Head Consultant
+edison.cuervo@cycloidtalent.com 
+https://cycloidtalent.com/ 
+https://www.linkedin.com/in/edison-cuervo-224a68b6/ 
+
+
+
+
+
+
+
+
+
+
+
+

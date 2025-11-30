@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" commit -m \"$(cat <<''EOF''\nfeat: Seccion Dimensiones Intralaborales con 36 paginas\n\n- DimensionesIntralaboralesController: 1 intro + 19 Forma A + 16 Forma B\n- Baremos desde Single Source of Truth (IntralaboralAScoring/BScoring)\n- Gauges SVG con etiquetas en una linea\n- Cambio \"Analisis IA\" a \"Analisis del Especialista SST\" en PDFs\n- Rutas preview/download y tarjeta en battery_services view\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(php -r:*)"
+      "Bash(php -r:*)",
+      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" commit -m \"$(cat <<''EOF''\nfeat: Sistema PDF Ejecutivo completo con Orquestadores y Recomendaciones\n\n- PdfEjecutivoOrchestrator: une 10 secciones del informe de bateria\n- InformeEjecutivoOrchestrator: version resumida (Portada + Mapas + Recomendaciones)\n- RecomendacionesPlanesController: planes de accion para dimensiones en riesgo\n  - Identifica dimensiones con riesgo medio/alto/muy alto\n  - Mapeo correcto de columnas BD (dim_* para intralaboral, extralaboral_* para extra)\n  - Referencias bibliograficas con word-wrap y limite de 5\n- DimensionesExtralaboralesController: 7 dimensiones con gauges SVG\n- EstresEjecutivoController: evaluacion de estres con firma del consultor\n- Rutas configuradas para preview/download de todos los informes\n- Tarjetas en battery_services view para ambos tipos de informe\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" add -A)",
+      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" commit -m \"$(cat <<''EOF''\nchore: Eliminar codigo obsoleto PdfCycloid y screenshots\n\n- Eliminar app/Controllers/PdfCycloid/ (no usado, sin rutas)\n- Eliminar app/Views/pdfcycloid/ (views sin uso)\n- Eliminar VERSIONPDFQUEFUNCIONO/ (solo screenshots)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

@@ -310,6 +310,8 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
     $routes->get('preview/introduccion/(:num)', 'IntroduccionController::preview/$1');
     $routes->get('preview/sociodemograficos/(:num)', 'SociodemograficosController::preview/$1');
     $routes->get('preview/mapas-calor/(:num)', 'MapasCalorController::preview/$1');
+    $routes->get('preview/totales-intralaborales/(:num)', 'TotalesIntralaboralesController::preview/$1');
+    $routes->get('preview/dominios-intralaborales/(:num)', 'DominiosIntralaboralesController::preview/$1');
     $routes->get('preview/intralaboral-total/(:num)', 'IntralaboralTotalController::preview/$1');
     $routes->get('preview/intralaboral-dominios/(:num)', 'IntralaboralDominiosController::preview/$1');
     $routes->get('preview/intralaboral-dimensiones/(:num)', 'IntralaboralDimensionesController::preview/$1');
@@ -329,5 +331,7 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
     $routes->get('download/introduccion/(:num)', 'IntroduccionController::download/$1');
     $routes->get('download/sociodemograficos/(:num)', 'SociodemograficosController::download/$1');
     $routes->get('download/mapas-calor/(:num)', 'MapasCalorController::download/$1');
+    $routes->get('download/totales-intralaborales/(:num)', 'TotalesIntralaboralesController::download/$1');
+    $routes->get('download/dominios-intralaborales/(:num)', 'DominiosIntralaboralesController::download/$1');
     $routes->get('download/(:num)', 'PdfEjecutivoOrchestrator::download/$1');
 });

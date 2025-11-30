@@ -3,9 +3,11 @@
 namespace App\Libraries;
 
 /**
- * Generador de gauges para PDF usando imágenes base64
+ * Generador de gauges SVG dinámicos para PDF
  * Diseñado para ser compatible con DomPDF
- * Genera una representación visual simple del nivel de riesgo
+ *
+ * Los segmentos del arco son PROPORCIONALES a los rangos del baremo real
+ * según la Resolución 2404/2019 del Ministerio del Trabajo de Colombia.
  */
 class PdfGaugeGenerator
 {
@@ -13,20 +15,30 @@ class PdfGaugeGenerator
      * Colores por nivel de riesgo
      */
     protected $riskColors = [
-        'sin_riesgo' => '#4CAF50',
-        'riesgo_bajo' => '#8BC34A',
-        'riesgo_medio' => '#FFEB3B',
-        'riesgo_alto' => '#FF9800',
+        'sin_riesgo'      => '#4CAF50',
+        'riesgo_bajo'     => '#8BC34A',
+        'riesgo_medio'    => '#FFEB3B',
+        'riesgo_alto'     => '#FF9800',
         'riesgo_muy_alto' => '#F44336',
     ];
 
     /**
-     * Genera una imagen de gauge como data URI base64
-     * Como DomPDF no soporta bien SVG complejos, generamos una imagen PNG simple
+     * Etiquetas cortas para el gauge
+     */
+    protected $riskLabelsShort = [
+        'sin_riesgo'      => 'SR',
+        'riesgo_bajo'     => 'RB',
+        'riesgo_medio'    => 'RM',
+        'riesgo_alto'     => 'RA',
+        'riesgo_muy_alto' => 'RMA',
+    ];
+
+    /**
+     * Genera un gauge SVG dinámico con segmentos proporcionales al baremo
      *
-     * @param float $value Valor del puntaje
-     * @param array $baremo Baremos con rangos por nivel
-     * @return string Data URI de la imagen
+     * @param float $value Valor del puntaje (0-100)
+     * @param array $baremo Baremos con rangos por nivel de riesgo
+     * @return string Data URI de la imagen SVG (base64)
      */
     public function generate($value, $baremo)
     {
@@ -34,86 +46,114 @@ class PdfGaugeGenerator
         $nivel = $this->getNivelFromValue($value, $baremo);
         $color = $this->riskColors[$nivel] ?? '#999999';
 
-        // Calcular el porcentaje para la posición de la aguja (0-100)
-        $percentage = $this->calculatePercentage($value, $baremo);
-
-        // Generar SVG simple que DomPDF puede manejar
-        $svg = $this->generateSimpleSvg($percentage, $color, $value);
+        // Generar SVG dinámico
+        $svg = $this->generateDynamicSvg($value, $baremo, $color);
 
         // Convertir a data URI
         return 'data:image/svg+xml;base64,' . base64_encode($svg);
     }
 
     /**
-     * Genera un SVG simple compatible con DomPDF
+     * Genera un SVG con segmentos dinámicos según el baremo real
+     *
+     * Geometría del gauge:
+     * - Semicírculo superior de 180° (izquierda=0, derecha=100)
+     * - Verde (sin_riesgo) a la izquierda
+     * - Rojo (muy_alto) a la derecha
      */
-    protected function generateSimpleSvg($percentage, $color, $value)
+    protected function generateDynamicSvg($value, $baremo, $currentColor)
     {
-        // Calcular el ángulo de la aguja (-90 a 90 grados)
-        $angle = -90 + ($percentage * 1.8); // 180 grados total
+        // Parámetros del gauge
+        $cx = 100;           // Centro X
+        $cy = 90;            // Centro Y
+        $radius = 70;        // Radio del arco exterior
+        $labelRadius = 50;   // Radio para las etiquetas (interior)
+        $needleLength = 60;  // Longitud de la aguja ($radius - 10)
 
-        // Centro del gauge
-        $cx = 100;
-        $cy = 90;
-        $radius = 70;
+        // Calcular ángulo de la aguja
+        // El semicírculo va de 180° (izquierda, valor=0) a 0° (derecha, valor=100)
+        $percentage = min(100, max(0, $value));
+        $needleAngleDeg = 180 - ($percentage * 1.8);  // 180° total / 100 = 1.8° por unidad
+        $needleAngleRad = deg2rad($needleAngleDeg);
 
-        // Calcular posición de la punta de la aguja
-        $radians = deg2rad($angle);
-        $needleX = $cx + (($radius - 10) * cos($radians));
-        $needleY = $cy + (($radius - 10) * sin($radians));
+        // Posición de la punta de la aguja
+        $needleX = $cx + ($needleLength * cos($needleAngleRad));
+        $needleY = $cy - ($needleLength * sin($needleAngleRad));  // Negativo porque Y crece hacia abajo en SVG
+
+        // Función para calcular punto en el arco
+        $getPoint = function($pct, $r = null) use ($cx, $cy, $radius) {
+            $r = $r ?? $radius;
+            $angleDeg = 180 - ($pct * 1.8);
+            $angleRad = deg2rad($angleDeg);
+            return [
+                round($cx + $r * cos($angleRad), 2),
+                round($cy - $r * sin($angleRad), 2)
+            ];
+        };
+
+        // Generar los segmentos del arco y etiquetas
+        $levels = ['sin_riesgo', 'riesgo_bajo', 'riesgo_medio', 'riesgo_alto', 'riesgo_muy_alto'];
+        $pathsSvg = '';
+        $labelsSvg = '';
+
+        foreach ($levels as $lvl) {
+            if (!isset($baremo[$lvl])) continue;
+
+            $startPct = $baremo[$lvl][0];  // Valor inicial del rango
+            $endPct = min(100, $baremo[$lvl][1]);  // Valor final del rango
+
+            $p1 = $getPoint($startPct);  // Punto inicial del arco
+            $p2 = $getPoint($endPct);    // Punto final del arco
+
+            // Path SVG del arco
+            // M = Move to (punto inicial)
+            // A = Arc (rx, ry, x-axis-rotation, large-arc-flag, sweep-flag, x, y)
+            $pathsSvg .= '<path d="M ' . $p1[0] . ' ' . $p1[1] .
+                         ' A ' . $radius . ' ' . $radius .
+                         ' 0 0 1 ' . $p2[0] . ' ' . $p2[1] .
+                         '" fill="none" stroke="' . $this->riskColors[$lvl] .
+                         '" stroke-width="12"/>' . "\n    ";
+
+            // Etiqueta + Rango en UNA SOLA LINEA: "RM: 25.9-31.5"
+            $midPct = ($startPct + $endPct) / 2;
+            $labelPos = $getPoint($midPct, $labelRadius);
+            $labelsSvg .= '<text x="' . $labelPos[0] . '" y="' . $labelPos[1] .
+                         '" font-family="Arial" font-size="4" text-anchor="middle" fill="#333">' .
+                         $this->riskLabelsShort[$lvl] . ': ' . $startPct . '-' . $endPct . '</text>' . "\n    ";
+        }
+
+        // Etiquetas de extremos (0 y 100)
+        $labelsSvg .= '<text x="28" y="95" font-family="Arial" font-size="5" fill="#333">0</text>' . "\n    ";
+        $labelsSvg .= '<text x="168" y="95" font-family="Arial" font-size="5" fill="#333">100</text>' . "\n    ";
 
         $svg = '<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="200" height="120" viewBox="0 0 200 120">
-    <!-- Fondo del arco segmentado -->
+    <!-- Fondo gris del arco -->
     <path d="M 30 90 A 70 70 0 0 1 170 90" fill="none" stroke="#E8E8E8" stroke-width="12"/>
 
-    <!-- Segmento Sin Riesgo (verde oscuro) -->
-    <path d="M 30 90 A 70 70 0 0 1 50 45" fill="none" stroke="#4CAF50" stroke-width="12"/>
+    <!-- Segmentos dinámicos según baremo -->
+    ' . $pathsSvg . '
 
-    <!-- Segmento Riesgo Bajo (verde claro) -->
-    <path d="M 50 45 A 70 70 0 0 1 85 25" fill="none" stroke="#8BC34A" stroke-width="12"/>
+    <!-- Etiquetas de cada segmento -->
+    ' . $labelsSvg . '
 
-    <!-- Segmento Riesgo Medio (amarillo) -->
-    <path d="M 85 25 A 70 70 0 0 1 115 25" fill="none" stroke="#FFEB3B" stroke-width="12"/>
-
-    <!-- Segmento Riesgo Alto (naranja) -->
-    <path d="M 115 25 A 70 70 0 0 1 150 45" fill="none" stroke="#FF9800" stroke-width="12"/>
-
-    <!-- Segmento Riesgo Muy Alto (rojo) -->
-    <path d="M 150 45 A 70 70 0 0 1 170 90" fill="none" stroke="#F44336" stroke-width="12"/>
-
-    <!-- Aguja -->
-    <line x1="' . $cx . '" y1="' . $cy . '" x2="' . $needleX . '" y2="' . $needleY . '"
+    <!-- Aguja apuntando a: ' . number_format($value, 1) . ' -->
+    <line x1="' . $cx . '" y1="' . $cy . '" x2="' . round($needleX, 2) . '" y2="' . round($needleY, 2) . '"
           stroke="#333" stroke-width="3" stroke-linecap="round"/>
 
     <!-- Centro de la aguja -->
     <circle cx="' . $cx . '" cy="' . $cy . '" r="8" fill="#333"/>
 
-    <!-- Valor -->
+    <!-- Valor actual -->
     <text x="' . $cx . '" y="115" font-family="Arial, sans-serif" font-size="14" font-weight="bold"
-          text-anchor="middle" fill="' . $color . '">' . number_format($value, 1) . '</text>
+          text-anchor="middle" fill="' . $currentColor . '">' . number_format($value, 1) . '</text>
 </svg>';
 
         return $svg;
     }
 
     /**
-     * Calcula el porcentaje basado en el valor y los baremos
-     */
-    protected function calculatePercentage($value, $baremo)
-    {
-        // Encontrar el rango total
-        $min = 0;
-        $max = 100;
-
-        // Calcular porcentaje simple (0-100)
-        $percentage = min(100, max(0, $value));
-
-        return $percentage;
-    }
-
-    /**
-     * Obtiene el nivel de riesgo basado en el valor
+     * Obtiene el nivel de riesgo basado en el valor y baremo
      */
     protected function getNivelFromValue($value, $baremo)
     {

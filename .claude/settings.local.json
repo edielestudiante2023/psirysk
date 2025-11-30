@@ -25,7 +25,8 @@
       "Bash(c:/xampp/mysql/bin/mysql:*)",
       "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" add .)",
       "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" stash pop)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" stash drop)"
+      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" stash drop)",
+      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" commit -m \"fix: lista de trabajadores\")"
     ],
     "deny": [],
     "ask": []

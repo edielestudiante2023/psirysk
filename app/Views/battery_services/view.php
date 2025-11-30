@@ -707,6 +707,61 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-success border-2 h-100">
+                            <div class="card-header bg-success text-white">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-chart-pie fa-lg me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Totales Intralaborales</h6>
+                                        <small>Resultados consolidados por forma</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    Total Forma A, Forma B, Resumen General y Tabla 34 (Psicosocial).
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/totales-intralaborales/' . $service['id']) ?>" class="btn btn-outline-success btn-sm" target="_blank">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/totales-intralaborales/' . $service['id']) ?>" class="btn btn-success btn-sm">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dominios Intralaborales -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-primary border-2 h-100">
+                            <div class="card-header bg-primary text-white">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-layer-group fa-lg me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Dominios Intralaborales</h6>
+                                        <small>Liderazgo, Control, Demandas, Recompensas</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    4 dominios Forma A + 4 dominios Forma B con gauges y distribuciones.
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/dominios-intralaborales/' . $service['id']) ?>" class="btn btn-outline-primary btn-sm" target="_blank">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/dominios-intralaborales/' . $service['id']) ?>" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <?php endif; ?>
 

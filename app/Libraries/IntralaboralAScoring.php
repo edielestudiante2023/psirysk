@@ -774,4 +774,55 @@ class IntralaboralAScoring
     {
         return self::$preguntas;
     }
+
+    // ==========================================
+    // MÉTODOS PÚBLICOS PARA ACCESO A BAREMOS
+    // ==========================================
+
+    /**
+     * Obtiene todos los baremos de dominios (Tabla 31)
+     * @return array Baremos por dominio
+     */
+    public static function getBaremosDominios()
+    {
+        return self::$baremosDominios;
+    }
+
+    /**
+     * Obtiene el baremo de un dominio específico
+     * @param string $dominio Código del dominio (liderazgo_relaciones_sociales, control, demandas, recompensas)
+     * @return array|null Baremo del dominio o null si no existe
+     */
+    public static function getBaremoDominio($dominio)
+    {
+        return self::$baremosDominios[$dominio] ?? null;
+    }
+
+    /**
+     * Obtiene todos los baremos de dimensiones (Tabla 29)
+     * @return array Baremos por dimensión
+     */
+    public static function getBaremosDimensiones()
+    {
+        return self::$baremosDimensiones;
+    }
+
+    /**
+     * Obtiene el baremo de una dimensión específica
+     * @param string $dimension Código de la dimensión
+     * @return array|null Baremo de la dimensión o null si no existe
+     */
+    public static function getBaremoDimension($dimension)
+    {
+        return self::$baremosDimensiones[$dimension] ?? null;
+    }
+
+    /**
+     * Obtiene el baremo total intralaboral (Tabla 33)
+     * @return array Baremo total
+     */
+    public static function getBaremoTotal()
+    {
+        return self::$baremoTotal;
+    }
 }

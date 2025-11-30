@@ -256,6 +256,21 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
     }
 
     /**
+     * Renderiza el HTML de la sección (para el Orquestador)
+     * Este método es público para ser usado por PdfEjecutivoOrchestrator
+     */
+    public function render($batteryServiceId)
+    {
+        if (empty($this->calculatedResults)) {
+            $this->initializeData($batteryServiceId);
+            $this->loadCalculatedResults();
+            $this->gaugeGenerator = new PdfGaugeGenerator();
+        }
+
+        return $this->renderContent();
+    }
+
+    /**
      * Renderiza todo el contenido
      */
     protected function renderContent()

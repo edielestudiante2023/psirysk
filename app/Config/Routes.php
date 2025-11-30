@@ -313,6 +313,8 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
     $routes->get('preview/totales-intralaborales/(:num)', 'TotalesIntralaboralesController::preview/$1');
     $routes->get('preview/dominios-intralaborales/(:num)', 'DominiosIntralaboralesController::preview/$1');
     $routes->get('preview/dimensiones-intralaborales/(:num)', 'DimensionesIntralaboralesController::preview/$1');
+    $routes->get('preview/dimensiones-extralaborales/(:num)', 'DimensionesExtralaboralesController::preview/$1');
+    $routes->get('preview/estres-ejecutivo/(:num)', 'EstresEjecutivoController::preview/$1');
     $routes->get('preview/intralaboral-total/(:num)', 'IntralaboralTotalController::preview/$1');
     $routes->get('preview/intralaboral-dominios/(:num)', 'IntralaboralDominiosController::preview/$1');
     $routes->get('preview/intralaboral-dimensiones/(:num)', 'IntralaboralDimensionesController::preview/$1');
@@ -320,11 +322,14 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
     $routes->get('preview/extralaboral-dimensiones/(:num)', 'ExtralaboralDimensionesController::preview/$1');
     $routes->get('preview/estres-total/(:num)', 'EstresTotalController::preview/$1');
     $routes->get('preview/estres/(:num)', 'EstresController::preview/$1');
-    $routes->get('preview/recomendaciones/(:num)', 'RecomendacionesController::preview/$1');
+    $routes->get('preview/recomendaciones-planes/(:num)', 'RecomendacionesPlanesController::preview/$1');
     $routes->get('preview/firma/(:num)', 'FirmaController::preview/$1');
 
-    // Preview completo
+    // Preview completo (Informe de Batería)
     $routes->get('preview/completo/(:num)', 'PdfEjecutivoOrchestrator::preview/$1');
+
+    // Preview Informe Ejecutivo (Portada + Mapas + Recomendaciones)
+    $routes->get('preview/ejecutivo/(:num)', 'InformeEjecutivoOrchestrator::preview/$1');
 
     // Descargas PDF
     $routes->get('download/portada/(:num)', 'PortadaController::download/$1');
@@ -335,5 +340,13 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
     $routes->get('download/totales-intralaborales/(:num)', 'TotalesIntralaboralesController::download/$1');
     $routes->get('download/dominios-intralaborales/(:num)', 'DominiosIntralaboralesController::download/$1');
     $routes->get('download/dimensiones-intralaborales/(:num)', 'DimensionesIntralaboralesController::download/$1');
+    $routes->get('download/dimensiones-extralaborales/(:num)', 'DimensionesExtralaboralesController::download/$1');
+    $routes->get('download/estres-ejecutivo/(:num)', 'EstresEjecutivoController::download/$1');
+    $routes->get('download/recomendaciones-planes/(:num)', 'RecomendacionesPlanesController::download/$1');
+
+    // Descarga Informe de Batería completo
     $routes->get('download/(:num)', 'PdfEjecutivoOrchestrator::download/$1');
+
+    // Descarga Informe Ejecutivo (Portada + Mapas + Recomendaciones)
+    $routes->get('download/ejecutivo/(:num)', 'InformeEjecutivoOrchestrator::download/$1');
 });

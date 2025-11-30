@@ -445,4 +445,42 @@ class EstresScoring
 
         return $colores[$nivel] ?? '#6c757d';
     }
+
+    // =============================================
+    // MÉTODOS PÚBLICOS PARA ACCESO A BAREMOS
+    // Single Source of Truth - Tabla 6
+    // =============================================
+
+    /**
+     * Obtiene el baremo de estrés para Forma A (Jefes, Profesionales, Técnicos)
+     * Tabla 6 de la documentación oficial
+     *
+     * @return array Baremo completo
+     */
+    public static function getBaremoA()
+    {
+        return self::$baremosJefes;
+    }
+
+    /**
+     * Obtiene el baremo de estrés para Forma B (Auxiliares, Operarios)
+     * Tabla 6 de la documentación oficial
+     *
+     * @return array Baremo completo
+     */
+    public static function getBaremoB()
+    {
+        return self::$baremosAuxiliares;
+    }
+
+    /**
+     * Obtiene el baremo de estrés según la forma
+     *
+     * @param string $forma 'A' o 'B'
+     * @return array Baremo completo
+     */
+    public static function getBaremo($forma = 'A')
+    {
+        return ($forma === 'A') ? self::$baremosJefes : self::$baremosAuxiliares;
+    }
 }

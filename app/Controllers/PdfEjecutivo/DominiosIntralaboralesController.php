@@ -238,6 +238,21 @@ class DominiosIntralaboralesController extends PdfEjecutivoBaseController
     }
 
     /**
+     * Renderiza el HTML de la sección (para el Orquestador)
+     * Este método es público para ser usado por PdfEjecutivoOrchestrator
+     */
+    public function render($batteryServiceId)
+    {
+        if (empty($this->resultsFormaA) && empty($this->resultsFormaB)) {
+            $this->initializeData($batteryServiceId);
+            $this->loadResults();
+            $this->gaugeGenerator = new PdfGaugeGenerator();
+        }
+
+        return $this->renderAllPages();
+    }
+
+    /**
      * Renderiza todas las páginas
      */
     protected function renderAllPages()

@@ -311,4 +311,56 @@ class ExtralaboralScoring
 
         return $interpretaciones[$nivel] ?? '';
     }
+
+    // =============================================
+    // MÉTODOS PÚBLICOS PARA ACCESO A BAREMOS
+    // Single Source of Truth - Tablas 17 y 18
+    // =============================================
+
+    /**
+     * Obtiene todos los baremos de dimensiones para Forma A (jefes, profesionales, técnicos)
+     * Tabla 17 de la Resolución 2404/2019
+     *
+     * @return array Baremos de todas las dimensiones
+     */
+    public static function getBaremosDimensionesA()
+    {
+        return self::$baremosJefes;
+    }
+
+    /**
+     * Obtiene todos los baremos de dimensiones para Forma B (auxiliares, operarios)
+     * Tabla 18 de la Resolución 2404/2019
+     *
+     * @return array Baremos de todas las dimensiones
+     */
+    public static function getBaremosDimensionesB()
+    {
+        return self::$baremosAuxiliares;
+    }
+
+    /**
+     * Obtiene el baremo de una dimensión específica según la forma
+     *
+     * @param string $dimension Código de la dimensión
+     * @param string $forma 'A' o 'B'
+     * @return array|null Baremo de la dimensión o null si no existe
+     */
+    public static function getBaremoDimension($dimension, $forma = 'A')
+    {
+        $baremos = ($forma === 'A') ? self::$baremosJefes : self::$baremosAuxiliares;
+        return $baremos[$dimension] ?? null;
+    }
+
+    /**
+     * Obtiene el baremo total extralaboral según la forma
+     *
+     * @param string $forma 'A' o 'B'
+     * @return array Baremo total
+     */
+    public static function getBaremoTotal($forma = 'A')
+    {
+        $baremos = ($forma === 'A') ? self::$baremosJefes : self::$baremosAuxiliares;
+        return $baremos['total'] ?? null;
+    }
 }

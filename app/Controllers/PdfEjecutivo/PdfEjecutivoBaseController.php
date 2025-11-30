@@ -350,7 +350,10 @@ class PdfEjecutivoBaseController extends BaseController
                 con.cargo,
                 con.licencia_sst,
                 con.email,
-                con.telefono
+                con.telefono,
+                con.website,
+                con.linkedin,
+                con.firma_path
             FROM battery_services bs
             LEFT JOIN consultants con ON bs.consultant_id = con.id
             WHERE bs.id = ?
@@ -605,16 +608,91 @@ class PdfEjecutivoBaseController extends BaseController
 
     /**
      * Convierte imagen a data URI base64 para embeber en HTML
+     * Optimizado: redimensiona imágenes grandes para reducir tamaño del PDF
+     *
+     * @param string $imagePath Ruta de la imagen
+     * @param int $maxWidth Ancho máximo en píxeles (default 400)
+     * @param int $maxHeight Alto máximo en píxeles (default 200)
+     * @param int $quality Calidad JPEG 0-100 (default 85)
      */
-    protected function imageToDataUri($imagePath)
+    protected function imageToDataUri($imagePath, $maxWidth = 400, $maxHeight = 200, $quality = 85)
     {
         if (!file_exists($imagePath)) {
             return null;
         }
 
-        $imageData = file_get_contents($imagePath);
-        $mimeType = mime_content_type($imagePath);
+        // Obtener información de la imagen
+        $imageInfo = @getimagesize($imagePath);
+        if (!$imageInfo) {
+            return null;
+        }
 
-        return 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+        $origWidth = $imageInfo[0];
+        $origHeight = $imageInfo[1];
+        $mimeType = $imageInfo['mime'];
+
+        // Si la imagen es pequeña, usar directamente sin procesar
+        if ($origWidth <= $maxWidth && $origHeight <= $maxHeight) {
+            $imageData = file_get_contents($imagePath);
+            return 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+        }
+
+        // Calcular nuevas dimensiones manteniendo proporción
+        $ratio = min($maxWidth / $origWidth, $maxHeight / $origHeight);
+        $newWidth = (int)($origWidth * $ratio);
+        $newHeight = (int)($origHeight * $ratio);
+
+        // Crear imagen según tipo
+        switch ($mimeType) {
+            case 'image/jpeg':
+                $srcImage = @imagecreatefromjpeg($imagePath);
+                break;
+            case 'image/png':
+                $srcImage = @imagecreatefrompng($imagePath);
+                break;
+            case 'image/gif':
+                $srcImage = @imagecreatefromgif($imagePath);
+                break;
+            default:
+                // Si no podemos procesar, devolver original
+                $imageData = file_get_contents($imagePath);
+                return 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+        }
+
+        if (!$srcImage) {
+            $imageData = file_get_contents($imagePath);
+            return 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+        }
+
+        // Crear imagen destino
+        $dstImage = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Preservar transparencia para PNG
+        if ($mimeType === 'image/png') {
+            imagealphablending($dstImage, false);
+            imagesavealpha($dstImage, true);
+            $transparent = imagecolorallocatealpha($dstImage, 255, 255, 255, 127);
+            imagefilledrectangle($dstImage, 0, 0, $newWidth, $newHeight, $transparent);
+        }
+
+        // Redimensionar
+        imagecopyresampled($dstImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+
+        // Capturar salida como JPEG (más pequeño) o PNG si tiene transparencia
+        ob_start();
+        if ($mimeType === 'image/png') {
+            imagepng($dstImage, null, 6); // Compresión PNG nivel 6
+            $outputMime = 'image/png';
+        } else {
+            imagejpeg($dstImage, null, $quality);
+            $outputMime = 'image/jpeg';
+        }
+        $imageData = ob_get_clean();
+
+        // Liberar memoria
+        imagedestroy($srcImage);
+        imagedestroy($dstImage);
+
+        return 'data:' . $outputMime . ';base64,' . base64_encode($imageData);
     }
 }

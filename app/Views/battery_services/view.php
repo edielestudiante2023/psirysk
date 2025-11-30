@@ -790,6 +790,163 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Dimensiones Extralaborales -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm h-100" style="border: 2px solid #00A86B;">
+                            <div class="card-header text-white" style="background-color: #00A86B;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-home fa-lg me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Dimensiones Extralaborales</h6>
+                                        <small>7 dimensiones por forma</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    7 dim. Forma A + 7 dim. Forma B = 14 páginas con gauges y baremos.
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/dimensiones-extralaborales/' . $service['id']) ?>" class="btn btn-outline-success btn-sm" target="_blank" style="color: #00A86B; border-color: #00A86B;">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/dimensiones-extralaborales/' . $service['id']) ?>" class="btn btn-sm text-white" style="background-color: #00A86B;">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Evaluación del Estrés -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm h-100" style="border: 2px solid #9B59B6;">
+                            <div class="card-header text-white" style="background-color: #9B59B6;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-bolt fa-lg me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Evaluación del Estrés</h6>
+                                        <small>Cuestionario independiente</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    1 intro + 1 Forma A + 1 Forma B = 3 páginas con gauges y baremos.
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/estres-ejecutivo/' . $service['id']) ?>" class="btn btn-outline-secondary btn-sm" target="_blank" style="color: #9B59B6; border-color: #9B59B6;">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/estres-ejecutivo/' . $service['id']) ?>" class="btn btn-sm text-white" style="background-color: #9B59B6;">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recomendaciones y Planes de Acción (sección individual) -->
+                <div class="row mb-4">
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm h-100" style="border: 2px solid #FF6B35;">
+                            <div class="card-header text-white" style="background-color: #FF6B35;">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-clipboard-check fa-lg me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Recomendaciones y Planes</h6>
+                                        <small>Dimensiones en riesgo alto/muy alto</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    Planes de acción a 6 meses para dimensiones con riesgo alto y muy alto.
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/recomendaciones-planes/' . $service['id']) ?>" class="btn btn-outline-secondary btn-sm" target="_blank" style="color: #FF6B35; border-color: #FF6B35;">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/recomendaciones-planes/' . $service['id']) ?>" class="btn btn-sm text-white" style="background-color: #FF6B35;">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INFORMES COMPLETOS -->
+                <div class="row mb-4">
+                    <!-- INFORME DE BATERÍA DE RIESGO PSICOSOCIAL -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card shadow-lg h-100" style="border: 3px solid #C41E3A;">
+                            <div class="card-header text-white" style="background: linear-gradient(135deg, #C41E3A 0%, #8B0000 100%);">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-pdf fa-2x me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0">Informe de Batería de Riesgo Psicosocial</h6>
+                                            <small>Resolución 2764/2022</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-light text-dark">
+                                        <i class="fas fa-file-alt me-1"></i> ~80+ pág
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="small mb-2">
+                                    <strong>Incluye:</strong> Portada, Contenido, Introducción, Sociodemográficos, Mapas de Calor,
+                                    Totales, Dominios, Dimensiones Intralaborales, Extralaborales y Estrés.
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/completo/' . $service['id']) ?>" class="btn btn-outline-danger" target="_blank" style="border-color: #C41E3A; color: #C41E3A;">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/' . $service['id']) ?>" class="btn text-white" style="background-color: #C41E3A;">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INFORME EJECUTIVO -->
+                    <div class="col-md-6 mb-3">
+                        <div class="card shadow-lg h-100" style="border: 3px solid #FF6B35;">
+                            <div class="card-header text-white" style="background: linear-gradient(135deg, #FF6B35 0%, #E65100 100%);">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-briefcase fa-2x me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0">Informe Ejecutivo</h6>
+                                            <small>Resumen + Planes de Acción</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-light text-dark">
+                                        <i class="fas fa-file-alt me-1"></i> ~15-30 pág
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="small mb-2">
+                                    <strong>Incluye:</strong> Portada, Mapas de Calor (resumen visual) y Recomendaciones con
+                                    Planes de Acción para dimensiones en riesgo alto y muy alto.
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/ejecutivo/' . $service['id']) ?>" class="btn btn-outline-warning" target="_blank" style="border-color: #FF6B35; color: #FF6B35;">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/ejecutivo/' . $service['id']) ?>" class="btn text-white" style="background-color: #FF6B35;">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <?php endif; ?>
 

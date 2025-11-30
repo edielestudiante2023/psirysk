@@ -89,7 +89,13 @@ class SociodemograficosController extends PdfEjecutivoBaseController
         $company = $this->companyData;
 
         return '
-<h1 style="font-size: 14pt; margin: 0 0 12pt 0; padding-bottom: 5pt;">Características Sociodemográficas</h1>
+<h2 style="font-size: 13pt; color: #006699; margin: 0 0 10pt 0; padding-bottom: 5pt; border-bottom: 1pt solid #006699;">Resultados de las condiciones individuales - Información sociodemográfica y ocupacional</h2>
+
+<p style="font-size: 10pt; text-align: justify; margin: 0 0 12pt 0; line-height: 1.5;">
+Estas hacen referencia a algunas características propias del colaborador como sexo, edad, estado civil, nivel educativo, escala socioeconómica, tipo de personas, véase la Tabla de variables sociodemográficas, y algunos aspectos ocupacionales como antigüedad de la empresa, el cargo, tipo de contratación y modalidad de pago, véase Tabla de resultados ocupacionales.
+</p>
+
+<h3 style="font-size: 12pt; margin: 15pt 0 10pt 0;">Características Sociodemográficas</h3>
 
 <p style="font-size: 9pt; text-align: justify; margin: 0 0 10pt 0;">
 A continuación, se presentan las características sociodemográficas de los <strong>' . $total . ' colaboradores</strong> de la empresa <strong>' . esc($company['company_name'] ?? 'EMPRESA') . '</strong> que participaron en la evaluación de factores de riesgo psicosocial.

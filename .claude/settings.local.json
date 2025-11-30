@@ -1,33 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cmd /c \"cd /d c:\\xampp\\htdocs\\psyrisk && git add PDFFUNCIONAL/\")",
-      "Bash(cmd /c \"cd /d c:\\xampp\\htdocs\\psyrisk && git add writable/fonts/\")",
-      "Bash(cmd /c \"cd /d c:\\xampp\\htdocs\\psyrisk && git status\")",
-      "Bash(cmd /c \"cd /d c:\\xampp\\htdocs\\psyrisk && git status 2>&1\")",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" status)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" add .gitignore README_PDF_DOMPDF.md PDFFUNCIONAL/ \"app/Controllers/PdfNativo/\" \"app/Libraries/PdfGaugeGenerator.php\" \"app/Views/pdfnativo/\" dominios_intralaborales.php \"public/test_gauge_dompdf.php\" \"public/test_gauge_real.php\" \"writable/fonts/\")",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" log -3 --oneline)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" commit -m \"$(cat <<''EOF''\nfeat: Sistema PDF nativo con DomPDF y gauges SVG dinamicos\n\n- Implementa generacion de gauges SVG con arcos proporcionales a baremos reales\n- Los segmentos del gauge se calculan dinamicamente segun Resolucion 2404/2019\n- Aguja apunta correctamente al valor del puntaje transformado (0-100)\n- Compatible con DomPDF (sin flex, usa line-height para centrado vertical)\n- Incluye test_gauge_real.php que consume datos reales de la BD\n- Documentacion completa en README_PDF_DOMPDF.md\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" checkout main)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" merge cycloid)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" push origin main)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" checkout cycloid)",
-      "Bash(dir:*)",
-      "Bash(mkdir:*)",
-      "Bash(php -l:*)",
-      "Bash(curl:*)",
-      "Bash(mysql -u root:*)",
-      "Bash(c:/xampp/mysql/bin/mysql -u root psyrisk -e \"SHOW COLUMNS FROM workers\")",
-      "Bash(c:/xampp/mysql/bin/mysql -u root psyrisk -e \"SHOW TABLES LIKE ''%comment%''\")",
-      "Bash(c:/xampp/mysql/bin/mysql -u root psyrisk -e \"SHOW TABLES LIKE ''%socio%''\")",
-      "Bash(c:/xampp/mysql/bin/mysql -u root psyrisk -e \"SHOW TABLES LIKE ''%ai%''\")",
-      "Bash(c:/xampp/mysql/bin/mysql:*)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" add .)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" stash pop)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" stash drop)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" commit -m \"fix: lista de trabajadores\")",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" commit -m \"$(cat <<''EOF''\nfix: Baremos desde Single Source of Truth y compatibilidad DomPDF\n\n- Agregados metodos publicos getBaremosDominios(), getBaremoDominio(), \n  getBaremosDimensiones(), getBaremoDimension(), getBaremoTotal() a \n  IntralaboralAScoring e IntralaboralBScoring\n- DominiosIntralaboralesController consume baremos de las librerias\n- Corregido linear-gradient a background-color para compatibilidad DomPDF\n- README_BAREMOS.md documenta uso correcto de baremos\n- Actualizado README_PDF_DOMPDF.md con reglas claras\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" commit -m \"$(cat <<''EOF''\nfeat: Seccion Dimensiones Intralaborales con 36 paginas\n\n- DimensionesIntralaboralesController: 1 intro + 19 Forma A + 16 Forma B\n- Baremos desde Single Source of Truth (IntralaboralAScoring/BScoring)\n- Gauges SVG con etiquetas en una linea\n- Cambio \"Analisis IA\" a \"Analisis del Especialista SST\" en PDFs\n- Rutas preview/download y tarjeta en battery_services view\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(php -r:*)"
     ],
     "deny": [],
     "ask": []

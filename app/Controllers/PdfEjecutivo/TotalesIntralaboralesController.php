@@ -473,7 +473,7 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
         if (!empty($aiText)) {
             $html .= '
 <div class="ai-text-box" style="margin-top: 15pt;">
-    <div class="ai-text-title">Análisis del Consultor:</div>
+    <div class="ai-text-title">Análisis del Especialista SST:</div>
     ' . nl2br(esc($aiText)) . '
 </div>
 ';

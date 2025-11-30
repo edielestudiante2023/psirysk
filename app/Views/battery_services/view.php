@@ -762,6 +762,34 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Dimensiones Intralaborales -->
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-info border-2 h-100">
+                            <div class="card-header bg-info text-white">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-cubes fa-lg me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Dimensiones Intralaborales</h6>
+                                        <small>19 dimensiones detalladas</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    19 dim. Forma A + 16 dim. Forma B = 35 páginas con gauges y baremos.
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/dimensiones-intralaborales/' . $service['id']) ?>" class="btn btn-outline-info btn-sm" target="_blank">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/dimensiones-intralaborales/' . $service['id']) ?>" class="btn btn-info btn-sm">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <?php endif; ?>
 

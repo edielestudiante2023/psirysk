@@ -26,7 +26,8 @@
       "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" add .)",
       "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" stash pop)",
       "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" stash drop)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" commit -m \"fix: lista de trabajadores\")"
+      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" commit -m \"fix: lista de trabajadores\")",
+      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" commit -m \"$(cat <<''EOF''\nfix: Baremos desde Single Source of Truth y compatibilidad DomPDF\n\n- Agregados metodos publicos getBaremosDominios(), getBaremoDominio(), \n  getBaremosDimensiones(), getBaremoDimension(), getBaremoTotal() a \n  IntralaboralAScoring e IntralaboralBScoring\n- DominiosIntralaboralesController consume baremos de las librerias\n- Corregido linear-gradient a background-color para compatibilidad DomPDF\n- README_BAREMOS.md documenta uso correcto de baremos\n- Actualizado README_PDF_DOMPDF.md con reglas claras\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

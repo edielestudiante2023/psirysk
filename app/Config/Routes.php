@@ -237,69 +237,6 @@ $routes->group('test-pdf', function($routes) {
 });
 
 // ============================================
-// RUTAS DE GENERACIÓN DE INFORMES PDF
-// ============================================
-$routes->group('pdf', ['namespace' => 'App\Controllers\Pdf'], function($routes) {
-
-    // Preview de secciones individuales (desarrollo)
-    $routes->group('preview', function($routes) {
-        // Secciones estáticas
-        $routes->get('portada/(:num)', 'Estaticas\PortadaController::preview/$1');
-        $routes->get('contenido/(:num)', 'Estaticas\ContenidoController::preview/$1');
-        $routes->get('introduccion/(:num)', 'Estaticas\IntroduccionController::preview/$1');
-        $routes->get('recomendaciones/(:num)', 'Estaticas\RecomendacionesController::preview/$1');
-
-        // Mapas de calor
-        $routes->get('mapa-calor-general/(:num)', 'MapasCalor\MapaCalorGeneralController::preview/$1');
-        $routes->get('mapa-calor-intralaboral/(:num)/(:alpha)', 'MapasCalor\MapaCalorIntralaboralController::preview/$1/$2');
-        $routes->get('mapa-calor-extralaboral/(:num)/(:alpha)', 'MapasCalor\MapaCalorExtralaboralController::preview/$1/$2');
-        $routes->get('mapa-calor-estres/(:num)/(:alpha)', 'MapasCalor\MapaCalorEstresController::preview/$1/$2');
-
-        // Resultados
-        $routes->get('resultados-globales/(:num)', 'Resultados\ResultadosGlobalesController::preview/$1');
-        $routes->get('sociodemograficos/(:num)', 'Resultados\SociodemograficosController::preview/$1');
-        $routes->get('mapas-calor/(:num)', 'Resultados\MapasCalorController::preview/$1');
-
-        // Intralaboral
-        $routes->get('intralaboral-total/(:num)', 'Resultados\Intralaboral\TotalController::preview/$1');
-        $routes->get('intralaboral-dominios/(:num)', 'Resultados\Intralaboral\DominiosController::preview/$1');
-        $routes->get('intralaboral-dimensiones/(:num)', 'Resultados\Intralaboral\DimensionesController::preview/$1');
-        $routes->get('intralaboral-dimensiones/(:num)/(:alpha)', 'Resultados\Intralaboral\DimensionesController::preview/$1/$2');
-
-        // Extralaboral
-        $routes->get('extralaboral-total/(:num)', 'Resultados\Extralaboral\TotalController::preview/$1');
-        $routes->get('extralaboral-dimensiones/(:num)', 'Resultados\Extralaboral\DimensionesController::preview/$1');
-        $routes->get('extralaboral-dimensiones/(:num)/(:alpha)', 'Resultados\Extralaboral\DimensionesController::preview/$1/$2');
-
-        // Estrés
-        $routes->get('estres/(:num)', 'Resultados\Estres\EstresController::preview/$1');
-        $routes->get('estres/(:num)/(:alpha)', 'Resultados\Estres\EstresController::preview/$1/$2');
-        $routes->get('estres-total/(:num)', 'Resultados\Estres\TotalController::preview/$1');
-
-        // Recomendaciones y Planes de Acción
-        $routes->get('recomendaciones-acciones/(:num)', 'Resultados\Recomendaciones\RecomendacionesController::preview/$1');
-        $routes->get('recomendaciones-acciones/(:num)/(:alpha)', 'Resultados\Recomendaciones\RecomendacionesController::preview/$1/$2');
-
-        // Preview completo (Informe de Batería de Riesgo Psicosocial)
-        $routes->get('full/(:num)', 'Services\PdfReportOrchestrator::preview/$1');
-        $routes->get('completo/(:num)', 'Services\PdfReportOrchestrator::preview/$1');
-
-        // Preview ejecutivo (Informe Ejecutivo de Batería de Riesgo Psicosocial)
-        $routes->get('ejecutivo/(:num)', 'Services\PdfReportOrchestrator::previewExecutive/$1');
-    });
-
-    // Generación de PDF - Informe COMPLETO
-    $routes->get('generate/(:num)', 'Services\PdfReportOrchestrator::generate/$1');
-    $routes->get('generate/completo/(:num)', 'Services\PdfReportOrchestrator::generate/$1');
-    $routes->get('download/(:num)', 'Services\PdfReportOrchestrator::download/$1');
-    $routes->get('download/completo/(:num)', 'Services\PdfReportOrchestrator::download/$1');
-
-    // Generación de PDF - Informe EJECUTIVO
-    $routes->get('generate/ejecutivo/(:num)', 'Services\PdfReportOrchestrator::generateExecutive/$1');
-    $routes->get('download/ejecutivo/(:num)', 'Services\PdfReportOrchestrator::downloadExecutive/$1');
-});
-
-// ============================================
 // RUTAS DE PDF EJECUTIVO (Módulo DomPDF Nativo)
 // ============================================
 $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], function($routes) {

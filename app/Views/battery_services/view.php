@@ -680,6 +680,33 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-success border-2 h-100">
+                            <div class="card-header bg-success text-white">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-th fa-lg me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Mapas de Calor</h6>
+                                        <small>Distribución de riesgo general</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    Distribución por niveles de riesgo: Intralaboral, Extralaboral y Estrés.
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/mapas-calor/' . $service['id']) ?>" class="btn btn-outline-success btn-sm" target="_blank">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/mapas-calor/' . $service['id']) ?>" class="btn btn-success btn-sm">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <?php endif; ?>
 

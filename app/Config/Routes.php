@@ -328,5 +328,6 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
     $routes->get('download/contenido/(:num)', 'ContenidoController::download/$1');
     $routes->get('download/introduccion/(:num)', 'IntroduccionController::download/$1');
     $routes->get('download/sociodemograficos/(:num)', 'SociodemograficosController::download/$1');
+    $routes->get('download/mapas-calor/(:num)', 'MapasCalorController::download/$1');
     $routes->get('download/(:num)', 'PdfEjecutivoOrchestrator::download/$1');
 });

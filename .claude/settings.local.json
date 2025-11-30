@@ -23,7 +23,9 @@
       "Bash(c:/xampp/mysql/bin/mysql -u root psyrisk -e \"SHOW TABLES LIKE ''%socio%''\")",
       "Bash(c:/xampp/mysql/bin/mysql -u root psyrisk -e \"SHOW TABLES LIKE ''%ai%''\")",
       "Bash(c:/xampp/mysql/bin/mysql:*)",
-      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" add .)"
+      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" add .)",
+      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" stash pop)",
+      "Bash(git -C \"c:\\xampp\\htdocs\\psyrisk\" stash drop)"
     ],
     "deny": [],
     "ask": []

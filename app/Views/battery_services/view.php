@@ -560,6 +560,129 @@
                 </div>
                 <?php endif; ?>
 
+                <!-- PDF EJECUTIVO - Módulo DomPDF Nativo -->
+                <?php if (session()->get('role_name') === 'consultor' || session()->get('role_name') === 'superadmin'): ?>
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-file-pdf fa-2x me-3" style="color: #28a745;"></i>
+                            <div>
+                                <h5 class="mb-1">PDF Ejecutivo - DomPDF Nativo</h5>
+                                <p class="text-muted small mb-0">Nuevo módulo de generación PDF con gauges SVG renderizados correctamente</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-success border-2 h-100">
+                            <div class="card-header bg-success text-white">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-image fa-lg me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Portada</h6>
+                                        <small>Página inicial del informe</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    Logo de empresa, título, datos de empresa y consultor con formato ICONTEC.
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/portada/' . $service['id']) ?>" class="btn btn-outline-success btn-sm" target="_blank">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/portada/' . $service['id']) ?>" class="btn btn-success btn-sm">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-success border-2 h-100">
+                            <div class="card-header bg-success text-white">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-list-ol fa-lg me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Contenido</h6>
+                                        <small>Índice del informe</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    Tabla de contenido con estructura de secciones (sin numeración de páginas).
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/contenido/' . $service['id']) ?>" class="btn btn-outline-success btn-sm" target="_blank">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/contenido/' . $service['id']) ?>" class="btn btn-success btn-sm">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-success border-2 h-100">
+                            <div class="card-header bg-success text-white">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-book-open fa-lg me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Introducción</h6>
+                                        <small>Marco legal y metodología</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    Marco legal, objetivos, metodología y tabla de niveles de riesgo.
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/introduccion/' . $service['id']) ?>" class="btn btn-outline-success btn-sm" target="_blank">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/introduccion/' . $service['id']) ?>" class="btn btn-success btn-sm">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 mb-3">
+                        <div class="card shadow-sm border-success border-2 h-100">
+                            <div class="card-header bg-success text-white">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-users fa-lg me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Sociodemográficos</h6>
+                                        <small>Características de la población</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-3">
+                                    Variables sociodemográficas y ocupacionales con análisis IA.
+                                </p>
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/sociodemograficos/' . $service['id']) ?>" class="btn btn-outline-success btn-sm" target="_blank">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/sociodemograficos/' . $service['id']) ?>" class="btn btn-success btn-sm">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+
                 <!-- Botones de navegación -->
                 <div class="d-flex justify-content-between">
                     <a href="<?= base_url('battery-services') ?>" class="btn btn-secondary">

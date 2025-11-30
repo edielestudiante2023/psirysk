@@ -298,3 +298,35 @@ $routes->group('pdf', ['namespace' => 'App\Controllers\Pdf'], function($routes) 
     $routes->get('generate/ejecutivo/(:num)', 'Services\PdfReportOrchestrator::generateExecutive/$1');
     $routes->get('download/ejecutivo/(:num)', 'Services\PdfReportOrchestrator::downloadExecutive/$1');
 });
+
+// ============================================
+// RUTAS DE PDF EJECUTIVO (Módulo DomPDF Nativo)
+// ============================================
+$routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], function($routes) {
+
+    // Preview de secciones individuales
+    $routes->get('preview/portada/(:num)', 'PortadaController::preview/$1');
+    $routes->get('preview/contenido/(:num)', 'ContenidoController::preview/$1');
+    $routes->get('preview/introduccion/(:num)', 'IntroduccionController::preview/$1');
+    $routes->get('preview/sociodemograficos/(:num)', 'SociodemograficosController::preview/$1');
+    $routes->get('preview/mapas-calor/(:num)', 'MapasCalorController::preview/$1');
+    $routes->get('preview/intralaboral-total/(:num)', 'IntralaboralTotalController::preview/$1');
+    $routes->get('preview/intralaboral-dominios/(:num)', 'IntralaboralDominiosController::preview/$1');
+    $routes->get('preview/intralaboral-dimensiones/(:num)', 'IntralaboralDimensionesController::preview/$1');
+    $routes->get('preview/extralaboral-total/(:num)', 'ExtralaboralTotalController::preview/$1');
+    $routes->get('preview/extralaboral-dimensiones/(:num)', 'ExtralaboralDimensionesController::preview/$1');
+    $routes->get('preview/estres-total/(:num)', 'EstresTotalController::preview/$1');
+    $routes->get('preview/estres/(:num)', 'EstresController::preview/$1');
+    $routes->get('preview/recomendaciones/(:num)', 'RecomendacionesController::preview/$1');
+    $routes->get('preview/firma/(:num)', 'FirmaController::preview/$1');
+
+    // Preview completo
+    $routes->get('preview/completo/(:num)', 'PdfEjecutivoOrchestrator::preview/$1');
+
+    // Descargas PDF
+    $routes->get('download/portada/(:num)', 'PortadaController::download/$1');
+    $routes->get('download/contenido/(:num)', 'ContenidoController::download/$1');
+    $routes->get('download/introduccion/(:num)', 'IntroduccionController::download/$1');
+    $routes->get('download/sociodemograficos/(:num)', 'SociodemograficosController::download/$1');
+    $routes->get('download/(:num)', 'PdfEjecutivoOrchestrator::download/$1');
+});

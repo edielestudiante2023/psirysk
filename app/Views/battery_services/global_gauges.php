@@ -1,29 +1,146 @@
 <?php
+// Importar librerías de scoring (Single Source of Truth para baremos)
+use App\Libraries\IntralaboralAScoring;
+use App\Libraries\IntralaboralBScoring;
+use App\Libraries\ExtralaboralScoring;
+use App\Libraries\EstresScoring;
+
+// =========================================================================
+// DIAGNÓSTICO ÁCIDO - Log exhaustivo para identificar causa raíz
+// =========================================================================
+$logFile = WRITEPATH . 'logs/global_gauges_debug_' . date('Y-m-d_H-i-s') . '.log';
+$logData = [];
+$logData['timestamp'] = date('Y-m-d H:i:s');
+$logData['php_version'] = PHP_VERSION;
+
+// 1. Verificar si las librerías existen y son accesibles
+$logData['librerias_accesibles'] = [
+    'IntralaboralAScoring' => class_exists('App\Libraries\IntralaboralAScoring'),
+    'IntralaboralBScoring' => class_exists('App\Libraries\IntralaboralBScoring'),
+    'ExtralaboralScoring' => class_exists('App\Libraries\ExtralaboralScoring'),
+    'EstresScoring' => class_exists('App\Libraries\EstresScoring'),
+];
+
+// 2. Probar obtención de baremos totales
+$logData['baremos_totales'] = [
+    'IntralaboralAScoring::getBaremoTotal()' => IntralaboralAScoring::getBaremoTotal(),
+    'IntralaboralBScoring::getBaremoTotal()' => IntralaboralBScoring::getBaremoTotal(),
+    'ExtralaboralScoring::getBaremoTotal(A)' => ExtralaboralScoring::getBaremoTotal('A'),
+    'ExtralaboralScoring::getBaremoTotal(B)' => ExtralaboralScoring::getBaremoTotal('B'),
+    'EstresScoring::getBaremoA()' => EstresScoring::getBaremoA(),
+    'EstresScoring::getBaremoB()' => EstresScoring::getBaremoB(),
+    'EstresScoring::getBaremoGeneral(A)' => EstresScoring::getBaremoGeneral('A'),
+    'EstresScoring::getBaremoGeneral(B)' => EstresScoring::getBaremoGeneral('B'),
+];
+
+// 3. Probar dominios
+$logData['baremos_dominios_A'] = [
+    'liderazgo' => IntralaboralAScoring::getBaremoDominio('liderazgo_relaciones_sociales'),
+    'control' => IntralaboralAScoring::getBaremoDominio('control'),
+    'demandas' => IntralaboralAScoring::getBaremoDominio('demandas'),
+    'recompensas' => IntralaboralAScoring::getBaremoDominio('recompensas'),
+];
+
+$logData['baremos_dominios_B'] = [
+    'liderazgo' => IntralaboralBScoring::getBaremoDominio('liderazgo_relaciones_sociales'),
+    'control' => IntralaboralBScoring::getBaremoDominio('control'),
+    'demandas' => IntralaboralBScoring::getBaremoDominio('demandas'),
+    'recompensas' => IntralaboralBScoring::getBaremoDominio('recompensas'),
+];
+
+// 4. Probar TODAS las dimensiones A
+$dimensionesA_test = [
+    'caracteristicas_liderazgo', 'relaciones_sociales_trabajo', 'retroalimentacion_desempeno',
+    'relacion_con_colaboradores', 'claridad_rol', 'capacitacion', 'participacion_manejo_cambio',
+    'oportunidades_desarrollo', 'control_autonomia_trabajo', 'demandas_ambientales_esfuerzo_fisico',
+    'demandas_emocionales', 'demandas_cuantitativas', 'influencia_trabajo_entorno_extralaboral',
+    'exigencias_responsabilidad_cargo', 'demandas_carga_mental', 'consistencia_rol',
+    'demandas_jornada_trabajo', 'recompensas_pertenencia_estabilidad', 'reconocimiento_compensacion'
+];
+$logData['baremos_dimensiones_A'] = [];
+foreach ($dimensionesA_test as $dim) {
+    $result = IntralaboralAScoring::getBaremoDimension($dim);
+    $logData['baremos_dimensiones_A'][$dim] = $result !== null ? 'OK' : 'NULL';
+}
+
+// 5. Probar TODAS las dimensiones B
+$dimensionesB_test = [
+    'caracteristicas_liderazgo', 'relaciones_sociales_trabajo', 'retroalimentacion_desempeno',
+    'claridad_rol', 'capacitacion', 'participacion_manejo_cambio', 'oportunidades_desarrollo',
+    'control_autonomia_trabajo', 'demandas_ambientales_esfuerzo_fisico', 'demandas_emocionales',
+    'demandas_cuantitativas', 'influencia_trabajo_entorno_extralaboral', 'demandas_carga_mental',
+    'demandas_jornada_trabajo', 'recompensas_pertenencia_estabilidad', 'reconocimiento_compensacion'
+];
+$logData['baremos_dimensiones_B'] = [];
+foreach ($dimensionesB_test as $dim) {
+    $result = IntralaboralBScoring::getBaremoDimension($dim);
+    $logData['baremos_dimensiones_B'][$dim] = $result !== null ? 'OK' : 'NULL';
+}
+
+// 6. Probar dimensiones extralaborales
+$dimensionesExtra_test = ['tiempo_fuera_trabajo', 'relaciones_familiares', 'comunicacion_relaciones',
+    'situacion_economica', 'caracteristicas_vivienda', 'influencia_entorno', 'desplazamiento'];
+$logData['baremos_extralaboral_A'] = [];
+$logData['baremos_extralaboral_B'] = [];
+foreach ($dimensionesExtra_test as $dim) {
+    $logData['baremos_extralaboral_A'][$dim] = ExtralaboralScoring::getBaremoDimension($dim, 'A') !== null ? 'OK' : 'NULL';
+    $logData['baremos_extralaboral_B'][$dim] = ExtralaboralScoring::getBaremoDimension($dim, 'B') !== null ? 'OK' : 'NULL';
+}
+
+// 7. Verificar datos que llegan del controlador
+$logData['datos_controlador'] = [
+    'service_existe' => isset($service),
+    'formaACount' => $formaACount ?? 'NO_DEFINIDO',
+    'formaBCount' => $formaBCount ?? 'NO_DEFINIDO',
+    'globalDataFormaA_keys' => isset($globalDataFormaA) ? array_keys($globalDataFormaA) : 'NO_DEFINIDO',
+    'globalDataFormaB_keys' => isset($globalDataFormaB) ? array_keys($globalDataFormaB) : 'NO_DEFINIDO',
+];
+
+// 8. Verificar valores específicos de globalDataFormaA
+if (isset($globalDataFormaA)) {
+    $logData['globalDataFormaA_valores'] = [];
+    foreach ($globalDataFormaA as $key => $val) {
+        $logData['globalDataFormaA_valores'][$key] = is_numeric($val) ? $val : gettype($val);
+    }
+}
+
+// Escribir log
+file_put_contents($logFile, print_r($logData, true));
+
+// También mostrar resumen en consola del navegador
+echo "<!-- DIAGNÓSTICO GLOBAL_GAUGES: Log escrito en $logFile -->\n";
+echo "<script>console.log('DIAGNÓSTICO GLOBAL_GAUGES', " . json_encode($logData) . ");</script>\n";
+
+// =========================================================================
+// FIN DIAGNÓSTICO
+// =========================================================================
+
 // Función helper para generar tarjetas de baremos
 function renderBaremos($baremos, $type = 'riesgo') {
     if ($type === 'estres') {
+        // EstresScoring usa nomenclatura diferente: muy_bajo, bajo, medio, alto, muy_alto
         $niveles = [
-            'sin_riesgo' => 'Muy bajo',
-            'riesgo_bajo' => 'Bajo',
-            'riesgo_medio' => 'Medio',
-            'riesgo_alto' => 'Alto',
-            'riesgo_muy_alto' => 'Muy alto'
+            'muy_bajo' => ['label' => 'Muy Bajo', 'class' => 'sin_riesgo'],
+            'bajo' => ['label' => 'Bajo', 'class' => 'riesgo_bajo'],
+            'medio' => ['label' => 'Medio', 'class' => 'riesgo_medio'],
+            'alto' => ['label' => 'Alto', 'class' => 'riesgo_alto'],
+            'muy_alto' => ['label' => 'Muy Alto', 'class' => 'riesgo_muy_alto']
         ];
     } else {
         $niveles = [
-            'sin_riesgo' => 'Sin Riesgo',
-            'riesgo_bajo' => 'Riesgo Bajo',
-            'riesgo_medio' => 'Riesgo Medio',
-            'riesgo_alto' => 'Riesgo Alto',
-            'riesgo_muy_alto' => 'Riesgo Muy Alto'
+            'sin_riesgo' => ['label' => 'Sin Riesgo', 'class' => 'sin_riesgo'],
+            'riesgo_bajo' => ['label' => 'Riesgo Bajo', 'class' => 'riesgo_bajo'],
+            'riesgo_medio' => ['label' => 'Riesgo Medio', 'class' => 'riesgo_medio'],
+            'riesgo_alto' => ['label' => 'Riesgo Alto', 'class' => 'riesgo_alto'],
+            'riesgo_muy_alto' => ['label' => 'Riesgo Muy Alto', 'class' => 'riesgo_muy_alto']
         ];
     }
 
     echo '<div class="baremos-grid">';
-    foreach ($niveles as $key => $label) {
+    foreach ($niveles as $key => $config) {
         if (isset($baremos[$key])) {
-            echo '<div class="baremo-card ' . $key . '">';
-            echo '<div class="baremo-header">' . $label . '</div>';
+            echo '<div class="baremo-card ' . $config['class'] . '">';
+            echo '<div class="baremo-header">' . $config['label'] . '</div>';
             echo '<div class="baremo-range">' . $baremos[$key][0] . ' - ' . $baremos[$key][1] . '</div>';
             echo '</div>';
         }
@@ -31,539 +148,104 @@ function renderBaremos($baremos, $type = 'riesgo') {
     echo '</div>';
 }
 
-// Definir baremos
+// =========================================================================
+// BAREMOS - Desde Single Source of Truth (Librerías de Scoring)
+// =========================================================================
 
 // Baremos Puntaje Total General (Tabla 34)
-$baremosPuntajeTotalGeneralA = [
-    'sin_riesgo' => [0.0, 18.8],
-    'riesgo_bajo' => [18.9, 24.4],
-    'riesgo_medio' => [24.5, 29.5],
-    'riesgo_alto' => [29.6, 35.4],
-    'riesgo_muy_alto' => [35.5, 100.0]
-];
+$baremosPuntajeTotalGeneralA = EstresScoring::getBaremoGeneral('A');
+$baremosPuntajeTotalGeneralB = EstresScoring::getBaremoGeneral('B');
+
+// Baremos Intralaboral Total (Tabla 33)
+$baremosIntralaboralA = IntralaboralAScoring::getBaremoTotal();
+$baremosIntralaboralB = IntralaboralBScoring::getBaremoTotal();
+
+// Baremos Extralaboral Total (Tablas 17 y 18)
+$baremosExtralaboralA = ExtralaboralScoring::getBaremoTotal('A');
+$baremosExtralaboralB = ExtralaboralScoring::getBaremoTotal('B');
+
+// Baremos de Estrés (Tabla 6)
+$baremosEstresA = EstresScoring::getBaremoA();
+$baremosEstresB = EstresScoring::getBaremoB();
+
+// Baremos Dominios Intralaborales - Forma A
+$baremosDomLiderazgoA = IntralaboralAScoring::getBaremoDominio('liderazgo_relaciones_sociales');
+$baremosDomControlA = IntralaboralAScoring::getBaremoDominio('control');
+$baremosDomDemandasA = IntralaboralAScoring::getBaremoDominio('demandas');
+$baremosDomRecompensasA = IntralaboralAScoring::getBaremoDominio('recompensas');
+
+// Baremos Dominios Intralaborales - Forma B
+$baremosDomLiderazgoB = IntralaboralBScoring::getBaremoDominio('liderazgo_relaciones_sociales');
+$baremosDomControlB = IntralaboralBScoring::getBaremoDominio('control');
+$baremosDomDemandasB = IntralaboralBScoring::getBaremoDominio('demandas');
+$baremosDomRecompensasB = IntralaboralBScoring::getBaremoDominio('recompensas');
+
+// =========================================================================
+// DIMENSIONES INTRALABORALES - Desde Single Source of Truth
+// =========================================================================
+
+// Dimensiones Forma A (Tabla 29)
+$baremosDimCaracteristicasLiderazgoA = IntralaboralAScoring::getBaremoDimension('caracteristicas_liderazgo');
+$baremosDimRelacionesSocialesA = IntralaboralAScoring::getBaremoDimension('relaciones_sociales_trabajo');
+$baremosDimRetroalimentacionA = IntralaboralAScoring::getBaremoDimension('retroalimentacion_desempeno');
+$baremosDimRelacionColaboradoresA = IntralaboralAScoring::getBaremoDimension('relacion_con_colaboradores');
+$baremosDimClaridadRolA = IntralaboralAScoring::getBaremoDimension('claridad_rol');
+$baremosDimCapacitacionA = IntralaboralAScoring::getBaremoDimension('capacitacion');
+
+$baremosDimParticipacionCambioA = IntralaboralAScoring::getBaremoDimension('participacion_manejo_cambio');
+$baremosDimOportunidadesA = IntralaboralAScoring::getBaremoDimension('oportunidades_desarrollo');
+$baremosDimControlAutonomiaA = IntralaboralAScoring::getBaremoDimension('control_autonomia_trabajo');
+$baremosDimDemandasAmbientalesA = IntralaboralAScoring::getBaremoDimension('demandas_ambientales_esfuerzo_fisico');
+$baremosDimDemandasEmocionalesA = IntralaboralAScoring::getBaremoDimension('demandas_emocionales');
+$baremosDimDemandasCuantitativasA = IntralaboralAScoring::getBaremoDimension('demandas_cuantitativas');
+$baremosDimInfluenciaTrabajoA = IntralaboralAScoring::getBaremoDimension('influencia_trabajo_entorno_extralaboral');
+$baremosDimExigenciasResponsabilidadA = IntralaboralAScoring::getBaremoDimension('exigencias_responsabilidad_cargo');
+$baremosDimDemandasCargaMentalA = IntralaboralAScoring::getBaremoDimension('demandas_carga_mental');
+$baremosDimConsistenciaRolA = IntralaboralAScoring::getBaremoDimension('consistencia_rol');
+$baremosDimDemandasJornadaA = IntralaboralAScoring::getBaremoDimension('demandas_jornada_trabajo');
+$baremosDimRecompensasPertenenciaA = IntralaboralAScoring::getBaremoDimension('recompensas_pertenencia_estabilidad');
+$baremosDimReconocimientoCompensacionA = IntralaboralAScoring::getBaremoDimension('reconocimiento_compensacion');
+
+// Dimensiones Forma B (Tabla 30)
+$baremosDimCaracteristicasLiderazgoB = IntralaboralBScoring::getBaremoDimension('caracteristicas_liderazgo');
+$baremosDimRelacionesSocialesB = IntralaboralBScoring::getBaremoDimension('relaciones_sociales_trabajo');
+$baremosDimRetroalimentacionB = IntralaboralBScoring::getBaremoDimension('retroalimentacion_desempeno');
+$baremosDimClaridadRolB = IntralaboralBScoring::getBaremoDimension('claridad_rol');
+$baremosDimCapacitacionB = IntralaboralBScoring::getBaremoDimension('capacitacion');
+$baremosDimParticipacionCambioB = IntralaboralBScoring::getBaremoDimension('participacion_manejo_cambio');
+$baremosDimOportunidadesB = IntralaboralBScoring::getBaremoDimension('oportunidades_desarrollo');
+$baremosDimControlAutonomiaB = IntralaboralBScoring::getBaremoDimension('control_autonomia_trabajo');
+$baremosDimDemandasAmbientalesB = IntralaboralBScoring::getBaremoDimension('demandas_ambientales_esfuerzo_fisico');
+$baremosDimDemandasEmocionalesB = IntralaboralBScoring::getBaremoDimension('demandas_emocionales');
+$baremosDimDemandasCuantitativasB = IntralaboralBScoring::getBaremoDimension('demandas_cuantitativas');
+$baremosDimInfluenciaTrabajoB = IntralaboralBScoring::getBaremoDimension('influencia_trabajo_entorno_extralaboral');
+$baremosDimDemandasCargaMentalB = IntralaboralBScoring::getBaremoDimension('demandas_carga_mental');
+$baremosDimDemandasJornadaB = IntralaboralBScoring::getBaremoDimension('demandas_jornada_trabajo');
+$baremosDimRecompensasPertenenciaB = IntralaboralBScoring::getBaremoDimension('recompensas_pertenencia_estabilidad');
+$baremosDimReconocimientoCompensacionB = IntralaboralBScoring::getBaremoDimension('reconocimiento_compensacion');
+
+// =========================================================================
+// DIMENSIONES EXTRALABORALES - Desde Single Source of Truth
+// =========================================================================
+
+// Dimensiones Extralaborales Forma A (Tabla 17)
+$baremosDimTiempoFueraTrabajoA = ExtralaboralScoring::getBaremoDimension('tiempo_fuera_trabajo', 'A');
+$baremosDimRelacionesFamiliaresA = ExtralaboralScoring::getBaremoDimension('relaciones_familiares', 'A');
+$baremosDimComunicacionRelacionesA = ExtralaboralScoring::getBaremoDimension('comunicacion_relaciones', 'A');
+$baremosDimSituacionEconomicaA = ExtralaboralScoring::getBaremoDimension('situacion_economica', 'A');
+$baremosDimCaracteristicasViviendaA = ExtralaboralScoring::getBaremoDimension('caracteristicas_vivienda', 'A');
+$baremosDimInfluenciaEntornoA = ExtralaboralScoring::getBaremoDimension('influencia_entorno', 'A');
+$baremosDimDesplazamientoViviendaA = ExtralaboralScoring::getBaremoDimension('desplazamiento', 'A');
+
+// Dimensiones Extralaborales Forma B (Tabla 18)
+$baremosDimTiempoFueraTrabajoB = ExtralaboralScoring::getBaremoDimension('tiempo_fuera_trabajo', 'B');
+$baremosDimRelacionesFamiliaresB = ExtralaboralScoring::getBaremoDimension('relaciones_familiares', 'B');
+$baremosDimComunicacionRelacionesB = ExtralaboralScoring::getBaremoDimension('comunicacion_relaciones', 'B');
+$baremosDimSituacionEconomicaB = ExtralaboralScoring::getBaremoDimension('situacion_economica', 'B');
+$baremosDimCaracteristicasViviendaB = ExtralaboralScoring::getBaremoDimension('caracteristicas_vivienda', 'B');
+$baremosDimInfluenciaEntornoB = ExtralaboralScoring::getBaremoDimension('influencia_entorno', 'B');
+$baremosDimDesplazamientoViviendaB = ExtralaboralScoring::getBaremoDimension('desplazamiento', 'B');
 
-$baremosPuntajeTotalGeneralB = [
-    'sin_riesgo' => [0.0, 19.9],
-    'riesgo_bajo' => [20.0, 24.8],
-    'riesgo_medio' => [24.9, 29.5],
-    'riesgo_alto' => [29.6, 35.4],
-    'riesgo_muy_alto' => [35.5, 100.0]
-];
-
-$baremosIntralaboralA = [
-    'sin_riesgo' => [0.0, 19.7],
-    'riesgo_bajo' => [19.8, 25.8],
-    'riesgo_medio' => [25.9, 31.5],
-    'riesgo_alto' => [31.6, 38.0],
-    'riesgo_muy_alto' => [38.1, 100.0]
-];
-
-$baremosIntralaboralB = [
-    'sin_riesgo' => [0.0, 20.6],
-    'riesgo_bajo' => [20.7, 26.0],
-    'riesgo_medio' => [26.1, 31.2],
-    'riesgo_alto' => [31.3, 38.7],
-    'riesgo_muy_alto' => [38.8, 100.0]
-];
-
-$baremosExtralaboralA = [
-    'sin_riesgo' => [0.0, 11.3],
-    'riesgo_bajo' => [11.4, 16.9],
-    'riesgo_medio' => [17.0, 22.6],
-    'riesgo_alto' => [22.7, 29.0],
-    'riesgo_muy_alto' => [29.1, 100.0]
-];
-
-$baremosExtralaboralB = [
-    'sin_riesgo' => [0.0, 12.9],
-    'riesgo_bajo' => [13.0, 17.7],
-    'riesgo_medio' => [17.8, 24.2],
-    'riesgo_alto' => [24.3, 32.3],
-    'riesgo_muy_alto' => [32.4, 100.0]
-];
-
-// Baremos de Estrés - Forma A (Tabla 6 - Jefes, profesionales y técnicos)
-$baremosEstresA = [
-    'sin_riesgo' => [0.0, 7.8],
-    'riesgo_bajo' => [7.9, 12.6],
-    'riesgo_medio' => [12.7, 17.7],
-    'riesgo_alto' => [17.8, 25.0],
-    'riesgo_muy_alto' => [25.1, 100.0]
-];
-
-// Baremos de Estrés - Forma B (Tabla 6 - Auxiliares y operarios)
-$baremosEstresB = [
-    'sin_riesgo' => [0.0, 6.5],
-    'riesgo_bajo' => [6.6, 11.8],
-    'riesgo_medio' => [11.9, 17.0],
-    'riesgo_alto' => [17.1, 23.4],
-    'riesgo_muy_alto' => [23.5, 100.0]
-];
-
-$baremosDomLiderazgoA = [
-    'sin_riesgo' => [0.0, 9.1],
-    'riesgo_bajo' => [9.2, 17.7],
-    'riesgo_medio' => [17.8, 25.6],
-    'riesgo_alto' => [25.7, 34.8],
-    'riesgo_muy_alto' => [34.9, 100.0]
-];
-
-$baremosDomControlA = [
-    'sin_riesgo' => [0.0, 10.7],
-    'riesgo_bajo' => [10.8, 19.0],
-    'riesgo_medio' => [19.1, 29.8],
-    'riesgo_alto' => [29.9, 40.5],
-    'riesgo_muy_alto' => [40.6, 100.0]
-];
-
-$baremosDomDemandasA = [
-    'sin_riesgo' => [0.0, 28.5],
-    'riesgo_bajo' => [28.6, 35.0],
-    'riesgo_medio' => [35.1, 41.5],
-    'riesgo_alto' => [41.6, 47.5],
-    'riesgo_muy_alto' => [47.6, 100.0]
-];
-
-$baremosDomRecompensasA = [
-    'sin_riesgo' => [0.0, 4.5],
-    'riesgo_bajo' => [4.6, 11.4],
-    'riesgo_medio' => [11.5, 20.5],
-    'riesgo_alto' => [20.6, 29.5],
-    'riesgo_muy_alto' => [29.6, 100.0]
-];
-
-$baremosDomLiderazgoB = [
-    'sin_riesgo' => [0.0, 8.3],
-    'riesgo_bajo' => [8.4, 17.5],
-    'riesgo_medio' => [17.6, 26.7],
-    'riesgo_alto' => [26.8, 38.3],
-    'riesgo_muy_alto' => [38.4, 100.0]
-];
-
-$baremosDomControlB = [
-    'sin_riesgo' => [0.0, 19.4],
-    'riesgo_bajo' => [19.5, 26.4],
-    'riesgo_medio' => [26.5, 34.7],
-    'riesgo_alto' => [34.8, 43.1],
-    'riesgo_muy_alto' => [43.2, 100.0]
-];
-
-$baremosDomDemandasB = [
-    'sin_riesgo' => [0.0, 26.9],
-    'riesgo_bajo' => [27.0, 33.3],
-    'riesgo_medio' => [33.4, 37.8],
-    'riesgo_alto' => [37.9, 44.2],
-    'riesgo_muy_alto' => [44.3, 100.0]
-];
-
-$baremosDomRecompensasB = [
-    'sin_riesgo' => [0.0, 2.5],
-    'riesgo_bajo' => [2.6, 10.0],
-    'riesgo_medio' => [10.1, 17.5],
-    'riesgo_alto' => [17.6, 27.5],
-    'riesgo_muy_alto' => [27.6, 100.0]
-];
-
-// Baremos de Dimensiones Intralaborales Forma A (Tabla 29) - Primeras 5
-$baremosDimCaracteristicasLiderazgoA = [
-    'sin_riesgo' => [0.0, 3.8],
-    'riesgo_bajo' => [3.9, 15.4],
-    'riesgo_medio' => [15.5, 30.8],
-    'riesgo_alto' => [30.9, 46.2],
-    'riesgo_muy_alto' => [46.3, 100.0]
-];
-
-$baremosDimRelacionesSocialesA = [
-    'sin_riesgo' => [0.0, 5.4],
-    'riesgo_bajo' => [5.5, 16.1],
-    'riesgo_medio' => [16.2, 25.0],
-    'riesgo_alto' => [25.1, 37.5],
-    'riesgo_muy_alto' => [37.6, 100.0]
-];
-
-$baremosDimRetroalimentacionA = [
-    'sin_riesgo' => [0.0, 10.0],
-    'riesgo_bajo' => [10.1, 25.0],
-    'riesgo_medio' => [25.1, 40.0],
-    'riesgo_alto' => [40.1, 55.0],
-    'riesgo_muy_alto' => [55.1, 100.0]
-];
-
-$baremosDimRelacionColaboradoresA = [
-    'sin_riesgo' => [0.0, 13.9],
-    'riesgo_bajo' => [14.0, 25.0],
-    'riesgo_medio' => [25.1, 33.3],
-    'riesgo_alto' => [33.4, 47.2],
-    'riesgo_muy_alto' => [47.3, 100.0]
-];
-
-$baremosDimClaridadRolA = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 10.7],
-    'riesgo_medio' => [10.8, 21.4],
-    'riesgo_alto' => [21.5, 39.3],
-    'riesgo_muy_alto' => [39.4, 100.0]
-];
-
-// Baremos de Dimensiones Intralaborales Forma A (Tabla 29) - Dimensiones 6-10
-$baremosDimCapacitacionA = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 16.7],
-    'riesgo_medio' => [16.8, 33.3],
-    'riesgo_alto' => [33.4, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimParticipacionCambioA = [
-    'sin_riesgo' => [0.0, 12.5],
-    'riesgo_bajo' => [12.6, 25.0],
-    'riesgo_medio' => [25.1, 37.5],
-    'riesgo_alto' => [37.6, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimOportunidadesA = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 6.3],
-    'riesgo_medio' => [6.4, 18.8],
-    'riesgo_alto' => [18.9, 31.3],
-    'riesgo_muy_alto' => [31.4, 100.0]
-];
-
-$baremosDimControlAutonomiaA = [
-    'sin_riesgo' => [0.0, 8.3],
-    'riesgo_bajo' => [8.4, 25.0],
-    'riesgo_medio' => [25.1, 41.7],
-    'riesgo_alto' => [41.8, 58.3],
-    'riesgo_muy_alto' => [58.4, 100.0]
-];
-
-$baremosDimDemandasAmbientalesA = [
-    'sin_riesgo' => [0.0, 14.6],
-    'riesgo_bajo' => [14.7, 22.9],
-    'riesgo_medio' => [23.0, 31.3],
-    'riesgo_alto' => [31.4, 39.6],
-    'riesgo_muy_alto' => [39.7, 100.0]
-];
-
-// Baremos de Dimensiones Intralaborales Forma A (Tabla 29) - Dimensiones 11-15
-$baremosDimDemandasEmocionalesA = [
-    'sin_riesgo' => [0.0, 16.7],
-    'riesgo_bajo' => [16.8, 25.0],
-    'riesgo_medio' => [25.1, 33.3],
-    'riesgo_alto' => [33.4, 47.2],
-    'riesgo_muy_alto' => [47.3, 100.0]
-];
-
-$baremosDimDemandasCuantitativasA = [
-    'sin_riesgo' => [0.0, 25.0],
-    'riesgo_bajo' => [25.1, 33.3],
-    'riesgo_medio' => [33.4, 45.8],
-    'riesgo_alto' => [45.9, 54.2],
-    'riesgo_muy_alto' => [54.3, 100.0]
-];
-
-$baremosDimInfluenciaTrabajoA = [
-    'sin_riesgo' => [0.0, 18.8],
-    'riesgo_bajo' => [18.9, 31.3],
-    'riesgo_medio' => [31.4, 43.8],
-    'riesgo_alto' => [43.9, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimExigenciasResponsabilidadA = [
-    'sin_riesgo' => [0.0, 37.5],
-    'riesgo_bajo' => [37.6, 54.2],
-    'riesgo_medio' => [54.3, 66.7],
-    'riesgo_alto' => [66.8, 79.2],
-    'riesgo_muy_alto' => [79.3, 100.0]
-];
-
-$baremosDimDemandasCargaMentalA = [
-    'sin_riesgo' => [0.0, 60.0],
-    'riesgo_bajo' => [60.1, 70.0],
-    'riesgo_medio' => [70.1, 80.0],
-    'riesgo_alto' => [80.1, 90.0],
-    'riesgo_muy_alto' => [90.1, 100.0]
-];
-
-// Baremos de Dimensiones Intralaborales Forma A (Tabla 29) - Dimensiones 16-19
-$baremosDimConsistenciaRolA = [
-    'sin_riesgo' => [0.0, 15.0],
-    'riesgo_bajo' => [15.1, 25.0],
-    'riesgo_medio' => [25.1, 35.0],
-    'riesgo_alto' => [35.1, 45.0],
-    'riesgo_muy_alto' => [45.1, 100.0]
-];
-
-$baremosDimDemandasJornadaA = [
-    'sin_riesgo' => [0.0, 8.3],
-    'riesgo_bajo' => [8.4, 25.0],
-    'riesgo_medio' => [25.1, 33.3],
-    'riesgo_alto' => [33.4, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimRecompensasPertenenciaA = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 5.0],
-    'riesgo_medio' => [5.1, 10.0],
-    'riesgo_alto' => [10.1, 20.0],
-    'riesgo_muy_alto' => [20.1, 100.0]
-];
-
-$baremosDimReconocimientoCompensacionA = [
-    'sin_riesgo' => [0.0, 4.2],
-    'riesgo_bajo' => [4.3, 16.7],
-    'riesgo_medio' => [16.8, 25.0],
-    'riesgo_alto' => [25.1, 37.5],
-    'riesgo_muy_alto' => [37.6, 100.0]
-];
-
-// Baremos de Dimensiones Intralaborales Forma B (Tabla 30) - Primeras 5
-$baremosDimCaracteristicasLiderazgoB = [
-    'sin_riesgo' => [0.0, 3.8],
-    'riesgo_bajo' => [3.9, 13.5],
-    'riesgo_medio' => [13.6, 25.0],
-    'riesgo_alto' => [25.1, 38.5],
-    'riesgo_muy_alto' => [38.6, 100.0]
-];
-
-$baremosDimRelacionesSocialesB = [
-    'sin_riesgo' => [0.0, 6.3],
-    'riesgo_bajo' => [6.4, 14.6],
-    'riesgo_medio' => [14.7, 27.1],
-    'riesgo_alto' => [27.2, 37.5],
-    'riesgo_muy_alto' => [37.6, 100.0]
-];
-
-$baremosDimRetroalimentacionB = [
-    'sin_riesgo' => [0.0, 5.0],
-    'riesgo_bajo' => [5.1, 20.0],
-    'riesgo_medio' => [20.1, 30.0],
-    'riesgo_alto' => [30.1, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimClaridadRolB = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 5.0],
-    'riesgo_medio' => [5.1, 15.0],
-    'riesgo_alto' => [15.1, 30.0],
-    'riesgo_muy_alto' => [30.1, 100.0]
-];
-
-$baremosDimCapacitacionB = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 16.7],
-    'riesgo_medio' => [16.8, 25.0],
-    'riesgo_alto' => [25.1, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-// Baremos de Dimensiones Intralaborales Forma B (Tabla 30) - Dimensiones 6-10
-$baremosDimParticipacionCambioB = [
-    'sin_riesgo' => [0.0, 16.7],
-    'riesgo_bajo' => [16.8, 33.3],
-    'riesgo_medio' => [33.4, 41.7],
-    'riesgo_alto' => [41.8, 58.3],
-    'riesgo_muy_alto' => [58.4, 100.0]
-];
-
-$baremosDimOportunidadesB = [
-    'sin_riesgo' => [0.0, 12.5],
-    'riesgo_bajo' => [12.6, 25.0],
-    'riesgo_medio' => [25.1, 37.5],
-    'riesgo_alto' => [37.6, 56.3],
-    'riesgo_muy_alto' => [56.4, 100.0]
-];
-
-$baremosDimControlAutonomiaB = [
-    'sin_riesgo' => [0.0, 33.3],
-    'riesgo_bajo' => [33.4, 50.0],
-    'riesgo_medio' => [50.1, 66.7],
-    'riesgo_alto' => [66.8, 75.0],
-    'riesgo_muy_alto' => [75.1, 100.0]
-];
-
-$baremosDimDemandasAmbientalesB = [
-    'sin_riesgo' => [0.0, 22.9],
-    'riesgo_bajo' => [23.0, 31.3],
-    'riesgo_medio' => [31.4, 39.6],
-    'riesgo_alto' => [39.7, 47.9],
-    'riesgo_muy_alto' => [48.0, 100.0]
-];
-
-$baremosDimDemandasEmocionalesB = [
-    'sin_riesgo' => [0.0, 19.4],
-    'riesgo_bajo' => [19.5, 27.8],
-    'riesgo_medio' => [27.9, 38.9],
-    'riesgo_alto' => [39.0, 47.2],
-    'riesgo_muy_alto' => [47.3, 100.0]
-];
-
-// Baremos de Dimensiones Intralaborales Forma B (Tabla 30) - Dimensiones 11-16
-$baremosDimDemandasCuantitativasB = [
-    'sin_riesgo' => [0.0, 16.7],
-    'riesgo_bajo' => [16.8, 33.3],
-    'riesgo_medio' => [33.4, 41.7],
-    'riesgo_alto' => [41.8, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimInfluenciaTrabajoB = [
-    'sin_riesgo' => [0.0, 12.5],
-    'riesgo_bajo' => [12.6, 25.0],
-    'riesgo_medio' => [25.1, 31.3],
-    'riesgo_alto' => [31.4, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimDemandasCargaMentalB = [
-    'sin_riesgo' => [0.0, 50.0],
-    'riesgo_bajo' => [50.1, 65.0],
-    'riesgo_medio' => [65.1, 75.0],
-    'riesgo_alto' => [75.1, 85.0],
-    'riesgo_muy_alto' => [85.1, 100.0]
-];
-
-$baremosDimDemandasJornadaB = [
-    'sin_riesgo' => [0.0, 25.0],
-    'riesgo_bajo' => [25.1, 37.5],
-    'riesgo_medio' => [37.6, 45.8],
-    'riesgo_alto' => [45.9, 58.3],
-    'riesgo_muy_alto' => [58.4, 100.0]
-];
-
-$baremosDimRecompensasPertenenciaB = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 6.3],
-    'riesgo_medio' => [6.4, 12.5],
-    'riesgo_alto' => [12.6, 18.8],
-    'riesgo_muy_alto' => [18.9, 100.0]
-];
-
-$baremosDimReconocimientoCompensacionB = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 12.5],
-    'riesgo_medio' => [12.6, 25.0],
-    'riesgo_alto' => [25.1, 37.5],
-    'riesgo_muy_alto' => [37.6, 100.0]
-];
-
-// Baremos Dimensiones Extralaborales Forma A (Tabla 17)
-$baremosDimTiempoFueraTrabajoA = [
-    'sin_riesgo' => [0.0, 6.3],
-    'riesgo_bajo' => [6.4, 25.0],
-    'riesgo_medio' => [25.1, 37.5],
-    'riesgo_alto' => [37.6, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimRelacionesFamiliaresA = [
-    'sin_riesgo' => [0.0, 8.3],
-    'riesgo_bajo' => [8.4, 25.0],
-    'riesgo_medio' => [25.1, 33.3],
-    'riesgo_alto' => [33.4, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimComunicacionRelacionesA = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 10.0],
-    'riesgo_medio' => [10.1, 20.0],
-    'riesgo_alto' => [20.1, 30.0],
-    'riesgo_muy_alto' => [30.1, 100.0]
-];
-
-$baremosDimSituacionEconomicaA = [
-    'sin_riesgo' => [0.0, 8.3],
-    'riesgo_bajo' => [8.4, 25.0],
-    'riesgo_medio' => [25.1, 33.3],
-    'riesgo_alto' => [33.4, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimCaracteristicasViviendaA = [
-    'sin_riesgo' => [0.0, 5.6],
-    'riesgo_bajo' => [5.7, 11.1],
-    'riesgo_medio' => [11.2, 13.9],
-    'riesgo_alto' => [14.0, 22.2],
-    'riesgo_muy_alto' => [22.3, 100.0]
-];
-
-$baremosDimInfluenciaEntornoA = [
-    'sin_riesgo' => [0.0, 8.3],
-    'riesgo_bajo' => [8.4, 16.7],
-    'riesgo_medio' => [16.8, 25.0],
-    'riesgo_alto' => [25.1, 41.7],
-    'riesgo_muy_alto' => [41.8, 100.0]
-];
-
-$baremosDimDesplazamientoViviendaA = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 12.5],
-    'riesgo_medio' => [12.6, 25.0],
-    'riesgo_alto' => [25.1, 43.8],
-    'riesgo_muy_alto' => [43.9, 100.0]
-];
-
-// Baremos Dimensiones Extralaborales Forma B (Tabla 18)
-$baremosDimTiempoFueraTrabajoB = [
-    'sin_riesgo' => [0.0, 6.3],
-    'riesgo_bajo' => [6.4, 25.0],
-    'riesgo_medio' => [25.1, 37.5],
-    'riesgo_alto' => [37.6, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimRelacionesFamiliaresB = [
-    'sin_riesgo' => [0.0, 8.3],
-    'riesgo_bajo' => [8.4, 25.0],
-    'riesgo_medio' => [25.1, 33.3],
-    'riesgo_alto' => [33.4, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimComunicacionRelacionesB = [
-    'sin_riesgo' => [0.0, 5.0],
-    'riesgo_bajo' => [5.1, 15.0],
-    'riesgo_medio' => [15.1, 25.0],
-    'riesgo_alto' => [25.1, 35.0],
-    'riesgo_muy_alto' => [35.1, 100.0]
-];
-
-$baremosDimSituacionEconomicaB = [
-    'sin_riesgo' => [0.0, 16.7],
-    'riesgo_bajo' => [16.8, 25.0],
-    'riesgo_medio' => [25.1, 41.7],
-    'riesgo_alto' => [41.8, 50.0],
-    'riesgo_muy_alto' => [50.1, 100.0]
-];
-
-$baremosDimCaracteristicasViviendaB = [
-    'sin_riesgo' => [0.0, 5.6],
-    'riesgo_bajo' => [5.7, 11.1],
-    'riesgo_medio' => [11.2, 16.7],
-    'riesgo_alto' => [16.8, 27.8],
-    'riesgo_muy_alto' => [27.9, 100.0]
-];
-
-$baremosDimInfluenciaEntornoB = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 16.7],
-    'riesgo_medio' => [16.8, 25.0],
-    'riesgo_alto' => [25.1, 41.7],
-    'riesgo_muy_alto' => [41.8, 100.0]
-];
-
-$baremosDimDesplazamientoViviendaB = [
-    'sin_riesgo' => [0.0, 0.9],
-    'riesgo_bajo' => [1.0, 12.5],
-    'riesgo_medio' => [12.6, 25.0],
-    'riesgo_alto' => [25.1, 43.8],
-    'riesgo_muy_alto' => [43.9, 100.0]
-];
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -834,6 +516,30 @@ $baremosDimDesplazamientoViviendaB = [
                 <i class="fas fa-chart-pie me-2"></i>PUNTAJE TOTAL GENERAL DE FACTORES DE RIESGO PSICOSOCIAL
             </div>
             <p class="text-muted mb-4">Cuestionario de factores de riesgo intralaboral y cuestionario de factores de riesgo extralaboral (Tabla 34)</p>
+
+            <!-- Descripción de cuestionarios por forma -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="p-3 text-center" style="background-color: #e3f2fd; border: 1px solid #1976D2; border-radius: 5px;">
+                        <span style="font-size: 0.9rem; color: #1976D2; line-height: 1.5;">
+                            Cuestionario de factores de<br>
+                            riesgo intralaboral <strong>forma A</strong><br>
+                            y cuestionario de factores<br>
+                            de riesgo extralaboral
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="p-3 text-center" style="background-color: #fff3e0; border: 1px solid #FF9800; border-radius: 5px;">
+                        <span style="font-size: 0.9rem; color: #e65100; line-height: 1.5;">
+                            Cuestionario de factores de<br>
+                            riesgo intralaboral <strong>forma B</strong><br>
+                            y cuestionario de factores<br>
+                            de riesgo extralaboral
+                        </span>
+                    </div>
+                </div>
+            </div>
 
             <div class="row">
                 <!-- Puntaje Total General Forma A -->
@@ -2037,23 +1743,49 @@ $baremosDimDesplazamientoViviendaB = [
             const canvas = document.getElementById(canvasId);
             const needle = document.getElementById(needleId);
 
-            // Calcular segmentos proporcionales
-            const segments = [
-                baremos.sin_riesgo[1] - baremos.sin_riesgo[0],
-                baremos.riesgo_bajo[1] - baremos.riesgo_bajo[0],
-                baremos.riesgo_medio[1] - baremos.riesgo_medio[0],
-                baremos.riesgo_alto[1] - baremos.riesgo_alto[0],
-                baremos.riesgo_muy_alto[1] - baremos.riesgo_muy_alto[0]
-            ];
+            if (!canvas || !needle || !baremos) {
+                console.warn('createGauge: Elemento no encontrado o baremos null', canvasId, baremos);
+                return;
+            }
 
-            // Etiquetas de rangos
-            const labels = [
-                baremos.sin_riesgo[0] + ' - ' + baremos.sin_riesgo[1],
-                baremos.riesgo_bajo[0] + ' - ' + baremos.riesgo_bajo[1],
-                baremos.riesgo_medio[0] + ' - ' + baremos.riesgo_medio[1],
-                baremos.riesgo_alto[0] + ' - ' + baremos.riesgo_alto[1],
-                baremos.riesgo_muy_alto[0] + ' - ' + baremos.riesgo_muy_alto[1]
-            ];
+            // Detectar tipo de nomenclatura (Estrés usa muy_bajo/bajo/medio/alto/muy_alto)
+            const esEstres = baremos.hasOwnProperty('muy_bajo');
+
+            let segments, labels;
+
+            if (esEstres) {
+                // Nomenclatura de Estrés: muy_bajo, bajo, medio, alto, muy_alto
+                segments = [
+                    baremos.muy_bajo[1] - baremos.muy_bajo[0],
+                    baremos.bajo[1] - baremos.bajo[0],
+                    baremos.medio[1] - baremos.medio[0],
+                    baremos.alto[1] - baremos.alto[0],
+                    baremos.muy_alto[1] - baremos.muy_alto[0]
+                ];
+                labels = [
+                    baremos.muy_bajo[0] + ' - ' + baremos.muy_bajo[1],
+                    baremos.bajo[0] + ' - ' + baremos.bajo[1],
+                    baremos.medio[0] + ' - ' + baremos.medio[1],
+                    baremos.alto[0] + ' - ' + baremos.alto[1],
+                    baremos.muy_alto[0] + ' - ' + baremos.muy_alto[1]
+                ];
+            } else {
+                // Nomenclatura estándar: sin_riesgo, riesgo_bajo, riesgo_medio, riesgo_alto, riesgo_muy_alto
+                segments = [
+                    baremos.sin_riesgo[1] - baremos.sin_riesgo[0],
+                    baremos.riesgo_bajo[1] - baremos.riesgo_bajo[0],
+                    baremos.riesgo_medio[1] - baremos.riesgo_medio[0],
+                    baremos.riesgo_alto[1] - baremos.riesgo_alto[0],
+                    baremos.riesgo_muy_alto[1] - baremos.riesgo_muy_alto[0]
+                ];
+                labels = [
+                    baremos.sin_riesgo[0] + ' - ' + baremos.sin_riesgo[1],
+                    baremos.riesgo_bajo[0] + ' - ' + baremos.riesgo_bajo[1],
+                    baremos.riesgo_medio[0] + ' - ' + baremos.riesgo_medio[1],
+                    baremos.riesgo_alto[0] + ' - ' + baremos.riesgo_alto[1],
+                    baremos.riesgo_muy_alto[0] + ' - ' + baremos.riesgo_muy_alto[1]
+                ];
+            }
 
             // Calcular ángulo de la aguja (-90 a 90)
             const angleDeg = -90 + (score / 100) * 180;
@@ -2092,540 +1824,199 @@ $baremosDimDesplazamientoViviendaB = [
             });
         }
 
+        // =======================================================================
+        // BAREMOS - Generados desde PHP (Single Source of Truth)
+        // =======================================================================
+
         // Baremos Puntaje Total General (Tabla 34)
-        const baremosPuntajeTotalGeneralA = {
-            sin_riesgo: [0.0, 18.8],
-            riesgo_bajo: [18.9, 24.4],
-            riesgo_medio: [24.5, 29.5],
-            riesgo_alto: [29.6, 35.4],
-            riesgo_muy_alto: [35.5, 100.0]
-        };
+        const baremosPuntajeTotalGeneralA = <?= json_encode($baremosPuntajeTotalGeneralA) ?>;
+        const baremosPuntajeTotalGeneralB = <?= json_encode($baremosPuntajeTotalGeneralB) ?>;
 
-        const baremosPuntajeTotalGeneralB = {
-            sin_riesgo: [0.0, 19.9],
-            riesgo_bajo: [20.0, 24.8],
-            riesgo_medio: [24.9, 29.5],
-            riesgo_alto: [29.6, 35.4],
-            riesgo_muy_alto: [35.5, 100.0]
-        };
+        // Baremos de Tabla 33 - Intralaboral Total
+        const baremosIntralaboralA = <?= json_encode($baremosIntralaboralA) ?>;
+        const baremosIntralaboralB = <?= json_encode($baremosIntralaboralB) ?>;
 
-        // Baremos de Tabla 33 - Forma A
-        const baremosIntralaboralA = {
-            sin_riesgo: [0.0, 19.7],
-            riesgo_bajo: [19.8, 25.8],
-            riesgo_medio: [25.9, 31.5],
-            riesgo_alto: [31.6, 38.0],
-            riesgo_muy_alto: [38.1, 100.0]
-        };
+        // Baremos de Tablas 17/18 - Extralaboral Total
+        const baremosExtralaboralA = <?= json_encode($baremosExtralaboralA) ?>;
+        const baremosExtralaboralB = <?= json_encode($baremosExtralaboralB) ?>;
 
-        // Baremos de Tabla 33 - Forma B
-        const baremosIntralaboralB = {
-            sin_riesgo: [0.0, 20.6],
-            riesgo_bajo: [20.7, 26.0],
-            riesgo_medio: [26.1, 31.2],
-            riesgo_alto: [31.3, 38.7],
-            riesgo_muy_alto: [38.8, 100.0]
-        };
-
-        // Baremos de Tabla 34 - Extralaboral Forma A
-        const baremosExtralaboralA = {
-            sin_riesgo: [0.0, 11.3],
-            riesgo_bajo: [11.4, 16.9],
-            riesgo_medio: [17.0, 22.6],
-            riesgo_alto: [22.7, 29.0],
-            riesgo_muy_alto: [29.1, 100.0]
-        };
-
-        // Baremos de Tabla 34 - Extralaboral Forma B
-        const baremosExtralaboralB = {
-            sin_riesgo: [0.0, 12.9],
-            riesgo_bajo: [13.0, 17.7],
-            riesgo_medio: [17.8, 24.2],
-            riesgo_alto: [24.3, 32.3],
-            riesgo_muy_alto: [32.4, 100.0]
-        };
-
-        // Baremos de Tabla 6 - Estrés Forma A (Jefes, profesionales y técnicos)
-        const baremosEstresA = {
-            sin_riesgo: [0.0, 7.8],
-            riesgo_bajo: [7.9, 12.6],
-            riesgo_medio: [12.7, 17.7],
-            riesgo_alto: [17.8, 25.0],
-            riesgo_muy_alto: [25.1, 100.0]
-        };
-
-        // Baremos de Tabla 6 - Estrés Forma B (Auxiliares y operarios)
-        const baremosEstresB = {
-            sin_riesgo: [0.0, 6.5],
-            riesgo_bajo: [6.6, 11.8],
-            riesgo_medio: [11.9, 17.0],
-            riesgo_alto: [17.1, 23.4],
-            riesgo_muy_alto: [23.5, 100.0]
-        };
+        // Baremos de Tabla 6 - Estrés
+        const baremosEstresA = <?= json_encode($baremosEstresA) ?>;
+        const baremosEstresB = <?= json_encode($baremosEstresB) ?>;
 
         // Baremos de Tabla 31 - Dominios Forma A
-        const baremosDomLiderazgoA = {
-            sin_riesgo: [0.0, 9.1],
-            riesgo_bajo: [9.2, 17.7],
-            riesgo_medio: [17.8, 25.6],
-            riesgo_alto: [25.7, 34.8],
-            riesgo_muy_alto: [34.9, 100.0]
-        };
-
-        const baremosDomControlA = {
-            sin_riesgo: [0.0, 10.7],
-            riesgo_bajo: [10.8, 19.0],
-            riesgo_medio: [19.1, 29.8],
-            riesgo_alto: [29.9, 40.5],
-            riesgo_muy_alto: [40.6, 100.0]
-        };
-
-        const baremosDomDemandasA = {
-            sin_riesgo: [0.0, 28.5],
-            riesgo_bajo: [28.6, 35.0],
-            riesgo_medio: [35.1, 41.5],
-            riesgo_alto: [41.6, 47.5],
-            riesgo_muy_alto: [47.6, 100.0]
-        };
-
-        const baremosDomRecompensasA = {
-            sin_riesgo: [0.0, 4.5],
-            riesgo_bajo: [4.6, 11.4],
-            riesgo_medio: [11.5, 20.5],
-            riesgo_alto: [20.6, 29.5],
-            riesgo_muy_alto: [29.6, 100.0]
-        };
+        const baremosDomLiderazgoA = <?= json_encode($baremosDomLiderazgoA) ?>;
+        const baremosDomControlA = <?= json_encode($baremosDomControlA) ?>;
+        const baremosDomDemandasA = <?= json_encode($baremosDomDemandasA) ?>;
+        const baremosDomRecompensasA = <?= json_encode($baremosDomRecompensasA) ?>;
 
         // Baremos de Tabla 32 - Dominios Forma B
-        const baremosDomLiderazgoB = {
-            sin_riesgo: [0.0, 8.3],
-            riesgo_bajo: [8.4, 17.5],
-            riesgo_medio: [17.6, 26.7],
-            riesgo_alto: [26.8, 38.3],
-            riesgo_muy_alto: [38.4, 100.0]
-        };
+        const baremosDomLiderazgoB = <?= json_encode($baremosDomLiderazgoB) ?>;
+        const baremosDomControlB = <?= json_encode($baremosDomControlB) ?>;
+        const baremosDomDemandasB = <?= json_encode($baremosDomDemandasB) ?>;
+        const baremosDomRecompensasB = <?= json_encode($baremosDomRecompensasB) ?>;
 
-        const baremosDomControlB = {
-            sin_riesgo: [0.0, 19.4],
-            riesgo_bajo: [19.5, 26.4],
-            riesgo_medio: [26.5, 34.7],
-            riesgo_alto: [34.8, 43.1],
-            riesgo_muy_alto: [43.2, 100.0]
-        };
+        // =======================================================================
+        // BAREMOS DE DIMENSIONES - Desde Single Source of Truth (PHP)
+        // =======================================================================
 
-        const baremosDomDemandasB = {
-            sin_riesgo: [0.0, 26.9],
-            riesgo_bajo: [27.0, 33.3],
-            riesgo_medio: [33.4, 37.8],
-            riesgo_alto: [37.9, 44.2],
-            riesgo_muy_alto: [44.3, 100.0]
-        };
+        // Baremos de Tabla 29 - Dimensiones Forma A
+        const baremosDimCaracteristicasLiderazgoA = <?= json_encode($baremosDimCaracteristicasLiderazgoA) ?>;
+        const baremosDimRelacionesSocialesA = <?= json_encode($baremosDimRelacionesSocialesA) ?>;
+        const baremosDimRetroalimentacionA = <?= json_encode($baremosDimRetroalimentacionA) ?>;
+        const baremosDimRelacionColaboradoresA = <?= json_encode($baremosDimRelacionColaboradoresA) ?>;
+        const baremosDimClaridadRolA = <?= json_encode($baremosDimClaridadRolA) ?>;
+        const baremosDimCapacitacionA = <?= json_encode($baremosDimCapacitacionA) ?>;
+        const baremosDimParticipacionCambioA = <?= json_encode($baremosDimParticipacionCambioA) ?>;
+        const baremosDimOportunidadesA = <?= json_encode($baremosDimOportunidadesA) ?>;
+        const baremosDimControlAutonomiaA = <?= json_encode($baremosDimControlAutonomiaA) ?>;
+        const baremosDimDemandasAmbientalesA = <?= json_encode($baremosDimDemandasAmbientalesA) ?>;
+        const baremosDimDemandasEmocionalesA = <?= json_encode($baremosDimDemandasEmocionalesA) ?>;
+        const baremosDimDemandasCuantitativasA = <?= json_encode($baremosDimDemandasCuantitativasA) ?>;
+        const baremosDimInfluenciaTrabajoA = <?= json_encode($baremosDimInfluenciaTrabajoA) ?>;
+        const baremosDimExigenciasResponsabilidadA = <?= json_encode($baremosDimExigenciasResponsabilidadA) ?>;
+        const baremosDimDemandasCargaMentalA = <?= json_encode($baremosDimDemandasCargaMentalA) ?>;
+        const baremosDimConsistenciaRolA = <?= json_encode($baremosDimConsistenciaRolA) ?>;
+        const baremosDimDemandasJornadaA = <?= json_encode($baremosDimDemandasJornadaA) ?>;
+        const baremosDimRecompensasPertenenciaA = <?= json_encode($baremosDimRecompensasPertenenciaA) ?>;
+        const baremosDimReconocimientoCompensacionA = <?= json_encode($baremosDimReconocimientoCompensacionA) ?>;
 
-        const baremosDomRecompensasB = {
-            sin_riesgo: [0.0, 2.5],
-            riesgo_bajo: [2.6, 10.0],
-            riesgo_medio: [10.1, 17.5],
-            riesgo_alto: [17.6, 27.5],
-            riesgo_muy_alto: [27.6, 100.0]
-        };
-
-        // Baremos de Tabla 29 - Dimensiones Forma A (primeras 5)
-        const baremosDimCaracteristicasLiderazgoA = {
-            sin_riesgo: [0.0, 3.8],
-            riesgo_bajo: [3.9, 15.4],
-            riesgo_medio: [15.5, 30.8],
-            riesgo_alto: [30.9, 46.2],
-            riesgo_muy_alto: [46.3, 100.0]
-        };
-
-        const baremosDimRelacionesSocialesA = {
-            sin_riesgo: [0.0, 5.4],
-            riesgo_bajo: [5.5, 16.1],
-            riesgo_medio: [16.2, 25.0],
-            riesgo_alto: [25.1, 37.5],
-            riesgo_muy_alto: [37.6, 100.0]
-        };
-
-        const baremosDimRetroalimentacionA = {
-            sin_riesgo: [0.0, 10.0],
-            riesgo_bajo: [10.1, 25.0],
-            riesgo_medio: [25.1, 40.0],
-            riesgo_alto: [40.1, 55.0],
-            riesgo_muy_alto: [55.1, 100.0]
-        };
-
-        const baremosDimRelacionColaboradoresA = {
-            sin_riesgo: [0.0, 13.9],
-            riesgo_bajo: [14.0, 25.0],
-            riesgo_medio: [25.1, 33.3],
-            riesgo_alto: [33.4, 47.2],
-            riesgo_muy_alto: [47.3, 100.0]
-        };
-
-        const baremosDimClaridadRolA = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 10.7],
-            riesgo_medio: [10.8, 21.4],
-            riesgo_alto: [21.5, 39.3],
-            riesgo_muy_alto: [39.4, 100.0]
-        };
-
-        const baremosDimCapacitacionA = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 16.7],
-            riesgo_medio: [16.8, 33.3],
-            riesgo_alto: [33.4, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        const baremosDimParticipacionCambioA = {
-            sin_riesgo: [0.0, 12.5],
-            riesgo_bajo: [12.6, 25.0],
-            riesgo_medio: [25.1, 37.5],
-            riesgo_alto: [37.6, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        const baremosDimOportunidadesA = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 6.3],
-            riesgo_medio: [6.4, 18.8],
-            riesgo_alto: [18.9, 31.3],
-            riesgo_muy_alto: [31.4, 100.0]
-        };
-
-        const baremosDimControlAutonomiaA = {
-            sin_riesgo: [0.0, 8.3],
-            riesgo_bajo: [8.4, 25.0],
-            riesgo_medio: [25.1, 41.7],
-            riesgo_alto: [41.8, 58.3],
-            riesgo_muy_alto: [58.4, 100.0]
-        };
-
-        const baremosDimDemandasAmbientalesA = {
-            sin_riesgo: [0.0, 14.6],
-            riesgo_bajo: [14.7, 22.9],
-            riesgo_medio: [23.0, 31.3],
-            riesgo_alto: [31.4, 39.6],
-            riesgo_muy_alto: [39.7, 100.0]
-        };
-
-        const baremosDimDemandasEmocionalesA = {
-            sin_riesgo: [0.0, 16.7],
-            riesgo_bajo: [16.8, 25.0],
-            riesgo_medio: [25.1, 33.3],
-            riesgo_alto: [33.4, 47.2],
-            riesgo_muy_alto: [47.3, 100.0]
-        };
-
-        const baremosDimDemandasCuantitativasA = {
-            sin_riesgo: [0.0, 25.0],
-            riesgo_bajo: [25.1, 33.3],
-            riesgo_medio: [33.4, 45.8],
-            riesgo_alto: [45.9, 54.2],
-            riesgo_muy_alto: [54.3, 100.0]
-        };
-
-        const baremosDimInfluenciaTrabajoA = {
-            sin_riesgo: [0.0, 18.8],
-            riesgo_bajo: [18.9, 31.3],
-            riesgo_medio: [31.4, 43.8],
-            riesgo_alto: [43.9, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        const baremosDimExigenciasResponsabilidadA = {
-            sin_riesgo: [0.0, 37.5],
-            riesgo_bajo: [37.6, 54.2],
-            riesgo_medio: [54.3, 66.7],
-            riesgo_alto: [66.8, 79.2],
-            riesgo_muy_alto: [79.3, 100.0]
-        };
-
-        const baremosDimDemandasCargaMentalA = {
-            sin_riesgo: [0.0, 60.0],
-            riesgo_bajo: [60.1, 70.0],
-            riesgo_medio: [70.1, 80.0],
-            riesgo_alto: [80.1, 90.0],
-            riesgo_muy_alto: [90.1, 100.0]
-        };
-
-        const baremosDimConsistenciaRolA = {
-            sin_riesgo: [0.0, 15.0],
-            riesgo_bajo: [15.1, 25.0],
-            riesgo_medio: [25.1, 35.0],
-            riesgo_alto: [35.1, 45.0],
-            riesgo_muy_alto: [45.1, 100.0]
-        };
-
-        const baremosDimDemandasJornadaA = {
-            sin_riesgo: [0.0, 8.3],
-            riesgo_bajo: [8.4, 25.0],
-            riesgo_medio: [25.1, 33.3],
-            riesgo_alto: [33.4, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        const baremosDimRecompensasPertenenciaA = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 5.0],
-            riesgo_medio: [5.1, 10.0],
-            riesgo_alto: [10.1, 20.0],
-            riesgo_muy_alto: [20.1, 100.0]
-        };
-
-        const baremosDimReconocimientoCompensacionA = {
-            sin_riesgo: [0.0, 4.2],
-            riesgo_bajo: [4.3, 16.7],
-            riesgo_medio: [16.8, 25.0],
-            riesgo_alto: [25.1, 37.5],
-            riesgo_muy_alto: [37.6, 100.0]
-        };
-
-        // Baremos de Tabla 30 - Dimensiones Forma B (primeras 5)
-        const baremosDimCaracteristicasLiderazgoB = {
-            sin_riesgo: [0.0, 3.8],
-            riesgo_bajo: [3.9, 13.5],
-            riesgo_medio: [13.6, 25.0],
-            riesgo_alto: [25.1, 38.5],
-            riesgo_muy_alto: [38.6, 100.0]
-        };
-
-        const baremosDimRelacionesSocialesB = {
-            sin_riesgo: [0.0, 6.3],
-            riesgo_bajo: [6.4, 14.6],
-            riesgo_medio: [14.7, 27.1],
-            riesgo_alto: [27.2, 37.5],
-            riesgo_muy_alto: [37.6, 100.0]
-        };
-
-        const baremosDimRetroalimentacionB = {
-            sin_riesgo: [0.0, 5.0],
-            riesgo_bajo: [5.1, 20.0],
-            riesgo_medio: [20.1, 30.0],
-            riesgo_alto: [30.1, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        const baremosDimClaridadRolB = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 5.0],
-            riesgo_medio: [5.1, 15.0],
-            riesgo_alto: [15.1, 30.0],
-            riesgo_muy_alto: [30.1, 100.0]
-        };
-
-        const baremosDimCapacitacionB = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 16.7],
-            riesgo_medio: [16.8, 25.0],
-            riesgo_alto: [25.1, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        // Baremos de Tabla 30 - Dimensiones Forma B (6-10)
-        const baremosDimParticipacionCambioB = {
-            sin_riesgo: [0.0, 16.7],
-            riesgo_bajo: [16.8, 33.3],
-            riesgo_medio: [33.4, 41.7],
-            riesgo_alto: [41.8, 58.3],
-            riesgo_muy_alto: [58.4, 100.0]
-        };
-
-        const baremosDimOportunidadesB = {
-            sin_riesgo: [0.0, 12.5],
-            riesgo_bajo: [12.6, 25.0],
-            riesgo_medio: [25.1, 37.5],
-            riesgo_alto: [37.6, 56.3],
-            riesgo_muy_alto: [56.4, 100.0]
-        };
-
-        const baremosDimControlAutonomiaB = {
-            sin_riesgo: [0.0, 33.3],
-            riesgo_bajo: [33.4, 50.0],
-            riesgo_medio: [50.1, 66.7],
-            riesgo_alto: [66.8, 75.0],
-            riesgo_muy_alto: [75.1, 100.0]
-        };
-
-        const baremosDimDemandasAmbientalesB = {
-            sin_riesgo: [0.0, 22.9],
-            riesgo_bajo: [23.0, 31.3],
-            riesgo_medio: [31.4, 39.6],
-            riesgo_alto: [39.7, 47.9],
-            riesgo_muy_alto: [48.0, 100.0]
-        };
-
-        const baremosDimDemandasEmocionalesB = {
-            sin_riesgo: [0.0, 19.4],
-            riesgo_bajo: [19.5, 27.8],
-            riesgo_medio: [27.9, 38.9],
-            riesgo_alto: [39.0, 47.2],
-            riesgo_muy_alto: [47.3, 100.0]
-        };
-
-        // Baremos de Tabla 30 - Dimensiones Forma B (11-16)
-        const baremosDimDemandasCuantitativasB = {
-            sin_riesgo: [0.0, 16.7],
-            riesgo_bajo: [16.8, 33.3],
-            riesgo_medio: [33.4, 41.7],
-            riesgo_alto: [41.8, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        const baremosDimInfluenciaTrabajoB = {
-            sin_riesgo: [0.0, 12.5],
-            riesgo_bajo: [12.6, 25.0],
-            riesgo_medio: [25.1, 31.3],
-            riesgo_alto: [31.4, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        const baremosDimDemandasCargaMentalB = {
-            sin_riesgo: [0.0, 50.0],
-            riesgo_bajo: [50.1, 65.0],
-            riesgo_medio: [65.1, 75.0],
-            riesgo_alto: [75.1, 85.0],
-            riesgo_muy_alto: [85.1, 100.0]
-        };
-
-        const baremosDimDemandasJornadaB = {
-            sin_riesgo: [0.0, 25.0],
-            riesgo_bajo: [25.1, 37.5],
-            riesgo_medio: [37.6, 45.8],
-            riesgo_alto: [45.9, 58.3],
-            riesgo_muy_alto: [58.4, 100.0]
-        };
-
-        const baremosDimRecompensasPertenenciaB = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 6.3],
-            riesgo_medio: [6.4, 12.5],
-            riesgo_alto: [12.6, 18.8],
-            riesgo_muy_alto: [18.9, 100.0]
-        };
-
-        const baremosDimReconocimientoCompensacionB = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 12.5],
-            riesgo_medio: [12.6, 25.0],
-            riesgo_alto: [25.1, 37.5],
-            riesgo_muy_alto: [37.6, 100.0]
-        };
+        // Baremos de Tabla 30 - Dimensiones Forma B
+        const baremosDimCaracteristicasLiderazgoB = <?= json_encode($baremosDimCaracteristicasLiderazgoB) ?>;
+        const baremosDimRelacionesSocialesB = <?= json_encode($baremosDimRelacionesSocialesB) ?>;
+        const baremosDimRetroalimentacionB = <?= json_encode($baremosDimRetroalimentacionB) ?>;
+        const baremosDimClaridadRolB = <?= json_encode($baremosDimClaridadRolB) ?>;
+        const baremosDimCapacitacionB = <?= json_encode($baremosDimCapacitacionB) ?>;
+        const baremosDimParticipacionCambioB = <?= json_encode($baremosDimParticipacionCambioB) ?>;
+        const baremosDimOportunidadesB = <?= json_encode($baremosDimOportunidadesB) ?>;
+        const baremosDimControlAutonomiaB = <?= json_encode($baremosDimControlAutonomiaB) ?>;
+        const baremosDimDemandasAmbientalesB = <?= json_encode($baremosDimDemandasAmbientalesB) ?>;
+        const baremosDimDemandasEmocionalesB = <?= json_encode($baremosDimDemandasEmocionalesB) ?>;
+        const baremosDimDemandasCuantitativasB = <?= json_encode($baremosDimDemandasCuantitativasB) ?>;
+        const baremosDimInfluenciaTrabajoB = <?= json_encode($baremosDimInfluenciaTrabajoB) ?>;
+        const baremosDimDemandasCargaMentalB = <?= json_encode($baremosDimDemandasCargaMentalB) ?>;
+        const baremosDimDemandasJornadaB = <?= json_encode($baremosDimDemandasJornadaB) ?>;
+        const baremosDimRecompensasPertenenciaB = <?= json_encode($baremosDimRecompensasPertenenciaB) ?>;
+        const baremosDimReconocimientoCompensacionB = <?= json_encode($baremosDimReconocimientoCompensacionB) ?>;
 
         // Baremos Dimensiones Extralaborales Forma A (Tabla 17)
-        const baremosDimTiempoFueraTrabajoA = {
-            sin_riesgo: [0.0, 6.3],
-            riesgo_bajo: [6.4, 25.0],
-            riesgo_medio: [25.1, 37.5],
-            riesgo_alto: [37.6, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        const baremosDimRelacionesFamiliaresA = {
-            sin_riesgo: [0.0, 8.3],
-            riesgo_bajo: [8.4, 25.0],
-            riesgo_medio: [25.1, 33.3],
-            riesgo_alto: [33.4, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        const baremosDimComunicacionRelacionesA = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 10.0],
-            riesgo_medio: [10.1, 20.0],
-            riesgo_alto: [20.1, 30.0],
-            riesgo_muy_alto: [30.1, 100.0]
-        };
-
-        const baremosDimSituacionEconomicaA = {
-            sin_riesgo: [0.0, 8.3],
-            riesgo_bajo: [8.4, 25.0],
-            riesgo_medio: [25.1, 33.3],
-            riesgo_alto: [33.4, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        const baremosDimCaracteristicasViviendaA = {
-            sin_riesgo: [0.0, 5.6],
-            riesgo_bajo: [5.7, 11.1],
-            riesgo_medio: [11.2, 13.9],
-            riesgo_alto: [14.0, 22.2],
-            riesgo_muy_alto: [22.3, 100.0]
-        };
-
-        const baremosDimInfluenciaEntornoA = {
-            sin_riesgo: [0.0, 8.3],
-            riesgo_bajo: [8.4, 16.7],
-            riesgo_medio: [16.8, 25.0],
-            riesgo_alto: [25.1, 41.7],
-            riesgo_muy_alto: [41.8, 100.0]
-        };
-
-        const baremosDimDesplazamientoViviendaA = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 12.5],
-            riesgo_medio: [12.6, 25.0],
-            riesgo_alto: [25.1, 43.8],
-            riesgo_muy_alto: [43.9, 100.0]
-        };
+        const baremosDimTiempoFueraTrabajoA = <?= json_encode($baremosDimTiempoFueraTrabajoA) ?>;
+        const baremosDimRelacionesFamiliaresA = <?= json_encode($baremosDimRelacionesFamiliaresA) ?>;
+        const baremosDimComunicacionRelacionesA = <?= json_encode($baremosDimComunicacionRelacionesA) ?>;
+        const baremosDimSituacionEconomicaA = <?= json_encode($baremosDimSituacionEconomicaA) ?>;
+        const baremosDimCaracteristicasViviendaA = <?= json_encode($baremosDimCaracteristicasViviendaA) ?>;
+        const baremosDimInfluenciaEntornoA = <?= json_encode($baremosDimInfluenciaEntornoA) ?>;
+        const baremosDimDesplazamientoViviendaA = <?= json_encode($baremosDimDesplazamientoViviendaA) ?>;
 
         // Baremos Dimensiones Extralaborales Forma B (Tabla 18)
-        const baremosDimTiempoFueraTrabajoB = {
-            sin_riesgo: [0.0, 6.3],
-            riesgo_bajo: [6.4, 25.0],
-            riesgo_medio: [25.1, 37.5],
-            riesgo_alto: [37.6, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
+        const baremosDimTiempoFueraTrabajoB = <?= json_encode($baremosDimTiempoFueraTrabajoB) ?>;
+        const baremosDimRelacionesFamiliaresB = <?= json_encode($baremosDimRelacionesFamiliaresB) ?>;
+        const baremosDimComunicacionRelacionesB = <?= json_encode($baremosDimComunicacionRelacionesB) ?>;
+        const baremosDimSituacionEconomicaB = <?= json_encode($baremosDimSituacionEconomicaB) ?>;
+        const baremosDimCaracteristicasViviendaB = <?= json_encode($baremosDimCaracteristicasViviendaB) ?>;
+        const baremosDimInfluenciaEntornoB = <?= json_encode($baremosDimInfluenciaEntornoB) ?>;
+        const baremosDimDesplazamientoViviendaB = <?= json_encode($baremosDimDesplazamientoViviendaB) ?>;
+
+        // =========================================================================
+        // DIAGNÓSTICO JS ÁCIDO - Verificar qué baremos llegaron correctamente
+        // =========================================================================
+        const diagnosticoJS = {
+            // Totales
+            baremosPuntajeTotalGeneralA: baremosPuntajeTotalGeneralA,
+            baremosPuntajeTotalGeneralB: baremosPuntajeTotalGeneralB,
+            baremosIntralaboralA: baremosIntralaboralA,
+            baremosIntralaboralB: baremosIntralaboralB,
+            baremosExtralaboralA: baremosExtralaboralA,
+            baremosExtralaboralB: baremosExtralaboralB,
+            baremosEstresA: baremosEstresA,
+            baremosEstresB: baremosEstresB,
+            // Dominios
+            baremosDomLiderazgoA: baremosDomLiderazgoA,
+            baremosDomControlA: baremosDomControlA,
+            baremosDomDemandasA: baremosDomDemandasA,
+            baremosDomRecompensasA: baremosDomRecompensasA,
+            baremosDomLiderazgoB: baremosDomLiderazgoB,
+            baremosDomControlB: baremosDomControlB,
+            baremosDomDemandasB: baremosDomDemandasB,
+            baremosDomRecompensasB: baremosDomRecompensasB,
+            // Dimensiones A
+            baremosDimCaracteristicasLiderazgoA: baremosDimCaracteristicasLiderazgoA,
+            baremosDimRelacionesSocialesA: baremosDimRelacionesSocialesA,
+            baremosDimRetroalimentacionA: baremosDimRetroalimentacionA,
+            baremosDimRelacionColaboradoresA: baremosDimRelacionColaboradoresA,
+            baremosDimClaridadRolA: baremosDimClaridadRolA,
+            baremosDimCapacitacionA: baremosDimCapacitacionA,
+            baremosDimParticipacionCambioA: baremosDimParticipacionCambioA,
+            baremosDimOportunidadesA: baremosDimOportunidadesA,
+            baremosDimControlAutonomiaA: baremosDimControlAutonomiaA,
+            baremosDimDemandasAmbientalesA: baremosDimDemandasAmbientalesA,
+            baremosDimDemandasEmocionalesA: baremosDimDemandasEmocionalesA,
+            baremosDimDemandasCuantitativasA: baremosDimDemandasCuantitativasA,
+            baremosDimInfluenciaTrabajoA: baremosDimInfluenciaTrabajoA,
+            baremosDimExigenciasResponsabilidadA: baremosDimExigenciasResponsabilidadA,
+            baremosDimDemandasCargaMentalA: baremosDimDemandasCargaMentalA,
+            baremosDimConsistenciaRolA: baremosDimConsistenciaRolA,
+            baremosDimDemandasJornadaA: baremosDimDemandasJornadaA,
+            baremosDimRecompensasPertenenciaA: baremosDimRecompensasPertenenciaA,
+            baremosDimReconocimientoCompensacionA: baremosDimReconocimientoCompensacionA,
+            // Dimensiones B
+            baremosDimCaracteristicasLiderazgoB: baremosDimCaracteristicasLiderazgoB,
+            baremosDimRelacionesSocialesB: baremosDimRelacionesSocialesB,
+            baremosDimRetroalimentacionB: baremosDimRetroalimentacionB,
+            baremosDimClaridadRolB: baremosDimClaridadRolB,
+            baremosDimCapacitacionB: baremosDimCapacitacionB,
+            baremosDimParticipacionCambioB: baremosDimParticipacionCambioB,
+            baremosDimOportunidadesB: baremosDimOportunidadesB,
+            baremosDimControlAutonomiaB: baremosDimControlAutonomiaB,
+            baremosDimDemandasAmbientalesB: baremosDimDemandasAmbientalesB,
+            baremosDimDemandasEmocionalesB: baremosDimDemandasEmocionalesB,
+            baremosDimDemandasCuantitativasB: baremosDimDemandasCuantitativasB,
+            baremosDimInfluenciaTrabajoB: baremosDimInfluenciaTrabajoB,
+            baremosDimDemandasCargaMentalB: baremosDimDemandasCargaMentalB,
+            baremosDimDemandasJornadaB: baremosDimDemandasJornadaB,
+            baremosDimRecompensasPertenenciaB: baremosDimRecompensasPertenenciaB,
+            baremosDimReconocimientoCompensacionB: baremosDimReconocimientoCompensacionB,
+            // Extralaborales
+            baremosDimTiempoFueraTrabajoA: baremosDimTiempoFueraTrabajoA,
+            baremosDimRelacionesFamiliaresA: baremosDimRelacionesFamiliaresA,
+            baremosDimComunicacionRelacionesA: baremosDimComunicacionRelacionesA,
+            baremosDimSituacionEconomicaA: baremosDimSituacionEconomicaA,
+            baremosDimCaracteristicasViviendaA: baremosDimCaracteristicasViviendaA,
+            baremosDimInfluenciaEntornoA: baremosDimInfluenciaEntornoA,
+            baremosDimDesplazamientoViviendaA: baremosDimDesplazamientoViviendaA,
+            baremosDimTiempoFueraTrabajoB: baremosDimTiempoFueraTrabajoB,
+            baremosDimRelacionesFamiliaresB: baremosDimRelacionesFamiliaresB,
+            baremosDimComunicacionRelacionesB: baremosDimComunicacionRelacionesB,
+            baremosDimSituacionEconomicaB: baremosDimSituacionEconomicaB,
+            baremosDimCaracteristicasViviendaB: baremosDimCaracteristicasViviendaB,
+            baremosDimInfluenciaEntornoB: baremosDimInfluenciaEntornoB,
+            baremosDimDesplazamientoViviendaB: baremosDimDesplazamientoViviendaB,
         };
 
-        const baremosDimRelacionesFamiliaresB = {
-            sin_riesgo: [0.0, 8.3],
-            riesgo_bajo: [8.4, 25.0],
-            riesgo_medio: [25.1, 33.3],
-            riesgo_alto: [33.4, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
+        // Contar nulls y mostrar resumen
+        const nullsJS = [];
+        const oksJS = [];
+        for (const [key, val] of Object.entries(diagnosticoJS)) {
+            if (val === null || val === undefined) {
+                nullsJS.push(key);
+            } else {
+                oksJS.push(key);
+            }
+        }
 
-        const baremosDimComunicacionRelacionesB = {
-            sin_riesgo: [0.0, 5.0],
-            riesgo_bajo: [5.1, 15.0],
-            riesgo_medio: [15.1, 25.0],
-            riesgo_alto: [25.1, 35.0],
-            riesgo_muy_alto: [35.1, 100.0]
-        };
+        console.log('=== DIAGNÓSTICO JS BAREMOS ===');
+        console.log('NULLS (' + nullsJS.length + '):', nullsJS);
+        console.log('OKs (' + oksJS.length + '):', oksJS);
+        console.log('Detalle completo:', diagnosticoJS);
 
-        const baremosDimSituacionEconomicaB = {
-            sin_riesgo: [0.0, 16.7],
-            riesgo_bajo: [16.8, 25.0],
-            riesgo_medio: [25.1, 41.7],
-            riesgo_alto: [41.8, 50.0],
-            riesgo_muy_alto: [50.1, 100.0]
-        };
-
-        const baremosDimCaracteristicasViviendaB = {
-            sin_riesgo: [0.0, 5.6],
-            riesgo_bajo: [5.7, 11.1],
-            riesgo_medio: [11.2, 16.7],
-            riesgo_alto: [16.8, 30.6],
-            riesgo_muy_alto: [30.7, 100.0]
-        };
-
-        const baremosDimInfluenciaEntornoB = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 8.3],
-            riesgo_medio: [8.4, 16.7],
-            riesgo_alto: [16.8, 25.0],
-            riesgo_muy_alto: [25.1, 100.0]
-        };
-
-        const baremosDimDesplazamientoViviendaB = {
-            sin_riesgo: [0.0, 0.9],
-            riesgo_bajo: [1.0, 12.5],
-            riesgo_medio: [12.6, 25.0],
-            riesgo_alto: [25.1, 43.8],
-            riesgo_muy_alto: [43.9, 100.0]
-        };
+        // Mostrar en la página si hay nulls
+        if (nullsJS.length > 0) {
+            const alertDiv = document.createElement('div');
+            alertDiv.style.cssText = 'background:#f44336;color:white;padding:20px;margin:10px;border-radius:8px;';
+            alertDiv.innerHTML = '<h3>⚠️ DIAGNÓSTICO: ' + nullsJS.length + ' baremos NULL en JS</h3><pre>' + JSON.stringify(nullsJS, null, 2) + '</pre>';
+            document.body.insertBefore(alertDiv, document.body.firstChild);
+        }
+        // =========================================================================
 
         // Puntaje Total General (Tabla 34)
         <?php if ($formaACount > 0): ?>

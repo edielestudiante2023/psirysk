@@ -7,6 +7,10 @@ use App\Models\BatteryServiceModel;
 use App\Models\CompanyModel;
 use App\Models\UserModel;
 use CodeIgniter\HTTP\ResponseInterface;
+use App\Libraries\IntralaboralAScoring;
+use App\Libraries\IntralaboralBScoring;
+use App\Libraries\ExtralaboralScoring;
+use App\Libraries\EstresScoring;
 
 class BatteryServiceController extends BaseController
 {
@@ -323,417 +327,88 @@ class BatteryServiceController extends BaseController
         $formasCounts = array_count_values(array_column($results, 'intralaboral_form_type'));
         $formaType = ($formasCounts['A'] ?? 0) >= ($formasCounts['B'] ?? 0) ? 'A' : 'B';
 
-        // BAREMOS INTRALABORAL - Dependen de Forma A o B - Corregidos según auditoría 2025-11-24 (Tabla 33)
+        // BAREMOS INTRALABORAL - Desde fuente única autorizada (README_BAREMOS.md)
         $baremoIntralaboralTotal = $formaType === 'A'
-            ? [
-                'sin_riesgo' => [0.0, 19.7],
-                'riesgo_bajo' => [19.8, 25.8],
-                'riesgo_medio' => [25.9, 31.5],
-                'riesgo_alto' => [31.6, 38.0],
-                'riesgo_muy_alto' => [38.1, 100.0]
-            ]
-            : [
-                'sin_riesgo' => [0.0, 20.6],
-                'riesgo_bajo' => [20.7, 26.0],
-                'riesgo_medio' => [26.1, 31.2],
-                'riesgo_alto' => [31.3, 38.7],
-                'riesgo_muy_alto' => [38.8, 100.0]
-            ];
+            ? IntralaboralAScoring::getBaremoTotal()
+            : IntralaboralBScoring::getBaremoTotal();
 
-        // Baremos de dominios - Dependen de Forma A o B
-        $baremoDominios = $formaType === 'A'
-            ? [ // Tabla 31 - Forma A
-                'liderazgo' => [
-                    'sin_riesgo' => [0.0, 9.1],
-                    'riesgo_bajo' => [9.2, 17.7],
-                    'riesgo_medio' => [17.8, 25.6],
-                    'riesgo_alto' => [25.7, 34.8],
-                    'riesgo_muy_alto' => [34.9, 100.0]
-                ],
-                'control' => [
-                    'sin_riesgo' => [0.0, 10.7],
-                    'riesgo_bajo' => [10.8, 19.0],
-                    'riesgo_medio' => [19.1, 29.8],
-                    'riesgo_alto' => [29.9, 40.5],
-                    'riesgo_muy_alto' => [40.6, 100.0]
-                ],
-                'demandas' => [
-                    'sin_riesgo' => [0.0, 28.5],
-                    'riesgo_bajo' => [28.6, 35.0],
-                    'riesgo_medio' => [35.1, 41.5],
-                    'riesgo_alto' => [41.6, 47.5],
-                    'riesgo_muy_alto' => [47.6, 100.0]
-                ],
-                'recompensas' => [
-                    'sin_riesgo' => [0.0, 4.5],
-                    'riesgo_bajo' => [4.6, 11.4],
-                    'riesgo_medio' => [11.5, 20.5],
-                    'riesgo_alto' => [20.6, 29.5],
-                    'riesgo_muy_alto' => [29.6, 100.0]
-                ]
-            ]
-            : [ // Tabla 32 - Forma B
-                'liderazgo' => [
-                    'sin_riesgo' => [0.0, 10.0],
-                    'riesgo_bajo' => [10.1, 17.5],
-                    'riesgo_medio' => [17.6, 25.0],
-                    'riesgo_alto' => [25.1, 35.0],
-                    'riesgo_muy_alto' => [35.1, 100.0]
-                ],
-                'control' => [
-                    'sin_riesgo' => [0.0, 8.8],
-                    'riesgo_bajo' => [8.9, 16.3],
-                    'riesgo_medio' => [16.4, 23.8],
-                    'riesgo_alto' => [23.9, 31.3],
-                    'riesgo_muy_alto' => [31.4, 100.0]
-                ],
-                'demandas' => [
-                    'sin_riesgo' => [0.0, 26.9],
-                    'riesgo_bajo' => [27.0, 33.3],
-                    'riesgo_medio' => [33.4, 37.8],
-                    'riesgo_alto' => [37.9, 44.2],
-                    'riesgo_muy_alto' => [44.3, 100.0]
-                ],
-                'recompensas' => [
-                    'sin_riesgo' => [0.0, 2.5],
-                    'riesgo_bajo' => [2.6, 10.0],
-                    'riesgo_medio' => [10.1, 17.5],
-                    'riesgo_alto' => [17.6, 27.5],
-                    'riesgo_muy_alto' => [27.6, 100.0]
-                ]
-            ];
-
-        // Baremos de dimensiones Forma A (Tabla 29)
-        $baremosDimensionesA = [
-            'caracteristicas_liderazgo' => [
-                'sin_riesgo' => [0.0, 3.8],
-                'riesgo_bajo' => [3.9, 15.4],
-                'riesgo_medio' => [15.5, 30.8],
-                'riesgo_alto' => [30.9, 46.2],
-                'riesgo_muy_alto' => [46.3, 100.0]
-            ],
-            'relaciones_sociales' => [
-                'sin_riesgo' => [0.0, 5.4],
-                'riesgo_bajo' => [5.5, 16.1],
-                'riesgo_medio' => [16.2, 25.0],
-                'riesgo_alto' => [25.1, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ],
-            'retroalimentacion' => [
-                'sin_riesgo' => [0.0, 10.0],
-                'riesgo_bajo' => [10.1, 25.0],
-                'riesgo_medio' => [25.1, 40.0],
-                'riesgo_alto' => [40.1, 55.0],
-                'riesgo_muy_alto' => [55.1, 100.0]
-            ],
-            'relacion_colaboradores' => [
-                'sin_riesgo' => [0.0, 13.9],
-                'riesgo_bajo' => [14.0, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 47.2],
-                'riesgo_muy_alto' => [47.3, 100.0]
-            ],
-            'claridad_rol' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 10.7],
-                'riesgo_medio' => [10.8, 21.4],
-                'riesgo_alto' => [21.5, 39.3],
-                'riesgo_muy_alto' => [39.4, 100.0]
-            ],
-            'capacitacion' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 16.7],
-                'riesgo_medio' => [16.8, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'participacion_cambio' => [
-                'sin_riesgo' => [0.0, 12.5],
-                'riesgo_bajo' => [12.6, 25.0],
-                'riesgo_medio' => [25.1, 37.5],
-                'riesgo_alto' => [37.6, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'oportunidades_desarrollo' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 6.3],
-                'riesgo_medio' => [6.4, 18.8],
-                'riesgo_alto' => [18.9, 31.3],
-                'riesgo_muy_alto' => [31.4, 100.0]
-            ],
-            'control_autonomia' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 41.7],
-                'riesgo_alto' => [41.8, 58.3],
-                'riesgo_muy_alto' => [58.4, 100.0]
-            ],
-            'demandas_ambientales' => [
-                'sin_riesgo' => [0.0, 14.6],
-                'riesgo_bajo' => [14.7, 22.9],
-                'riesgo_medio' => [23.0, 31.3],
-                'riesgo_alto' => [31.4, 39.6],
-                'riesgo_muy_alto' => [39.7, 100.0]
-            ],
-            'demandas_emocionales' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 47.2],
-                'riesgo_muy_alto' => [47.3, 100.0]
-            ],
-            'demandas_cuantitativas' => [
-                'sin_riesgo' => [0.0, 25.0],
-                'riesgo_bajo' => [25.1, 33.3],
-                'riesgo_medio' => [33.4, 45.8],
-                'riesgo_alto' => [45.9, 54.2],
-                'riesgo_muy_alto' => [54.3, 100.0]
-            ],
-            'influencia_entorno' => [
-                'sin_riesgo' => [0.0, 18.8],
-                'riesgo_bajo' => [18.9, 31.3],
-                'riesgo_medio' => [31.4, 43.8],
-                'riesgo_alto' => [43.9, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'exigencias_responsabilidad' => [
-                'sin_riesgo' => [0.0, 37.5],
-                'riesgo_bajo' => [37.6, 54.2],
-                'riesgo_medio' => [54.3, 66.7],
-                'riesgo_alto' => [66.8, 79.2],
-                'riesgo_muy_alto' => [79.3, 100.0]
-            ],
-            'demandas_carga_mental' => [
-                'sin_riesgo' => [0.0, 60.0],
-                'riesgo_bajo' => [60.1, 70.0],
-                'riesgo_medio' => [70.1, 80.0],
-                'riesgo_alto' => [80.1, 90.0],
-                'riesgo_muy_alto' => [90.1, 100.0]
-            ],
-            'consistencia_rol' => [
-                'sin_riesgo' => [0.0, 15.0],
-                'riesgo_bajo' => [15.1, 25.0],
-                'riesgo_medio' => [25.1, 35.0],
-                'riesgo_alto' => [35.1, 45.0],
-                'riesgo_muy_alto' => [45.1, 100.0]
-            ],
-            'demandas_jornada' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'recompensas_pertenencia' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 5.0],
-                'riesgo_medio' => [5.1, 10.0],
-                'riesgo_alto' => [10.1, 20.0],
-                'riesgo_muy_alto' => [20.1, 100.0]
-            ],
-            'reconocimiento_compensacion' => [
-                'sin_riesgo' => [0.0, 4.2],
-                'riesgo_bajo' => [4.3, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ],
-            'reconocimiento' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 6.8],
-                'riesgo_medio' => [6.9, 13.6],
-                'riesgo_alto' => [13.7, 22.7],
-                'riesgo_muy_alto' => [22.8, 100.0]
-            ]
+        // Baremos de dominios - Desde fuente única autorizada
+        // Mapeo de códigos cortos a códigos de librería
+        $mapeoCodigosDominios = [
+            'liderazgo' => 'liderazgo_relaciones_sociales',
+            'control' => 'control',
+            'demandas' => 'demandas',
+            'recompensas' => 'recompensas',
         ];
 
-        // Baremos de dimensiones Forma B (Tabla 30) - Solo 16 dimensiones
-        $baremosDimensionesB = [
-            'caracteristicas_liderazgo' => [
-                'sin_riesgo' => [0.0, 3.8],
-                'riesgo_bajo' => [3.9, 13.5],
-                'riesgo_medio' => [13.6, 25.0],
-                'riesgo_alto' => [25.1, 38.5],
-                'riesgo_muy_alto' => [38.6, 100.0]
-            ],
-            'relaciones_sociales' => [
-                'sin_riesgo' => [0.0, 6.3],
-                'riesgo_bajo' => [6.4, 14.6],
-                'riesgo_medio' => [14.7, 27.1],
-                'riesgo_alto' => [27.2, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ],
-            'retroalimentacion' => [
-                'sin_riesgo' => [0.0, 5.0],
-                'riesgo_bajo' => [5.1, 20.0],
-                'riesgo_medio' => [20.1, 30.0],
-                'riesgo_alto' => [30.1, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'relacion_colaboradores' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 5.0],
-                'riesgo_medio' => [5.1, 15.0],
-                'riesgo_alto' => [15.1, 30.0],
-                'riesgo_muy_alto' => [30.1, 100.0]
-            ],
-            'claridad_rol' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 5.0],
-                'riesgo_medio' => [5.1, 15.0],
-                'riesgo_alto' => [15.1, 30.0],
-                'riesgo_muy_alto' => [30.1, 100.0]
-            ],
-            'capacitacion' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'participacion_cambio' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'oportunidades_desarrollo' => [
-                'sin_riesgo' => [0.0, 6.3],
-                'riesgo_bajo' => [6.4, 12.5],
-                'riesgo_medio' => [12.6, 18.8],
-                'riesgo_alto' => [18.9, 31.3],
-                'riesgo_muy_alto' => [31.4, 100.0]
-            ],
-            'control_autonomia' => [
-                'sin_riesgo' => [0.0, 15.0],
-                'riesgo_bajo' => [15.1, 25.0],
-                'riesgo_medio' => [25.1, 35.0],
-                'riesgo_alto' => [35.1, 45.0],
-                'riesgo_muy_alto' => [45.1, 100.0]
-            ],
-            'demandas_ambientales' => [
-                'sin_riesgo' => [0.0, 18.8],
-                'riesgo_bajo' => [18.9, 25.0],
-                'riesgo_medio' => [25.1, 31.3],
-                'riesgo_alto' => [31.4, 39.6],
-                'riesgo_muy_alto' => [39.7, 100.0]
-            ],
-            'demandas_emocionales' => [
-                'sin_riesgo' => [0.0, 19.4],
-                'riesgo_bajo' => [19.5, 27.8],
-                'riesgo_medio' => [27.9, 38.9],
-                'riesgo_alto' => [39.0, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'demandas_cuantitativas' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 33.3],
-                'riesgo_medio' => [33.4, 41.7],
-                'riesgo_alto' => [41.8, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'influencia_entorno' => [
-                'sin_riesgo' => [0.0, 25.0],
-                'riesgo_bajo' => [25.1, 37.5],
-                'riesgo_medio' => [37.6, 43.8],
-                'riesgo_alto' => [43.9, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'demandas_carga_mental' => [
-                'sin_riesgo' => [0.0, 50.0],
-                'riesgo_bajo' => [50.1, 65.0],
-                'riesgo_medio' => [65.1, 75.0],
-                'riesgo_alto' => [75.1, 85.0],
-                'riesgo_muy_alto' => [85.1, 100.0]
-            ],
-            'demandas_jornada' => [
-                'sin_riesgo' => [0.0, 25.0],
-                'riesgo_bajo' => [25.1, 37.5],
-                'riesgo_medio' => [37.6, 45.8],
-                'riesgo_alto' => [45.9, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'reconocimiento' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ]
+        $baremoDominios = [];
+        foreach ($mapeoCodigosDominios as $codigoCorto => $codigoLibreria) {
+            $baremoDominios[$codigoCorto] = $formaType === 'A'
+                ? IntralaboralAScoring::getBaremoDominio($codigoLibreria)
+                : IntralaboralBScoring::getBaremoDominio($codigoLibreria);
+        }
+
+        // Baremos de dimensiones - Desde fuente única autorizada
+        // Mapeo de códigos cortos a códigos de librería
+        $mapeoCodigosDimensiones = [
+            'caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
+            'relaciones_sociales' => 'relaciones_sociales_trabajo',
+            'retroalimentacion' => 'retroalimentacion_desempeno',
+            'relacion_colaboradores' => 'relacion_colaboradores',  // Solo Forma A
+            'claridad_rol' => 'claridad_rol',
+            'capacitacion' => 'capacitacion',
+            'participacion_cambio' => 'participacion_manejo_cambio',
+            'oportunidades_desarrollo' => 'oportunidades_desarrollo',
+            'control_autonomia' => 'control_autonomia_trabajo',
+            'demandas_ambientales' => 'demandas_ambientales_esfuerzo_fisico',
+            'demandas_emocionales' => 'demandas_emocionales',
+            'demandas_cuantitativas' => 'demandas_cuantitativas',
+            'influencia_entorno' => 'influencia_trabajo_entorno_extralaboral',
+            'exigencias_responsabilidad' => 'exigencias_responsabilidad_cargo',  // Solo Forma A
+            'demandas_carga_mental' => 'demandas_carga_mental',
+            'consistencia_rol' => 'consistencia_rol',  // Solo Forma A
+            'demandas_jornada' => 'demandas_jornada_trabajo',
+            'recompensas_pertenencia' => 'recompensas_pertenencia_estabilidad',
+            'reconocimiento_compensacion' => 'reconocimiento_compensacion',
+            'reconocimiento' => 'reconocimiento_compensacion',  // Alias
         ];
 
-        // Seleccionar baremos de dimensiones según forma mayoritaria
-        $baremosDimensiones = $formaType === 'A' ? $baremosDimensionesA : $baremosDimensionesB;
+        $baremosDimensiones = [];
+        foreach ($mapeoCodigosDimensiones as $codigoCorto => $codigoLibreria) {
+            $baremo = $formaType === 'A'
+                ? IntralaboralAScoring::getBaremoDimension($codigoLibreria)
+                : IntralaboralBScoring::getBaremoDimension($codigoLibreria);
+            // Solo agregar si el baremo existe (algunas dimensiones son exclusivas de Forma A)
+            if ($baremo !== null) {
+                $baremosDimensiones[$codigoCorto] = $baremo;
+            }
+        }
 
-        // BAREMOS EXTRALABORAL (Tabla 18 - usamos baremo de auxiliares como general)
-        $baremosExtralaboral = [
-            'tiempo_fuera' => [
-                'sin_riesgo' => [0.0, 6.3],
-                'riesgo_bajo' => [6.4, 25.0],
-                'riesgo_medio' => [25.1, 37.5],
-                'riesgo_alto' => [37.6, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'relaciones_familiares' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'comunicacion' => [
-                'sin_riesgo' => [0.0, 5.0],
-                'riesgo_bajo' => [5.1, 15.0],
-                'riesgo_medio' => [15.1, 25.0],
-                'riesgo_alto' => [25.1, 35.0],
-                'riesgo_muy_alto' => [35.1, 100.0]
-            ],
-            'situacion_economica' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 25.0],
-                'riesgo_medio' => [25.1, 41.7],
-                'riesgo_alto' => [41.8, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'caracteristicas_vivienda' => [
-                'sin_riesgo' => [0.0, 5.6],
-                'riesgo_bajo' => [5.7, 11.1],
-                'riesgo_medio' => [11.2, 16.7],
-                'riesgo_alto' => [16.8, 27.8],
-                'riesgo_muy_alto' => [27.9, 100.0]
-            ],
-            'influencia_entorno' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 41.7],
-                'riesgo_muy_alto' => [41.8, 100.0]
-            ],
-            'desplazamiento' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 12.5],
-                'riesgo_medio' => [12.6, 25.0],
-                'riesgo_alto' => [25.1, 43.8],
-                'riesgo_muy_alto' => [43.9, 100.0]
-            ],
-            'total' => [
-                'sin_riesgo' => [0.0, 12.9],
-                'riesgo_bajo' => [13.0, 17.7],
-                'riesgo_medio' => [17.8, 24.2],
-                'riesgo_alto' => [24.3, 32.3],
-                'riesgo_muy_alto' => [32.4, 100.0]
-            ]
+        // BAREMOS EXTRALABORAL - Desde fuente única autorizada
+        // Usamos Forma B (auxiliares) como general para promedios grupales
+        $mapeoCodigosExtralaboral = [
+            'tiempo_fuera' => 'tiempo_fuera_trabajo',
+            'relaciones_familiares' => 'relaciones_familiares',
+            'comunicacion' => 'comunicacion_relaciones',
+            'situacion_economica' => 'situacion_economica',
+            'caracteristicas_vivienda' => 'caracteristicas_vivienda',
+            'influencia_entorno' => 'influencia_entorno_extralaboral',
+            'desplazamiento' => 'desplazamiento_vivienda_trabajo',
         ];
 
-        // BAREMO ESTRÉS (Tabla 6 - usamos baremo de auxiliares como general)
-        $baremoEstres = [
-            'muy_bajo' => [0.0, 6.5],
-            'bajo' => [6.6, 11.8],
-            'medio' => [11.9, 17.0],
-            'alto' => [17.1, 23.4],
-            'muy_alto' => [23.5, 100.0]
-        ];
+        $baremosExtralaboral = [];
+        foreach ($mapeoCodigosExtralaboral as $codigoCorto => $codigoLibreria) {
+            $baremo = ExtralaboralScoring::getBaremoDimension($codigoLibreria);
+            if ($baremo !== null) {
+                $baremosExtralaboral[$codigoCorto] = $baremo;
+            }
+        }
+        // Baremo total extralaboral (usamos Forma B por defecto)
+        $baremosExtralaboral['total'] = ExtralaboralScoring::getBaremoTotal('B');
+
+        // BAREMO ESTRÉS - Desde fuente única autorizada
+        // Usamos Forma B (auxiliares) como general para promedios grupales
+        $baremoEstres = EstresScoring::getBaremoB();
 
         // Calcular niveles basados en PROMEDIOS + BAREMOS
         $data = [
@@ -950,478 +625,80 @@ class BatteryServiceController extends BaseController
             return 'sin_riesgo';
         };
 
-        // Baremos Forma A
-        $baremosA = [
-            'intralaboral' => [
-                'sin_riesgo' => [0.0, 19.7],
-                'riesgo_bajo' => [19.8, 25.8],
-                'riesgo_medio' => [25.9, 31.5],
-                'riesgo_alto' => [31.6, 38.0],
-                'riesgo_muy_alto' => [38.1, 100.0]
-            ],
-            'extralaboral' => [
-                'sin_riesgo' => [0.0, 11.3],
-                'riesgo_bajo' => [11.4, 16.9],
-                'riesgo_medio' => [17.0, 22.6],
-                'riesgo_alto' => [22.7, 29.0],
-                'riesgo_muy_alto' => [29.1, 100.0]
-            ],
-            'estres' => [
-                'sin_riesgo' => [0.0, 7.8],
-                'riesgo_bajo' => [7.9, 12.6],
-                'riesgo_medio' => [12.7, 17.7],
-                'riesgo_alto' => [17.8, 25.0],
-                'riesgo_muy_alto' => [25.1, 100.0]
-            ],
-            // Puntaje Total General Forma A (Tabla 34)
-            'puntaje_total_general' => [
-                'sin_riesgo' => [0.0, 18.8],
-                'riesgo_bajo' => [18.9, 24.4],
-                'riesgo_medio' => [24.5, 29.5],
-                'riesgo_alto' => [29.6, 35.4],
-                'riesgo_muy_alto' => [35.5, 100.0]
-            ],
-            // Dominios Intralaborales Forma A (Tabla 31)
-            'dom_liderazgo' => [
-                'sin_riesgo' => [0.0, 9.1],
-                'riesgo_bajo' => [9.2, 17.7],
-                'riesgo_medio' => [17.8, 25.6],
-                'riesgo_alto' => [25.7, 34.8],
-                'riesgo_muy_alto' => [34.9, 100.0]
-            ],
-            'dom_control' => [
-                'sin_riesgo' => [0.0, 10.7],
-                'riesgo_bajo' => [10.8, 19.0],
-                'riesgo_medio' => [19.1, 29.8],
-                'riesgo_alto' => [29.9, 40.5],
-                'riesgo_muy_alto' => [40.6, 100.0]
-            ],
-            'dom_demandas' => [
-                'sin_riesgo' => [0.0, 28.5],
-                'riesgo_bajo' => [28.6, 35.0],
-                'riesgo_medio' => [35.1, 41.5],
-                'riesgo_alto' => [41.6, 47.5],
-                'riesgo_muy_alto' => [47.6, 100.0]
-            ],
-            'dom_recompensas' => [
-                'sin_riesgo' => [0.0, 4.5],
-                'riesgo_bajo' => [4.6, 11.4],
-                'riesgo_medio' => [11.5, 20.5],
-                'riesgo_alto' => [20.6, 29.5],
-                'riesgo_muy_alto' => [29.6, 100.0]
-            ],
-            // Dimensiones Intralaborales Forma A (Tabla 29 - primeras 5)
-            'dim_caracteristicas_liderazgo' => [
-                'sin_riesgo' => [0.0, 3.8],
-                'riesgo_bajo' => [3.9, 15.4],
-                'riesgo_medio' => [15.5, 30.8],
-                'riesgo_alto' => [30.9, 46.2],
-                'riesgo_muy_alto' => [46.3, 100.0]
-            ],
-            'dim_relaciones_sociales' => [
-                'sin_riesgo' => [0.0, 5.4],
-                'riesgo_bajo' => [5.5, 16.1],
-                'riesgo_medio' => [16.2, 25.0],
-                'riesgo_alto' => [25.1, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ],
-            'dim_retroalimentacion' => [
-                'sin_riesgo' => [0.0, 10.0],
-                'riesgo_bajo' => [10.1, 25.0],
-                'riesgo_medio' => [25.1, 40.0],
-                'riesgo_alto' => [40.1, 55.0],
-                'riesgo_muy_alto' => [55.1, 100.0]
-            ],
-            'dim_relacion_colaboradores' => [
-                'sin_riesgo' => [0.0, 13.9],
-                'riesgo_bajo' => [14.0, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 47.2],
-                'riesgo_muy_alto' => [47.3, 100.0]
-            ],
-            'dim_claridad_rol' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 10.7],
-                'riesgo_medio' => [10.8, 21.4],
-                'riesgo_alto' => [21.5, 39.3],
-                'riesgo_muy_alto' => [39.4, 100.0]
-            ],
-            'dim_capacitacion' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 16.7],
-                'riesgo_medio' => [16.8, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_participacion_cambio' => [
-                'sin_riesgo' => [0.0, 12.5],
-                'riesgo_bajo' => [12.6, 25.0],
-                'riesgo_medio' => [25.1, 37.5],
-                'riesgo_alto' => [37.6, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_oportunidades' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 6.3],
-                'riesgo_medio' => [6.4, 18.8],
-                'riesgo_alto' => [18.9, 31.3],
-                'riesgo_muy_alto' => [31.4, 100.0]
-            ],
-            'dim_control_autonomia' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 41.7],
-                'riesgo_alto' => [41.8, 58.3],
-                'riesgo_muy_alto' => [58.4, 100.0]
-            ],
-            'dim_demandas_ambientales' => [
-                'sin_riesgo' => [0.0, 14.6],
-                'riesgo_bajo' => [14.7, 22.9],
-                'riesgo_medio' => [23.0, 31.3],
-                'riesgo_alto' => [31.4, 39.6],
-                'riesgo_muy_alto' => [39.7, 100.0]
-            ],
-            'dim_demandas_emocionales' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 47.2],
-                'riesgo_muy_alto' => [47.3, 100.0]
-            ],
-            'dim_demandas_cuantitativas' => [
-                'sin_riesgo' => [0.0, 25.0],
-                'riesgo_bajo' => [25.1, 33.3],
-                'riesgo_medio' => [33.4, 45.8],
-                'riesgo_alto' => [45.9, 54.2],
-                'riesgo_muy_alto' => [54.3, 100.0]
-            ],
-            'dim_influencia_trabajo' => [
-                'sin_riesgo' => [0.0, 18.8],
-                'riesgo_bajo' => [18.9, 31.3],
-                'riesgo_medio' => [31.4, 43.8],
-                'riesgo_alto' => [43.9, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_exigencias_responsabilidad' => [
-                'sin_riesgo' => [0.0, 37.5],
-                'riesgo_bajo' => [37.6, 54.2],
-                'riesgo_medio' => [54.3, 66.7],
-                'riesgo_alto' => [66.8, 79.2],
-                'riesgo_muy_alto' => [79.3, 100.0]
-            ],
-            'dim_demandas_carga_mental' => [
-                'sin_riesgo' => [0.0, 60.0],
-                'riesgo_bajo' => [60.1, 70.0],
-                'riesgo_medio' => [70.1, 80.0],
-                'riesgo_alto' => [80.1, 90.0],
-                'riesgo_muy_alto' => [90.1, 100.0]
-            ],
-            'dim_consistencia_rol' => [
-                'sin_riesgo' => [0.0, 15.0],
-                'riesgo_bajo' => [15.1, 25.0],
-                'riesgo_medio' => [25.1, 35.0],
-                'riesgo_alto' => [35.1, 45.0],
-                'riesgo_muy_alto' => [45.1, 100.0]
-            ],
-            'dim_demandas_jornada' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_recompensas_pertenencia' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 5.0],
-                'riesgo_medio' => [5.1, 10.0],
-                'riesgo_alto' => [10.1, 20.0],
-                'riesgo_muy_alto' => [20.1, 100.0]
-            ],
-            'dim_reconocimiento_compensacion' => [
-                'sin_riesgo' => [0.0, 4.2],
-                'riesgo_bajo' => [4.3, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ],
-            // Dimensiones Extralaborales Forma A (Tabla 17)
-            'dim_tiempo_fuera_trabajo' => [
-                'sin_riesgo' => [0.0, 6.3],
-                'riesgo_bajo' => [6.4, 25.0],
-                'riesgo_medio' => [25.1, 37.5],
-                'riesgo_alto' => [37.6, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_relaciones_familiares' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_comunicacion_relaciones' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 10.0],
-                'riesgo_medio' => [10.1, 20.0],
-                'riesgo_alto' => [20.1, 30.0],
-                'riesgo_muy_alto' => [30.1, 100.0]
-            ],
-            'dim_situacion_economica' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_caracteristicas_vivienda' => [
-                'sin_riesgo' => [0.0, 5.6],
-                'riesgo_bajo' => [5.7, 11.1],
-                'riesgo_medio' => [11.2, 13.9],
-                'riesgo_alto' => [14.0, 22.2],
-                'riesgo_muy_alto' => [22.3, 100.0]
-            ],
-            'dim_influencia_entorno' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 41.7],
-                'riesgo_muy_alto' => [41.8, 100.0]
-            ],
-            'dim_desplazamiento_vivienda' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 12.5],
-                'riesgo_medio' => [12.6, 25.0],
-                'riesgo_alto' => [25.1, 43.8],
-                'riesgo_muy_alto' => [43.9, 100.0]
-            ]
-        ];
+        // Baremos desde fuente única autorizada (README_BAREMOS.md)
+        // Helper para construir baremos por forma
+        $buildBaremos = function($forma) {
+            $intralaboral = $forma === 'A' ? IntralaboralAScoring::class : IntralaboralBScoring::class;
 
-        // Baremos Forma B
-        $baremosB = [
-            'intralaboral' => [
-                'sin_riesgo' => [0.0, 20.6],
-                'riesgo_bajo' => [20.7, 26.0],
-                'riesgo_medio' => [26.1, 31.2],
-                'riesgo_alto' => [31.3, 38.7],
-                'riesgo_muy_alto' => [38.8, 100.0]
-            ],
-            'extralaboral' => [
-                'sin_riesgo' => [0.0, 12.9],
-                'riesgo_bajo' => [13.0, 17.7],
-                'riesgo_medio' => [17.8, 24.2],
-                'riesgo_alto' => [24.3, 32.3],
-                'riesgo_muy_alto' => [32.4, 100.0]
-            ],
-            'estres' => [
-                'sin_riesgo' => [0.0, 6.5],
-                'riesgo_bajo' => [6.6, 11.8],
-                'riesgo_medio' => [11.9, 17.0],
-                'riesgo_alto' => [17.1, 23.4],
-                'riesgo_muy_alto' => [23.5, 100.0]
-            ],
-            // Puntaje Total General Forma B (Tabla 34)
-            'puntaje_total_general' => [
-                'sin_riesgo' => [0.0, 19.9],
-                'riesgo_bajo' => [20.0, 24.8],
-                'riesgo_medio' => [24.9, 29.5],
-                'riesgo_alto' => [29.6, 35.4],
-                'riesgo_muy_alto' => [35.5, 100.0]
-            ],
-            // Dominios Intralaborales Forma B (Tabla 32)
-            'dom_liderazgo' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 17.5],
-                'riesgo_medio' => [17.6, 26.7],
-                'riesgo_alto' => [26.8, 38.3],
-                'riesgo_muy_alto' => [38.4, 100.0]
-            ],
-            'dom_control' => [
-                'sin_riesgo' => [0.0, 19.4],
-                'riesgo_bajo' => [19.5, 26.4],
-                'riesgo_medio' => [26.5, 34.7],
-                'riesgo_alto' => [34.8, 43.1],
-                'riesgo_muy_alto' => [43.2, 100.0]
-            ],
-            'dom_demandas' => [
-                'sin_riesgo' => [0.0, 26.9],
-                'riesgo_bajo' => [27.0, 33.3],
-                'riesgo_medio' => [33.4, 37.8],
-                'riesgo_alto' => [37.9, 44.2],
-                'riesgo_muy_alto' => [44.3, 100.0]
-            ],
-            'dom_recompensas' => [
-                'sin_riesgo' => [0.0, 2.5],
-                'riesgo_bajo' => [2.6, 10.0],
-                'riesgo_medio' => [10.1, 17.5],
-                'riesgo_alto' => [17.6, 27.5],
-                'riesgo_muy_alto' => [27.6, 100.0]
-            ],
-            // Dimensiones Intralaborales Forma B (Tabla 30) - Primeras 5
-            'dim_caracteristicas_liderazgo' => [
-                'sin_riesgo' => [0.0, 3.8],
-                'riesgo_bajo' => [3.9, 13.5],
-                'riesgo_medio' => [13.6, 25.0],
-                'riesgo_alto' => [25.1, 38.5],
-                'riesgo_muy_alto' => [38.6, 100.0]
-            ],
-            'dim_relaciones_sociales' => [
-                'sin_riesgo' => [0.0, 6.3],
-                'riesgo_bajo' => [6.4, 14.6],
-                'riesgo_medio' => [14.7, 27.1],
-                'riesgo_alto' => [27.2, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ],
-            'dim_retroalimentacion' => [
-                'sin_riesgo' => [0.0, 5.0],
-                'riesgo_bajo' => [5.1, 20.0],
-                'riesgo_medio' => [20.1, 30.0],
-                'riesgo_alto' => [30.1, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_claridad_rol' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 5.0],
-                'riesgo_medio' => [5.1, 15.0],
-                'riesgo_alto' => [15.1, 30.0],
-                'riesgo_muy_alto' => [30.1, 100.0]
-            ],
-            'dim_capacitacion' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            // Dimensiones Intralaborales Forma B (Tabla 30) - Dimensiones 6-10
-            'dim_participacion_cambio' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 33.3],
-                'riesgo_medio' => [33.4, 41.7],
-                'riesgo_alto' => [41.8, 58.3],
-                'riesgo_muy_alto' => [58.4, 100.0]
-            ],
-            'dim_oportunidades' => [
-                'sin_riesgo' => [0.0, 12.5],
-                'riesgo_bajo' => [12.6, 25.0],
-                'riesgo_medio' => [25.1, 37.5],
-                'riesgo_alto' => [37.6, 56.3],
-                'riesgo_muy_alto' => [56.4, 100.0]
-            ],
-            'dim_control_autonomia' => [
-                'sin_riesgo' => [0.0, 33.3],
-                'riesgo_bajo' => [33.4, 50.0],
-                'riesgo_medio' => [50.1, 66.7],
-                'riesgo_alto' => [66.8, 75.0],
-                'riesgo_muy_alto' => [75.1, 100.0]
-            ],
-            'dim_demandas_ambientales' => [
-                'sin_riesgo' => [0.0, 22.9],
-                'riesgo_bajo' => [23.0, 31.3],
-                'riesgo_medio' => [31.4, 39.6],
-                'riesgo_alto' => [39.7, 47.9],
-                'riesgo_muy_alto' => [48.0, 100.0]
-            ],
-            'dim_demandas_emocionales' => [
-                'sin_riesgo' => [0.0, 19.4],
-                'riesgo_bajo' => [19.5, 27.8],
-                'riesgo_medio' => [27.9, 38.9],
-                'riesgo_alto' => [39.0, 47.2],
-                'riesgo_muy_alto' => [47.3, 100.0]
-            ],
-            // Dimensiones Intralaborales Forma B (Tabla 30) - Dimensiones 11-16
-            'dim_demandas_cuantitativas' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 33.3],
-                'riesgo_medio' => [33.4, 41.7],
-                'riesgo_alto' => [41.8, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_influencia_trabajo' => [
-                'sin_riesgo' => [0.0, 12.5],
-                'riesgo_bajo' => [12.6, 25.0],
-                'riesgo_medio' => [25.1, 31.3],
-                'riesgo_alto' => [31.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_demandas_carga_mental' => [
-                'sin_riesgo' => [0.0, 50.0],
-                'riesgo_bajo' => [50.1, 65.0],
-                'riesgo_medio' => [65.1, 75.0],
-                'riesgo_alto' => [75.1, 85.0],
-                'riesgo_muy_alto' => [85.1, 100.0]
-            ],
-            'dim_demandas_jornada' => [
-                'sin_riesgo' => [0.0, 25.0],
-                'riesgo_bajo' => [25.1, 37.5],
-                'riesgo_medio' => [37.6, 45.8],
-                'riesgo_alto' => [45.9, 58.3],
-                'riesgo_muy_alto' => [58.4, 100.0]
-            ],
-            'dim_recompensas_pertenencia' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 6.3],
-                'riesgo_medio' => [6.4, 12.5],
-                'riesgo_alto' => [12.6, 18.8],
-                'riesgo_muy_alto' => [18.9, 100.0]
-            ],
-            'dim_reconocimiento_compensacion' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 12.5],
-                'riesgo_medio' => [12.6, 25.0],
-                'riesgo_alto' => [25.1, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ],
-            // Dimensiones Extralaborales Forma B (Tabla 18)
-            'dim_tiempo_fuera_trabajo' => [
-                'sin_riesgo' => [0.0, 6.3],
-                'riesgo_bajo' => [6.4, 25.0],
-                'riesgo_medio' => [25.1, 37.5],
-                'riesgo_alto' => [37.6, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_relaciones_familiares' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_comunicacion_relaciones' => [
-                'sin_riesgo' => [0.0, 5.0],
-                'riesgo_bajo' => [5.1, 15.0],
-                'riesgo_medio' => [15.1, 25.0],
-                'riesgo_alto' => [25.1, 35.0],
-                'riesgo_muy_alto' => [35.1, 100.0]
-            ],
-            'dim_situacion_economica' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 25.0],
-                'riesgo_medio' => [25.1, 41.7],
-                'riesgo_alto' => [41.8, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_caracteristicas_vivienda' => [
-                'sin_riesgo' => [0.0, 5.6],
-                'riesgo_bajo' => [5.7, 11.1],
-                'riesgo_medio' => [11.2, 16.7],
-                'riesgo_alto' => [16.8, 27.8],
-                'riesgo_muy_alto' => [27.9, 100.0]
-            ],
-            'dim_influencia_entorno' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 41.7],
-                'riesgo_muy_alto' => [41.8, 100.0]
-            ],
-            'dim_desplazamiento_vivienda' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 12.5],
-                'riesgo_medio' => [12.6, 25.0],
-                'riesgo_alto' => [25.1, 43.8],
-                'riesgo_muy_alto' => [43.9, 100.0]
-            ]
-        ];
+            $baremos = [
+                'intralaboral' => $intralaboral::getBaremoTotal(),
+                'extralaboral' => ExtralaboralScoring::getBaremoTotal($forma),
+                'estres' => $forma === 'A' ? EstresScoring::getBaremoA() : EstresScoring::getBaremoB(),
+                'puntaje_total_general' => EstresScoring::getBaremoGeneral($forma),
+            ];
+
+            // Dominios intralaborales
+            $mapDominios = [
+                'dom_liderazgo' => 'liderazgo_relaciones_sociales',
+                'dom_control' => 'control',
+                'dom_demandas' => 'demandas',
+                'dom_recompensas' => 'recompensas',
+            ];
+            foreach ($mapDominios as $key => $codigo) {
+                $baremos[$key] = $intralaboral::getBaremoDominio($codigo);
+            }
+
+            // Dimensiones intralaborales
+            $mapDimensiones = [
+                'dim_caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
+                'dim_relaciones_sociales' => 'relaciones_sociales_trabajo',
+                'dim_retroalimentacion' => 'retroalimentacion_desempeno',
+                'dim_relacion_colaboradores' => 'relacion_con_colaboradores',
+                'dim_claridad_rol' => 'claridad_rol',
+                'dim_capacitacion' => 'capacitacion',
+                'dim_participacion_cambio' => 'participacion_manejo_cambio',
+                'dim_oportunidades' => 'oportunidades_desarrollo',
+                'dim_control_autonomia' => 'control_autonomia_trabajo',
+                'dim_demandas_ambientales' => 'demandas_ambientales_esfuerzo_fisico',
+                'dim_demandas_emocionales' => 'demandas_emocionales',
+                'dim_demandas_cuantitativas' => 'demandas_cuantitativas',
+                'dim_influencia_trabajo' => 'influencia_trabajo_entorno_extralaboral',
+                'dim_exigencias_responsabilidad' => 'exigencias_responsabilidad_cargo',
+                'dim_demandas_carga_mental' => 'demandas_carga_mental',
+                'dim_consistencia_rol' => 'consistencia_rol',
+                'dim_demandas_jornada' => 'demandas_jornada_trabajo',
+                'dim_recompensas_pertenencia' => 'recompensas_pertenencia_estabilidad',
+                'dim_reconocimiento_compensacion' => 'reconocimiento_compensacion',
+            ];
+            foreach ($mapDimensiones as $key => $codigo) {
+                $baremo = $intralaboral::getBaremoDimension($codigo);
+                if ($baremo !== null) {
+                    $baremos[$key] = $baremo;
+                }
+            }
+
+            // Dimensiones extralaborales
+            $mapExtralaboral = [
+                'dim_tiempo_fuera_trabajo' => 'tiempo_fuera_trabajo',
+                'dim_relaciones_familiares' => 'relaciones_familiares',
+                'dim_comunicacion_relaciones' => 'comunicacion_relaciones',
+                'dim_situacion_economica' => 'situacion_economica',
+                'dim_caracteristicas_vivienda' => 'caracteristicas_vivienda',
+                'dim_influencia_entorno' => 'influencia_entorno',
+                'dim_desplazamiento_vivienda' => 'desplazamiento',
+            ];
+            foreach ($mapExtralaboral as $key => $codigo) {
+                $baremo = ExtralaboralScoring::getBaremoDimension($codigo, $forma);
+                if ($baremo !== null) {
+                    $baremos[$key] = $baremo;
+                }
+            }
+
+            return $baremos;
+        };
+
+        $baremosA = $buildBaremos('A');
+        $baremosB = $buildBaremos('B');
 
         // Calcular datos globales Forma A
         $globalDataFormaA = [
@@ -1464,32 +741,32 @@ class BatteryServiceController extends BaseController
 
             // Dimensiones Forma A (6-10)
             $dimCapacitacionA = $calcularPromedio(array_column($resultsFormaA, 'dim_capacitacion_puntaje'));
-            $dimParticipacionCambioA = $calcularPromedio(array_column($resultsFormaA, 'dim_participacion_cambio_puntaje'));
-            $dimOportunidadesA = $calcularPromedio(array_column($resultsFormaA, 'dim_oportunidades_puntaje'));
+            $dimParticipacionCambioA = $calcularPromedio(array_column($resultsFormaA, 'dim_participacion_manejo_cambio_puntaje'));
+            $dimOportunidadesA = $calcularPromedio(array_column($resultsFormaA, 'dim_oportunidades_desarrollo_puntaje'));
             $dimControlAutonomiaA = $calcularPromedio(array_column($resultsFormaA, 'dim_control_autonomia_puntaje'));
             $dimDemandasAmbientalesA = $calcularPromedio(array_column($resultsFormaA, 'dim_demandas_ambientales_puntaje'));
 
             // Dimensiones Forma A (11-15)
             $dimDemandasEmocionalesA = $calcularPromedio(array_column($resultsFormaA, 'dim_demandas_emocionales_puntaje'));
             $dimDemandasCuantitativasA = $calcularPromedio(array_column($resultsFormaA, 'dim_demandas_cuantitativas_puntaje'));
-            $dimInfluenciaTrabajoA = $calcularPromedio(array_column($resultsFormaA, 'dim_influencia_trabajo_puntaje'));
-            $dimExigenciasResponsabilidadA = $calcularPromedio(array_column($resultsFormaA, 'dim_exigencias_responsabilidad_puntaje'));
+            $dimInfluenciaTrabajoA = $calcularPromedio(array_column($resultsFormaA, 'dim_influencia_trabajo_entorno_extralaboral_puntaje'));
+            $dimExigenciasResponsabilidadA = $calcularPromedio(array_column($resultsFormaA, 'dim_demandas_responsabilidad_puntaje'));
             $dimDemandasCargaMentalA = $calcularPromedio(array_column($resultsFormaA, 'dim_demandas_carga_mental_puntaje'));
 
             // Dimensiones Forma A (16-19)
             $dimConsistenciaRolA = $calcularPromedio(array_column($resultsFormaA, 'dim_consistencia_rol_puntaje'));
-            $dimDemandasJornadaA = $calcularPromedio(array_column($resultsFormaA, 'dim_demandas_jornada_puntaje'));
+            $dimDemandasJornadaA = $calcularPromedio(array_column($resultsFormaA, 'dim_demandas_jornada_trabajo_puntaje'));
             $dimRecompensasPertenenciaA = $calcularPromedio(array_column($resultsFormaA, 'dim_recompensas_pertenencia_puntaje'));
             $dimReconocimientoCompensacionA = $calcularPromedio(array_column($resultsFormaA, 'dim_reconocimiento_compensacion_puntaje'));
 
             // Dimensiones Extralaborales Forma A
-            $dimTiempoFueraTrabajoA = $calcularPromedio(array_column($resultsFormaA, 'dim_tiempo_fuera_trabajo_puntaje'));
-            $dimRelacionesFamiliaresA = $calcularPromedio(array_column($resultsFormaA, 'dim_relaciones_familiares_puntaje'));
-            $dimComunicacionRelacionesA = $calcularPromedio(array_column($resultsFormaA, 'dim_comunicacion_relaciones_puntaje'));
-            $dimSituacionEconomicaA = $calcularPromedio(array_column($resultsFormaA, 'dim_situacion_economica_puntaje'));
-            $dimCaracteristicasViviendaA = $calcularPromedio(array_column($resultsFormaA, 'dim_caracteristicas_vivienda_puntaje'));
-            $dimInfluenciaEntornoA = $calcularPromedio(array_column($resultsFormaA, 'dim_influencia_entorno_puntaje'));
-            $dimDesplazamientoViviendaA = $calcularPromedio(array_column($resultsFormaA, 'dim_desplazamiento_vivienda_puntaje'));
+            $dimTiempoFueraTrabajoA = $calcularPromedio(array_column($resultsFormaA, 'extralaboral_tiempo_fuera_puntaje'));
+            $dimRelacionesFamiliaresA = $calcularPromedio(array_column($resultsFormaA, 'extralaboral_relaciones_familiares_puntaje'));
+            $dimComunicacionRelacionesA = $calcularPromedio(array_column($resultsFormaA, 'extralaboral_comunicacion_puntaje'));
+            $dimSituacionEconomicaA = $calcularPromedio(array_column($resultsFormaA, 'extralaboral_situacion_economica_puntaje'));
+            $dimCaracteristicasViviendaA = $calcularPromedio(array_column($resultsFormaA, 'extralaboral_caracteristicas_vivienda_puntaje'));
+            $dimInfluenciaEntornoA = $calcularPromedio(array_column($resultsFormaA, 'extralaboral_influencia_entorno_puntaje'));
+            $dimDesplazamientoViviendaA = $calcularPromedio(array_column($resultsFormaA, 'extralaboral_desplazamiento_puntaje'));
 
             $globalDataFormaA = [
                 // Puntaje Total General (Tabla 34)
@@ -1609,28 +886,28 @@ class BatteryServiceController extends BaseController
             $dimCapacitacionB = $calcularPromedio(array_column($resultsFormaB, 'dim_capacitacion_puntaje'));
 
             // Dimensiones Forma B (6-10)
-            $dimParticipacionCambioB = $calcularPromedio(array_column($resultsFormaB, 'dim_participacion_cambio_puntaje'));
-            $dimOportunidadesB = $calcularPromedio(array_column($resultsFormaB, 'dim_oportunidades_puntaje'));
+            $dimParticipacionCambioB = $calcularPromedio(array_column($resultsFormaB, 'dim_participacion_manejo_cambio_puntaje'));
+            $dimOportunidadesB = $calcularPromedio(array_column($resultsFormaB, 'dim_oportunidades_desarrollo_puntaje'));
             $dimControlAutonomiaB = $calcularPromedio(array_column($resultsFormaB, 'dim_control_autonomia_puntaje'));
             $dimDemandasAmbientalesB = $calcularPromedio(array_column($resultsFormaB, 'dim_demandas_ambientales_puntaje'));
             $dimDemandasEmocionalesB = $calcularPromedio(array_column($resultsFormaB, 'dim_demandas_emocionales_puntaje'));
 
             // Dimensiones Forma B (11-16)
             $dimDemandasCuantitativasB = $calcularPromedio(array_column($resultsFormaB, 'dim_demandas_cuantitativas_puntaje'));
-            $dimInfluenciaTrabajoB = $calcularPromedio(array_column($resultsFormaB, 'dim_influencia_trabajo_puntaje'));
+            $dimInfluenciaTrabajoB = $calcularPromedio(array_column($resultsFormaB, 'dim_influencia_trabajo_entorno_extralaboral_puntaje'));
             $dimDemandasCargaMentalB = $calcularPromedio(array_column($resultsFormaB, 'dim_demandas_carga_mental_puntaje'));
-            $dimDemandasJornadaB = $calcularPromedio(array_column($resultsFormaB, 'dim_demandas_jornada_puntaje'));
+            $dimDemandasJornadaB = $calcularPromedio(array_column($resultsFormaB, 'dim_demandas_jornada_trabajo_puntaje'));
             $dimRecompensasPertenenciaB = $calcularPromedio(array_column($resultsFormaB, 'dim_recompensas_pertenencia_puntaje'));
             $dimReconocimientoCompensacionB = $calcularPromedio(array_column($resultsFormaB, 'dim_reconocimiento_compensacion_puntaje'));
 
             // Dimensiones Extralaborales Forma B
-            $dimTiempoFueraTrabajoB = $calcularPromedio(array_column($resultsFormaB, 'dim_tiempo_fuera_trabajo_puntaje'));
-            $dimRelacionesFamiliaresB = $calcularPromedio(array_column($resultsFormaB, 'dim_relaciones_familiares_puntaje'));
-            $dimComunicacionRelacionesB = $calcularPromedio(array_column($resultsFormaB, 'dim_comunicacion_relaciones_puntaje'));
-            $dimSituacionEconomicaB = $calcularPromedio(array_column($resultsFormaB, 'dim_situacion_economica_puntaje'));
-            $dimCaracteristicasViviendaB = $calcularPromedio(array_column($resultsFormaB, 'dim_caracteristicas_vivienda_puntaje'));
-            $dimInfluenciaEntornoB = $calcularPromedio(array_column($resultsFormaB, 'dim_influencia_entorno_puntaje'));
-            $dimDesplazamientoViviendaB = $calcularPromedio(array_column($resultsFormaB, 'dim_desplazamiento_vivienda_puntaje'));
+            $dimTiempoFueraTrabajoB = $calcularPromedio(array_column($resultsFormaB, 'extralaboral_tiempo_fuera_puntaje'));
+            $dimRelacionesFamiliaresB = $calcularPromedio(array_column($resultsFormaB, 'extralaboral_relaciones_familiares_puntaje'));
+            $dimComunicacionRelacionesB = $calcularPromedio(array_column($resultsFormaB, 'extralaboral_comunicacion_puntaje'));
+            $dimSituacionEconomicaB = $calcularPromedio(array_column($resultsFormaB, 'extralaboral_situacion_economica_puntaje'));
+            $dimCaracteristicasViviendaB = $calcularPromedio(array_column($resultsFormaB, 'extralaboral_caracteristicas_vivienda_puntaje'));
+            $dimInfluenciaEntornoB = $calcularPromedio(array_column($resultsFormaB, 'extralaboral_influencia_entorno_puntaje'));
+            $dimDesplazamientoViviendaB = $calcularPromedio(array_column($resultsFormaB, 'extralaboral_desplazamiento_puntaje'));
 
             $globalDataFormaB = [
                 // Puntaje Total General (Tabla 34)

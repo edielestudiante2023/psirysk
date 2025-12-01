@@ -120,6 +120,40 @@ function getNivelEstresTexto($nivel) {
         .risk-riesgo_medio { background-color: #ffc107; color: #333; }
         .risk-riesgo_alto { background-color: #fd7e14; color: white; }
         .risk-riesgo_muy_alto { background-color: #dc3545; color: white; }
+
+        /* Estilos para tarjetas de dimensiones */
+        .dimension-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            margin-bottom: 15px;
+            transition: all 0.2s;
+        }
+        .dimension-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        .dimension-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+        }
+        .dimension-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .risk-badge-dim {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            min-width: 100px;
+            text-align: center;
+        }
         table.dataTable {
             font-size: 0.85rem;
         }
@@ -770,6 +804,248 @@ function getNivelEstresTexto($nivel) {
                 <button class="btn btn-secondary btn-sm" onclick="clearAllFilters()">
                     <i class="fas fa-redo me-1"></i>Limpiar Todos los Filtros
                 </button>
+            </div>
+        </div>
+
+        <!-- Distribución por Nivel de Riesgo -->
+        <h6 class="section-title">Distribución por Nivel de Riesgo</h6>
+        <div class="row mb-3">
+            <?php
+            $riskCards = [
+                ['nivel' => 'sin_riesgo', 'label' => 'SIN RIESGO', 'color' => '#28a745'],
+                ['nivel' => 'riesgo_bajo', 'label' => 'RIESGO BAJO', 'color' => '#7dce82'],
+                ['nivel' => 'riesgo_medio', 'label' => 'RIESGO MEDIO', 'color' => '#ffc107'],
+                ['nivel' => 'riesgo_alto', 'label' => 'RIESGO ALTO', 'color' => '#fd7e14'],
+                ['nivel' => 'riesgo_muy_alto', 'label' => 'RIESGO MUY ALTO', 'color' => '#dc3545']
+            ];
+
+            // Calcular distribución de riesgo
+            $riskDistribution = ['sin_riesgo' => 0, 'riesgo_bajo' => 0, 'riesgo_medio' => 0, 'riesgo_alto' => 0, 'riesgo_muy_alto' => 0];
+            foreach ($results as $r) {
+                $nivel = $r['intralaboral_total_nivel'] ?? 'sin_riesgo';
+                if (isset($riskDistribution[$nivel])) {
+                    $riskDistribution[$nivel]++;
+                }
+            }
+
+            foreach ($riskCards as $card):
+                $count = $riskDistribution[$card['nivel']] ?? 0;
+                $textColor = ($card['nivel'] === 'riesgo_medio') ? '#333' : '#fff';
+            ?>
+            <div class="col-md-6 col-lg-2 mb-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center rounded" style="background-color: <?= $card['color'] ?>; color: <?= $textColor ?>;">
+                        <h6 class="mb-2 text-uppercase" style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px;"><?= $card['label'] ?></h6>
+                        <h1 class="fw-bold mb-1" style="font-size: 3rem;" data-stat-risk="<?= $card['nivel'] ?>"><?= $count ?></h1>
+                        <small style="font-size: 0.75rem;">trabajadores</small>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- Dimensiones Intralaborales - Acordeón -->
+        <?php
+        // Helper functions para dimensiones
+        function getDimRiskLabel($nivel) {
+            $labels = [
+                'sin_riesgo' => 'Sin Riesgo',
+                'riesgo_bajo' => 'Riesgo Bajo',
+                'riesgo_medio' => 'Riesgo Medio',
+                'riesgo_alto' => 'Riesgo Alto',
+                'riesgo_muy_alto' => 'Riesgo Muy Alto'
+            ];
+            return $labels[$nivel] ?? 'N/A';
+        }
+
+        function getDimBadgeStyle($nivel) {
+            $styles = [
+                'sin_riesgo' => 'background-color: #28a745; color: white;',
+                'riesgo_bajo' => 'background-color: #7dce82; color: white;',
+                'riesgo_medio' => 'background-color: #ffc107; color: #333;',
+                'riesgo_alto' => 'background-color: #fd7e14; color: white;',
+                'riesgo_muy_alto' => 'background-color: #dc3545; color: white;'
+            ];
+            return $styles[$nivel] ?? 'background-color: #6c757d; color: white;';
+        }
+
+        // Función para calcular promedio y nivel de una dimensión
+        function calcularDimension($results, $dbKey, $formType = null) {
+            $suma = 0;
+            $count = 0;
+            $nivelCounts = ['sin_riesgo' => 0, 'riesgo_bajo' => 0, 'riesgo_medio' => 0, 'riesgo_alto' => 0, 'riesgo_muy_alto' => 0];
+
+            foreach ($results as $r) {
+                // Filtrar por tipo de forma si se especifica
+                if ($formType !== null && ($r['intralaboral_form_type'] ?? '') !== $formType) {
+                    continue;
+                }
+
+                $puntajeKey = $dbKey . '_puntaje';
+                $nivelKey = $dbKey . '_nivel';
+
+                if (isset($r[$puntajeKey]) && $r[$puntajeKey] !== null && $r[$puntajeKey] !== '') {
+                    $suma += floatval($r[$puntajeKey]);
+                    $count++;
+                }
+
+                if (isset($r[$nivelKey]) && isset($nivelCounts[$r[$nivelKey]])) {
+                    $nivelCounts[$r[$nivelKey]]++;
+                }
+            }
+
+            $promedio = $count > 0 ? $suma / $count : 0;
+
+            // Determinar nivel predominante
+            arsort($nivelCounts);
+            $nivelPredominante = key($nivelCounts);
+            if (array_sum($nivelCounts) === 0) {
+                $nivelPredominante = 'sin_riesgo';
+            }
+
+            return ['promedio' => $promedio, 'nivel' => $nivelPredominante, 'count' => $count];
+        }
+
+        // Dimensiones Forma A (19 dimensiones) con nombres de columnas BD correctos
+        $dimensionesFormaA = [
+            ['db_key' => 'dim_caracteristicas_liderazgo', 'label' => 'Características del liderazgo', 'icon' => 'user-tie'],
+            ['db_key' => 'dim_relaciones_sociales', 'label' => 'Relaciones sociales en el trabajo', 'icon' => 'users'],
+            ['db_key' => 'dim_retroalimentacion', 'label' => 'Retroalimentación del desempeño', 'icon' => 'comments'],
+            ['db_key' => 'dim_relacion_colaboradores', 'label' => 'Relación con los colaboradores', 'icon' => 'handshake'],
+            ['db_key' => 'dim_claridad_rol', 'label' => 'Claridad de rol', 'icon' => 'bullseye'],
+            ['db_key' => 'dim_capacitacion', 'label' => 'Capacitación', 'icon' => 'graduation-cap'],
+            ['db_key' => 'dim_participacion_manejo_cambio', 'label' => 'Participación y manejo del cambio', 'icon' => 'sync-alt'],
+            ['db_key' => 'dim_oportunidades_desarrollo', 'label' => 'Oportunidades de desarrollo', 'icon' => 'chart-line'],
+            ['db_key' => 'dim_control_autonomia', 'label' => 'Control y autonomía sobre el trabajo', 'icon' => 'sliders-h'],
+            ['db_key' => 'dim_demandas_ambientales', 'label' => 'Demandas ambientales y de esfuerzo físico', 'icon' => 'hard-hat'],
+            ['db_key' => 'dim_demandas_emocionales', 'label' => 'Demandas emocionales', 'icon' => 'heart'],
+            ['db_key' => 'dim_demandas_cuantitativas', 'label' => 'Demandas cuantitativas', 'icon' => 'tasks'],
+            ['db_key' => 'dim_influencia_trabajo_entorno_extralaboral', 'label' => 'Influencia del trabajo sobre el entorno extralaboral', 'icon' => 'home'],
+            ['db_key' => 'dim_demandas_responsabilidad', 'label' => 'Exigencias de responsabilidad del cargo', 'icon' => 'shield-alt'],
+            ['db_key' => 'dim_demandas_carga_mental', 'label' => 'Demandas de carga mental', 'icon' => 'brain'],
+            ['db_key' => 'dim_consistencia_rol', 'label' => 'Consistencia del rol', 'icon' => 'balance-scale'],
+            ['db_key' => 'dim_demandas_jornada_trabajo', 'label' => 'Demandas de la jornada de trabajo', 'icon' => 'clock'],
+            ['db_key' => 'dim_recompensas_pertenencia', 'label' => 'Recompensas derivadas de la pertenencia', 'icon' => 'medal'],
+            ['db_key' => 'dim_reconocimiento_compensacion', 'label' => 'Reconocimiento y compensación', 'icon' => 'award']
+        ];
+
+        // Dimensiones Forma B (16 dimensiones - sin las 3 exclusivas de Forma A)
+        $dimensionesFormaB = [
+            ['db_key' => 'dim_caracteristicas_liderazgo', 'label' => 'Características del liderazgo', 'icon' => 'user-tie'],
+            ['db_key' => 'dim_relaciones_sociales', 'label' => 'Relaciones sociales en el trabajo', 'icon' => 'users'],
+            ['db_key' => 'dim_retroalimentacion', 'label' => 'Retroalimentación del desempeño', 'icon' => 'comments'],
+            // Sin: Relación con los colaboradores
+            ['db_key' => 'dim_claridad_rol', 'label' => 'Claridad de rol', 'icon' => 'bullseye'],
+            ['db_key' => 'dim_capacitacion', 'label' => 'Capacitación', 'icon' => 'graduation-cap'],
+            ['db_key' => 'dim_participacion_manejo_cambio', 'label' => 'Participación y manejo del cambio', 'icon' => 'sync-alt'],
+            ['db_key' => 'dim_oportunidades_desarrollo', 'label' => 'Oportunidades de desarrollo', 'icon' => 'chart-line'],
+            ['db_key' => 'dim_control_autonomia', 'label' => 'Control y autonomía sobre el trabajo', 'icon' => 'sliders-h'],
+            ['db_key' => 'dim_demandas_ambientales', 'label' => 'Demandas ambientales y de esfuerzo físico', 'icon' => 'hard-hat'],
+            ['db_key' => 'dim_demandas_emocionales', 'label' => 'Demandas emocionales', 'icon' => 'heart'],
+            ['db_key' => 'dim_demandas_cuantitativas', 'label' => 'Demandas cuantitativas', 'icon' => 'tasks'],
+            ['db_key' => 'dim_influencia_trabajo_entorno_extralaboral', 'label' => 'Influencia del trabajo sobre el entorno extralaboral', 'icon' => 'home'],
+            // Sin: Exigencias de responsabilidad del cargo
+            ['db_key' => 'dim_demandas_carga_mental', 'label' => 'Demandas de carga mental', 'icon' => 'brain'],
+            // Sin: Consistencia del rol
+            ['db_key' => 'dim_demandas_jornada_trabajo', 'label' => 'Demandas de la jornada de trabajo', 'icon' => 'clock'],
+            ['db_key' => 'dim_recompensas_pertenencia', 'label' => 'Recompensas derivadas de la pertenencia', 'icon' => 'medal'],
+            ['db_key' => 'dim_reconocimiento_compensacion', 'label' => 'Reconocimiento y compensación', 'icon' => 'award']
+        ];
+
+        // Contar trabajadores por forma
+        $countFormaA = 0;
+        $countFormaB = 0;
+        foreach ($results as $r) {
+            if (($r['intralaboral_form_type'] ?? '') === 'A') $countFormaA++;
+            if (($r['intralaboral_form_type'] ?? '') === 'B') $countFormaB++;
+        }
+        ?>
+
+        <div class="accordion mb-4" id="accordionDimensiones">
+            <!-- Forma A -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingFormaA">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFormaA" aria-expanded="true" aria-controls="collapseFormaA">
+                        <i class="fas fa-th-large me-2 text-primary"></i>
+                        <strong>Dimensiones Intralaborales - Forma A</strong>
+                        <span class="badge bg-primary ms-2">19 dimensiones</span>
+                        <span class="badge bg-secondary ms-2"><?= $countFormaA ?> trabajadores</span>
+                    </button>
+                </h2>
+                <div id="collapseFormaA" class="accordion-collapse collapse show" aria-labelledby="headingFormaA" data-bs-parent="#accordionDimensiones">
+                    <div class="accordion-body">
+                        <?php if ($countFormaA > 0): ?>
+                        <div class="row">
+                            <?php foreach ($dimensionesFormaA as $dim):
+                                $calc = calcularDimension($results, $dim['db_key'], 'A');
+                            ?>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="card dimension-card">
+                                    <div class="card-body">
+                                        <div class="dimension-label">
+                                            <i class="fas fa-<?= $dim['icon'] ?> me-2"></i><?= $dim['label'] ?>
+                                        </div>
+                                        <div class="dimension-value text-primary">
+                                            <?= number_format($calc['promedio'], 1) ?>%
+                                        </div>
+                                        <span class="risk-badge-dim" style="<?= getDimBadgeStyle($calc['nivel']) ?>">
+                                            <?= getDimRiskLabel($calc['nivel']) ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php else: ?>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>No hay trabajadores evaluados con Forma A
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forma B -->
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingFormaB">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFormaB" aria-expanded="false" aria-controls="collapseFormaB">
+                        <i class="fas fa-th-large me-2 text-warning"></i>
+                        <strong>Dimensiones Intralaborales - Forma B</strong>
+                        <span class="badge bg-warning text-dark ms-2">16 dimensiones</span>
+                        <span class="badge bg-secondary ms-2"><?= $countFormaB ?> trabajadores</span>
+                    </button>
+                </h2>
+                <div id="collapseFormaB" class="accordion-collapse collapse" aria-labelledby="headingFormaB" data-bs-parent="#accordionDimensiones">
+                    <div class="accordion-body">
+                        <?php if ($countFormaB > 0): ?>
+                        <div class="row">
+                            <?php foreach ($dimensionesFormaB as $dim):
+                                $calc = calcularDimension($results, $dim['db_key'], 'B');
+                            ?>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="card dimension-card">
+                                    <div class="card-body">
+                                        <div class="dimension-label">
+                                            <i class="fas fa-<?= $dim['icon'] ?> me-2"></i><?= $dim['label'] ?>
+                                        </div>
+                                        <div class="dimension-value text-warning">
+                                            <?= number_format($calc['promedio'], 1) ?>%
+                                        </div>
+                                        <span class="risk-badge-dim" style="<?= getDimBadgeStyle($calc['nivel']) ?>">
+                                            <?= getDimRiskLabel($calc['nivel']) ?>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php else: ?>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>No hay trabajadores evaluados con Forma B
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
         </div>
 

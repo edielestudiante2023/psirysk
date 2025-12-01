@@ -6,6 +6,10 @@ use App\Models\BatteryServiceModel;
 use App\Models\CalculatedResultModel;
 use App\Models\CompanyModel;
 use App\Models\WorkerModel;
+use App\Libraries\IntralaboralAScoring;
+use App\Libraries\IntralaboralBScoring;
+use App\Libraries\ExtralaboralScoring;
+use App\Libraries\EstresScoring;
 
 class ReportsController extends BaseController
 {
@@ -1446,329 +1450,80 @@ class ReportsController extends BaseController
         // Empate favorece A (jefes)
         $cargoType = $formaType === 'A' ? 'jefes' : 'auxiliares';
 
-        // Baremos según forma - Corregidos según auditoría 2025-11-24 (Tabla 33)
+        // BAREMOS - Desde fuente única autorizada (README_BAREMOS.md)
         $baremoIntralaboralTotal = $formaType === 'A'
-            ? [
-                'sin_riesgo' => [0.0, 19.7],
-                'riesgo_bajo' => [19.8, 25.8],
-                'riesgo_medio' => [25.9, 31.5],
-                'riesgo_alto' => [31.6, 38.0],
-                'riesgo_muy_alto' => [38.1, 100.0]
-            ]
-            : [
-                'sin_riesgo' => [0.0, 20.6],
-                'riesgo_bajo' => [20.7, 26.0],
-                'riesgo_medio' => [26.1, 31.2],
-                'riesgo_alto' => [31.3, 38.7],
-                'riesgo_muy_alto' => [38.8, 100.0]
-            ];
+            ? IntralaboralAScoring::getBaremoTotal()
+            : IntralaboralBScoring::getBaremoTotal();
 
-        $baremoDominios = [
-            'liderazgo' => [
-                'sin_riesgo' => [0.0, 9.1],
-                'riesgo_bajo' => [9.2, 17.7],
-                'riesgo_medio' => [17.8, 25.6],
-                'riesgo_alto' => [25.7, 34.8],
-                'riesgo_muy_alto' => [34.9, 100.0]
-            ],
-            'control' => [
-                'sin_riesgo' => [0.0, 10.7],
-                'riesgo_bajo' => [10.8, 19.0],
-                'riesgo_medio' => [19.1, 29.8],
-                'riesgo_alto' => [29.9, 40.5],
-                'riesgo_muy_alto' => [40.6, 100.0]
-            ],
-            'demandas' => [
-                'sin_riesgo' => [0.0, 28.5],
-                'riesgo_bajo' => [28.6, 35.0],
-                'riesgo_medio' => [35.1, 41.5],
-                'riesgo_alto' => [41.6, 47.5],
-                'riesgo_muy_alto' => [47.6, 100.0]
-            ],
-            'recompensas' => [
-                'sin_riesgo' => [0.0, 4.5],
-                'riesgo_bajo' => [4.6, 11.4],
-                'riesgo_medio' => [11.5, 20.5],
-                'riesgo_alto' => [20.6, 29.5],
-                'riesgo_muy_alto' => [29.6, 100.0]
-            ]
+        // Baremos de dominios según forma
+        $mapDominios = [
+            'liderazgo' => 'liderazgo_relaciones_sociales',
+            'control' => 'control',
+            'demandas' => 'demandas',
+            'recompensas' => 'recompensas',
         ];
+        $baremoDominios = [];
+        foreach ($mapDominios as $codigoCorto => $codigoLibreria) {
+            $baremoDominios[$codigoCorto] = $formaType === 'A'
+                ? IntralaboralAScoring::getBaremoDominio($codigoLibreria)
+                : IntralaboralBScoring::getBaremoDominio($codigoLibreria);
+        }
 
-        // Baremos Extralaboral según tipo de cargo (Tabla 17 y 18)
-        $baremoExtralaboralTotal = $cargoType === 'jefes'
-            ? [ // Tabla 17 - Jefes/Profesionales/Técnicos
-                'sin_riesgo' => [0.0, 11.3],
-                'riesgo_bajo' => [11.4, 16.9],
-                'riesgo_medio' => [17.0, 22.6],
-                'riesgo_alto' => [22.7, 29.0],
-                'riesgo_muy_alto' => [29.1, 100.0]
-            ]
-            : [ // Tabla 18 - Auxiliares/Operarios
-                'sin_riesgo' => [0.0, 12.9],
-                'riesgo_bajo' => [13.0, 17.7],
-                'riesgo_medio' => [17.8, 24.2],
-                'riesgo_alto' => [24.3, 32.3],
-                'riesgo_muy_alto' => [32.4, 100.0]
-            ];
-
-        // Baremos Estrés según tipo de cargo (Tabla 6)
+        // Baremos Extralaboral y Estrés según tipo de cargo
+        $baremoExtralaboralTotal = ExtralaboralScoring::getBaremoTotal($formaType);
         $baremoEstres = $cargoType === 'jefes'
-            ? [ // Jefes/Profesionales/Técnicos
-                'muy_bajo' => [0.0, 7.8],
-                'bajo' => [7.9, 12.6],
-                'medio' => [12.7, 17.7],
-                'alto' => [17.8, 25.0],
-                'muy_alto' => [25.1, 100.0]
-            ]
-            : [ // Auxiliares/Operarios
-                'muy_bajo' => [0.0, 6.5],
-                'bajo' => [6.6, 11.8],
-                'medio' => [11.9, 17.0],
-                'alto' => [17.1, 23.4],
-                'muy_alto' => [23.5, 100.0]
-            ];
+            ? EstresScoring::getBaremoA()
+            : EstresScoring::getBaremoB();
 
-        // Baremos de dimensiones intralaborales (Forma A - Tabla 29)
-        $baremoDimensionesIntra = [
-            'caracteristicas_liderazgo' => [
-                'sin_riesgo' => [0.0, 3.8],
-                'riesgo_bajo' => [3.9, 15.4],
-                'riesgo_medio' => [15.5, 30.8],
-                'riesgo_alto' => [30.9, 46.2],
-                'riesgo_muy_alto' => [46.3, 100.0]
-            ],
-            'relaciones_sociales' => [
-                'sin_riesgo' => [0.0, 5.4],
-                'riesgo_bajo' => [5.5, 16.1],
-                'riesgo_medio' => [16.2, 25.0],
-                'riesgo_alto' => [25.1, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ],
-            'retroalimentacion' => [
-                'sin_riesgo' => [0.0, 10.0],
-                'riesgo_bajo' => [10.1, 25.0],
-                'riesgo_medio' => [25.1, 40.0],
-                'riesgo_alto' => [40.1, 55.0],
-                'riesgo_muy_alto' => [55.1, 100.0]
-            ],
-            'relacion_colaboradores' => [
-                'sin_riesgo' => [0.0, 13.9],
-                'riesgo_bajo' => [14.0, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 47.2],
-                'riesgo_muy_alto' => [47.3, 100.0]
-            ],
-            'claridad_rol' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 10.7],
-                'riesgo_medio' => [10.8, 21.4],
-                'riesgo_alto' => [21.5, 39.3],
-                'riesgo_muy_alto' => [39.4, 100.0]
-            ],
-            'capacitacion' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 16.7],
-                'riesgo_medio' => [16.8, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'participacion_cambio' => [
-                'sin_riesgo' => [0.0, 12.5],
-                'riesgo_bajo' => [12.6, 25.0],
-                'riesgo_medio' => [25.1, 37.5],
-                'riesgo_alto' => [37.6, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'oportunidades_desarrollo' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 6.3],
-                'riesgo_medio' => [6.4, 18.8],
-                'riesgo_alto' => [18.9, 31.3],
-                'riesgo_muy_alto' => [31.4, 100.0]
-            ],
-            'control_autonomia' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 41.7],
-                'riesgo_alto' => [41.8, 58.3],
-                'riesgo_muy_alto' => [58.4, 100.0]
-            ],
-            'demandas_ambientales' => [
-                'sin_riesgo' => [0.0, 14.6],
-                'riesgo_bajo' => [14.7, 22.9],
-                'riesgo_medio' => [23.0, 31.3],
-                'riesgo_alto' => [31.4, 39.6],
-                'riesgo_muy_alto' => [39.7, 100.0]
-            ],
-            'demandas_emocionales' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 47.2],
-                'riesgo_muy_alto' => [47.3, 100.0]
-            ],
-            'demandas_cuantitativas' => [
-                'sin_riesgo' => [0.0, 25.0],
-                'riesgo_bajo' => [25.1, 33.3],
-                'riesgo_medio' => [33.4, 45.8],
-                'riesgo_alto' => [45.9, 54.2],
-                'riesgo_muy_alto' => [54.3, 100.0]
-            ],
-            'influencia_entorno' => [
-                'sin_riesgo' => [0.0, 18.8],
-                'riesgo_bajo' => [18.9, 31.3],
-                'riesgo_medio' => [31.4, 43.8],
-                'riesgo_alto' => [43.9, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'exigencias_responsabilidad' => [
-                'sin_riesgo' => [0.0, 37.5],
-                'riesgo_bajo' => [37.6, 54.2],
-                'riesgo_medio' => [54.3, 66.7],
-                'riesgo_alto' => [66.8, 79.2],
-                'riesgo_muy_alto' => [79.3, 100.0]
-            ],
-            'carga_mental' => [
-                'sin_riesgo' => [0.0, 60.0],
-                'riesgo_bajo' => [60.1, 70.0],
-                'riesgo_medio' => [70.1, 80.0],
-                'riesgo_alto' => [80.1, 90.0],
-                'riesgo_muy_alto' => [90.1, 100.0]
-            ],
-            'consistencia_rol' => [
-                'sin_riesgo' => [0.0, 15.0],
-                'riesgo_bajo' => [15.1, 25.0],
-                'riesgo_medio' => [25.1, 35.0],
-                'riesgo_alto' => [35.1, 45.0],
-                'riesgo_muy_alto' => [45.1, 100.0]
-            ],
-            'demandas_jornada' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'recompensas_pertenencia' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 5.0],
-                'riesgo_medio' => [5.1, 10.0],
-                'riesgo_alto' => [10.1, 20.0],
-                'riesgo_muy_alto' => [20.1, 100.0]
-            ],
-            'reconocimiento_compensacion' => [
-                'sin_riesgo' => [0.0, 4.2],
-                'riesgo_bajo' => [4.3, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ]
+        // Baremos de dimensiones intralaborales según forma
+        $mapDimensionesIntra = [
+            'caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
+            'relaciones_sociales' => 'relaciones_sociales_trabajo',
+            'retroalimentacion' => 'retroalimentacion_desempeno',
+            'relacion_colaboradores' => 'relacion_colaboradores',
+            'claridad_rol' => 'claridad_rol',
+            'capacitacion' => 'capacitacion',
+            'participacion_cambio' => 'participacion_manejo_cambio',
+            'oportunidades_desarrollo' => 'oportunidades_desarrollo',
+            'control_autonomia' => 'control_autonomia_trabajo',
+            'demandas_ambientales' => 'demandas_ambientales_esfuerzo_fisico',
+            'demandas_emocionales' => 'demandas_emocionales',
+            'demandas_cuantitativas' => 'demandas_cuantitativas',
+            'influencia_entorno' => 'influencia_trabajo_entorno_extralaboral',
+            'exigencias_responsabilidad' => 'exigencias_responsabilidad_cargo',
+            'carga_mental' => 'demandas_carga_mental',
+            'consistencia_rol' => 'consistencia_rol',
+            'demandas_jornada' => 'demandas_jornada_trabajo',
+            'recompensas_pertenencia' => 'recompensas_pertenencia_estabilidad',
+            'reconocimiento_compensacion' => 'reconocimiento_compensacion',
         ];
+        $baremoDimensionesIntra = [];
+        foreach ($mapDimensionesIntra as $codigoCorto => $codigoLibreria) {
+            $baremo = $formaType === 'A'
+                ? IntralaboralAScoring::getBaremoDimension($codigoLibreria)
+                : IntralaboralBScoring::getBaremoDimension($codigoLibreria);
+            if ($baremo !== null) {
+                $baremoDimensionesIntra[$codigoCorto] = $baremo;
+            }
+        }
 
-        // Baremos de dimensiones extralaborales según tipo de cargo (Tabla 17 y 18)
-        $baremoDimensionesExtra = $cargoType === 'jefes'
-            ? [ // Tabla 17 - Jefes/Profesionales/Técnicos
-                'tiempo_fuera' => [
-                    'sin_riesgo' => [0.0, 6.3],
-                    'riesgo_bajo' => [6.4, 25.0],
-                    'riesgo_medio' => [25.1, 37.5],
-                    'riesgo_alto' => [37.6, 50.0],
-                    'riesgo_muy_alto' => [50.1, 100.0]
-                ],
-                'relaciones_familiares' => [
-                    'sin_riesgo' => [0.0, 8.3],
-                    'riesgo_bajo' => [8.4, 25.0],
-                    'riesgo_medio' => [25.1, 33.3],
-                    'riesgo_alto' => [33.4, 50.0],
-                    'riesgo_muy_alto' => [50.1, 100.0]
-                ],
-                'comunicacion' => [
-                    'sin_riesgo' => [0.0, 0.9],
-                    'riesgo_bajo' => [1.0, 10.0],
-                    'riesgo_medio' => [10.1, 20.0],
-                    'riesgo_alto' => [20.1, 30.0],
-                    'riesgo_muy_alto' => [30.1, 100.0]
-                ],
-                'situacion_economica' => [
-                    'sin_riesgo' => [0.0, 8.3],
-                    'riesgo_bajo' => [8.4, 25.0],
-                    'riesgo_medio' => [25.1, 33.3],
-                    'riesgo_alto' => [33.4, 50.0],
-                    'riesgo_muy_alto' => [50.1, 100.0]
-                ],
-                'caracteristicas_vivienda' => [
-                    'sin_riesgo' => [0.0, 5.6],
-                    'riesgo_bajo' => [5.7, 11.1],
-                    'riesgo_medio' => [11.2, 13.9],
-                    'riesgo_alto' => [14.0, 22.2],
-                    'riesgo_muy_alto' => [22.3, 100.0]
-                ],
-                'influencia_entorno_extra' => [
-                    'sin_riesgo' => [0.0, 8.3],
-                    'riesgo_bajo' => [8.4, 16.7],
-                    'riesgo_medio' => [16.8, 25.0],
-                    'riesgo_alto' => [25.1, 41.7],
-                    'riesgo_muy_alto' => [41.8, 100.0]
-                ],
-                'desplazamiento' => [
-                    'sin_riesgo' => [0.0, 0.9],
-                    'riesgo_bajo' => [1.0, 12.5],
-                    'riesgo_medio' => [12.6, 25.0],
-                    'riesgo_alto' => [25.1, 43.8],
-                    'riesgo_muy_alto' => [43.9, 100.0]
-                ]
-            ]
-            : [ // Tabla 18 - Auxiliares/Operarios
-                'tiempo_fuera' => [
-                    'sin_riesgo' => [0.0, 6.3],
-                    'riesgo_bajo' => [6.4, 25.0],
-                    'riesgo_medio' => [25.1, 37.5],
-                    'riesgo_alto' => [37.6, 50.0],
-                    'riesgo_muy_alto' => [50.1, 100.0]
-                ],
-                'relaciones_familiares' => [
-                    'sin_riesgo' => [0.0, 8.3],
-                    'riesgo_bajo' => [8.4, 25.0],
-                    'riesgo_medio' => [25.1, 33.3],
-                    'riesgo_alto' => [33.4, 50.0],
-                    'riesgo_muy_alto' => [50.1, 100.0]
-                ],
-                'comunicacion' => [
-                    'sin_riesgo' => [0.0, 5.0],
-                    'riesgo_bajo' => [5.1, 15.0],
-                    'riesgo_medio' => [15.1, 25.0],
-                    'riesgo_alto' => [25.1, 35.0],
-                    'riesgo_muy_alto' => [35.1, 100.0]
-                ],
-                'situacion_economica' => [
-                    'sin_riesgo' => [0.0, 16.7],
-                    'riesgo_bajo' => [16.8, 25.0],
-                    'riesgo_medio' => [25.1, 41.7],
-                    'riesgo_alto' => [41.8, 50.0],
-                    'riesgo_muy_alto' => [50.1, 100.0]
-                ],
-                'caracteristicas_vivienda' => [
-                    'sin_riesgo' => [0.0, 5.6],
-                    'riesgo_bajo' => [5.7, 11.1],
-                    'riesgo_medio' => [11.2, 16.7],
-                    'riesgo_alto' => [16.8, 27.8],
-                    'riesgo_muy_alto' => [27.9, 100.0]
-                ],
-                'influencia_entorno_extra' => [
-                    'sin_riesgo' => [0.0, 0.9],
-                    'riesgo_bajo' => [1.0, 16.7],
-                    'riesgo_medio' => [16.8, 25.0],
-                    'riesgo_alto' => [25.1, 41.7],
-                    'riesgo_muy_alto' => [41.8, 100.0]
-                ],
-                'desplazamiento' => [
-                    'sin_riesgo' => [0.0, 0.9],
-                    'riesgo_bajo' => [1.0, 12.5],
-                    'riesgo_medio' => [12.6, 25.0],
-                    'riesgo_alto' => [25.1, 43.8],
-                    'riesgo_muy_alto' => [43.9, 100.0]
-                ]
-            ];
+        // Baremos de dimensiones extralaborales
+        $mapDimensionesExtra = [
+            'tiempo_fuera' => 'tiempo_fuera_trabajo',
+            'relaciones_familiares' => 'relaciones_familiares',
+            'comunicacion' => 'comunicacion_relaciones',
+            'situacion_economica' => 'situacion_economica',
+            'caracteristicas_vivienda' => 'caracteristicas_vivienda',
+            'influencia_entorno_extra' => 'influencia_entorno',
+            'desplazamiento' => 'desplazamiento',
+        ];
+        $baremoDimensionesExtra = [];
+        foreach ($mapDimensionesExtra as $codigoCorto => $codigoLibreria) {
+            $baremo = ExtralaboralScoring::getBaremoDimension($codigoLibreria);
+            if ($baremo !== null) {
+                $baremoDimensionesExtra[$codigoCorto] = $baremo;
+            }
+        }
 
         // Función helper para calcular y retornar detalles
         $calculateDetail = function($field, $baremo) use ($results) {
@@ -1822,7 +1577,9 @@ class ReportsController extends BaseController
             'dim_caracteristicas_liderazgo' => $calculateDetail('dim_caracteristicas_liderazgo_puntaje', $baremoDimensionesIntra['caracteristicas_liderazgo']),
             'dim_relaciones_sociales' => $calculateDetail('dim_relaciones_sociales_puntaje', $baremoDimensionesIntra['relaciones_sociales']),
             'dim_retroalimentacion' => $calculateDetail('dim_retroalimentacion_puntaje', $baremoDimensionesIntra['retroalimentacion']),
-            'dim_relacion_colaboradores' => $calculateDetail('dim_relacion_colaboradores_puntaje', $baremoDimensionesIntra['relacion_colaboradores']),
+            'dim_relacion_colaboradores' => isset($baremoDimensionesIntra['relacion_colaboradores'])
+                ? $calculateDetail('dim_relacion_colaboradores_puntaje', $baremoDimensionesIntra['relacion_colaboradores'])
+                : null,
             'dim_claridad_rol' => $calculateDetail('dim_claridad_rol_puntaje', $baremoDimensionesIntra['claridad_rol']),
             'dim_capacitacion' => $calculateDetail('dim_capacitacion_puntaje', $baremoDimensionesIntra['capacitacion']),
             'dim_participacion_manejo_cambio' => $calculateDetail('dim_participacion_manejo_cambio_puntaje', $baremoDimensionesIntra['participacion_cambio']),
@@ -1832,9 +1589,13 @@ class ReportsController extends BaseController
             'dim_demandas_emocionales' => $calculateDetail('dim_demandas_emocionales_puntaje', $baremoDimensionesIntra['demandas_emocionales']),
             'dim_demandas_cuantitativas' => $calculateDetail('dim_demandas_cuantitativas_puntaje', $baremoDimensionesIntra['demandas_cuantitativas']),
             'dim_influencia_trabajo_entorno_extralaboral' => $calculateDetail('dim_influencia_trabajo_entorno_extralaboral_puntaje', $baremoDimensionesIntra['influencia_entorno']),
-            'dim_demandas_responsabilidad' => $calculateDetail('dim_demandas_responsabilidad_puntaje', $baremoDimensionesIntra['exigencias_responsabilidad']),
+            'dim_demandas_responsabilidad' => isset($baremoDimensionesIntra['exigencias_responsabilidad'])
+                ? $calculateDetail('dim_demandas_responsabilidad_puntaje', $baremoDimensionesIntra['exigencias_responsabilidad'])
+                : null,
             'dim_carga_mental' => $calculateDetail('dim_demandas_carga_mental_puntaje', $baremoDimensionesIntra['carga_mental']),
-            'dim_consistencia_rol' => $calculateDetail('dim_consistencia_rol_puntaje', $baremoDimensionesIntra['consistencia_rol']),
+            'dim_consistencia_rol' => isset($baremoDimensionesIntra['consistencia_rol'])
+                ? $calculateDetail('dim_consistencia_rol_puntaje', $baremoDimensionesIntra['consistencia_rol'])
+                : null,
             'dim_demandas_jornada_trabajo' => $calculateDetail('dim_demandas_jornada_trabajo_puntaje', $baremoDimensionesIntra['demandas_jornada']),
             'dim_recompensas_pertenencia' => $calculateDetail('dim_recompensas_pertenencia_puntaje', $baremoDimensionesIntra['recompensas_pertenencia']),
             'dim_reconocimiento_compensacion' => $calculateDetail('dim_reconocimiento_compensacion_puntaje', $baremoDimensionesIntra['reconocimiento_compensacion']),
@@ -1947,6 +1708,7 @@ class ReportsController extends BaseController
     /**
      * Calcular detalles completos de Intralaboral Forma A
      * Incluye: 1 Total + 4 Dominios + 19 Dimensiones
+     * BAREMOS: Desde fuente única autorizada (README_BAREMOS.md)
      */
     private function calculateIntralaboralFormaADetails($results)
     {
@@ -1954,188 +1716,40 @@ class ReportsController extends BaseController
             return null;
         }
 
-        // BAREMOS OFICIALES - Resolución 2404/2019
+        // BAREMOS - Desde fuente única autorizada (IntralaboralAScoring)
+        $baremoIntralaboralTotal = IntralaboralAScoring::getBaremoTotal();
 
-        // Tabla 33: Intralaboral Total Forma A - Corregidos según auditoría 2025-11-24
-        $baremoIntralaboralTotal = [
-            'sin_riesgo' => [0.0, 19.7],
-            'riesgo_bajo' => [19.8, 25.8],
-            'riesgo_medio' => [25.9, 31.5],
-            'riesgo_alto' => [31.6, 38.0],
-            'riesgo_muy_alto' => [38.1, 100.0]
-        ];
-
-        // Tabla 31: Dominios FORMA A (diferentes de Forma B - Tabla 32)
+        // Dominios Forma A (Tabla 31)
         $baremoDominios = [
-            'liderazgo' => [
-                'sin_riesgo' => [0.0, 9.1],
-                'riesgo_bajo' => [9.2, 17.7],
-                'riesgo_medio' => [17.8, 25.6],
-                'riesgo_alto' => [25.7, 34.8],
-                'riesgo_muy_alto' => [34.9, 100.0]
-            ],
-            'control' => [
-                'sin_riesgo' => [0.0, 10.7],
-                'riesgo_bajo' => [10.8, 19.0],
-                'riesgo_medio' => [19.1, 29.8],
-                'riesgo_alto' => [29.9, 40.5],
-                'riesgo_muy_alto' => [40.6, 100.0]
-            ],
-            'demandas' => [
-                'sin_riesgo' => [0.0, 28.5],
-                'riesgo_bajo' => [28.6, 35.0],
-                'riesgo_medio' => [35.1, 41.5],
-                'riesgo_alto' => [41.6, 47.5],
-                'riesgo_muy_alto' => [47.6, 100.0]
-            ],
-            'recompensas' => [
-                'sin_riesgo' => [0.0, 4.5],
-                'riesgo_bajo' => [4.6, 11.4],
-                'riesgo_medio' => [11.5, 20.5],
-                'riesgo_alto' => [20.6, 29.5],
-                'riesgo_muy_alto' => [29.6, 100.0]
-            ]
+            'liderazgo' => IntralaboralAScoring::getBaremoDominio('liderazgo_relaciones_sociales'),
+            'control' => IntralaboralAScoring::getBaremoDominio('control'),
+            'demandas' => IntralaboralAScoring::getBaremoDominio('demandas'),
+            'recompensas' => IntralaboralAScoring::getBaremoDominio('recompensas'),
         ];
 
-        // Tabla 29: Dimensiones Forma A
+        // Dimensiones Forma A (Tabla 29) - Nombres exactos de IntralaboralAScoring
         $baremoDimensiones = [
-            // Dominio 1: Liderazgo (4 dimensiones)
-            'dim_caracteristicas_liderazgo' => [
-                'sin_riesgo' => [0.0, 3.8],
-                'riesgo_bajo' => [3.9, 15.4],
-                'riesgo_medio' => [15.5, 30.8],
-                'riesgo_alto' => [30.9, 46.2],
-                'riesgo_muy_alto' => [46.3, 100.0]
-            ],
-            'dim_relaciones_sociales' => [
-                'sin_riesgo' => [0.0, 5.4],
-                'riesgo_bajo' => [5.5, 16.1],
-                'riesgo_medio' => [16.2, 25.0],
-                'riesgo_alto' => [25.1, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ],
-            'dim_retroalimentacion' => [
-                'sin_riesgo' => [0.0, 10.0],
-                'riesgo_bajo' => [10.1, 25.0],
-                'riesgo_medio' => [25.1, 40.0],
-                'riesgo_alto' => [40.1, 55.0],
-                'riesgo_muy_alto' => [55.1, 100.0]
-            ],
-            'dim_relacion_colaboradores' => [
-                'sin_riesgo' => [0.0, 13.9],
-                'riesgo_bajo' => [14.0, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 47.2],
-                'riesgo_muy_alto' => [47.3, 100.0]
-            ],
-            // Dominio 2: Control (5 dimensiones)
-            'dim_claridad_rol' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 10.7],
-                'riesgo_medio' => [10.8, 21.4],
-                'riesgo_alto' => [21.5, 39.3],
-                'riesgo_muy_alto' => [39.4, 100.0]
-            ],
-            'dim_capacitacion' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 16.7],
-                'riesgo_medio' => [16.8, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_participacion_cambio' => [
-                'sin_riesgo' => [0.0, 12.5],
-                'riesgo_bajo' => [12.6, 25.0],
-                'riesgo_medio' => [25.1, 37.5],
-                'riesgo_alto' => [37.6, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_oportunidades_desarrollo' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 6.3],
-                'riesgo_medio' => [6.4, 18.8],
-                'riesgo_alto' => [18.9, 31.3],
-                'riesgo_muy_alto' => [31.4, 100.0]
-            ],
-            'dim_control_autonomia' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 41.7],
-                'riesgo_alto' => [41.8, 58.3],
-                'riesgo_muy_alto' => [58.4, 100.0]
-            ],
+            'dim_caracteristicas_liderazgo' => IntralaboralAScoring::getBaremoDimension('caracteristicas_liderazgo'),
+            'dim_relaciones_sociales' => IntralaboralAScoring::getBaremoDimension('relaciones_sociales_trabajo'),
+            'dim_retroalimentacion' => IntralaboralAScoring::getBaremoDimension('retroalimentacion_desempeno'),
+            'dim_relacion_colaboradores' => IntralaboralAScoring::getBaremoDimension('relacion_con_colaboradores'),
+            'dim_claridad_rol' => IntralaboralAScoring::getBaremoDimension('claridad_rol'),
+            'dim_capacitacion' => IntralaboralAScoring::getBaremoDimension('capacitacion'),
+            'dim_participacion_cambio' => IntralaboralAScoring::getBaremoDimension('participacion_manejo_cambio'),
+            'dim_oportunidades_desarrollo' => IntralaboralAScoring::getBaremoDimension('oportunidades_desarrollo'),
+            'dim_control_autonomia' => IntralaboralAScoring::getBaremoDimension('control_autonomia_trabajo'),
             // Dominio 3: Demandas (8 dimensiones)
-            'dim_demandas_ambientales' => [
-                'sin_riesgo' => [0.0, 14.6],
-                'riesgo_bajo' => [14.7, 22.9],
-                'riesgo_medio' => [23.0, 31.3],
-                'riesgo_alto' => [31.4, 39.6],
-                'riesgo_muy_alto' => [39.7, 100.0]
-            ],
-            'dim_demandas_emocionales' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 47.2],
-                'riesgo_muy_alto' => [47.3, 100.0]
-            ],
-            'dim_demandas_cuantitativas' => [
-                'sin_riesgo' => [0.0, 25.0],
-                'riesgo_bajo' => [25.1, 33.3],
-                'riesgo_medio' => [33.4, 45.8],
-                'riesgo_alto' => [45.9, 54.2],
-                'riesgo_muy_alto' => [54.3, 100.0]
-            ],
-            'dim_influencia_entorno' => [
-                'sin_riesgo' => [0.0, 18.8],
-                'riesgo_bajo' => [18.9, 31.3],
-                'riesgo_medio' => [31.4, 43.8],
-                'riesgo_alto' => [43.9, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_exigencias_responsabilidad' => [
-                'sin_riesgo' => [0.0, 37.5],
-                'riesgo_bajo' => [37.6, 54.2],
-                'riesgo_medio' => [54.3, 66.7],
-                'riesgo_alto' => [66.8, 79.2],
-                'riesgo_muy_alto' => [79.3, 100.0]
-            ],
-            'dim_demandas_carga_mental' => [
-                'sin_riesgo' => [0.0, 60.0],
-                'riesgo_bajo' => [60.1, 70.0],
-                'riesgo_medio' => [70.1, 80.0],
-                'riesgo_alto' => [80.1, 90.0],
-                'riesgo_muy_alto' => [90.1, 100.0]
-            ],
-            'dim_consistencia_rol' => [
-                'sin_riesgo' => [0.0, 15.0],
-                'riesgo_bajo' => [15.1, 25.0],
-                'riesgo_medio' => [25.1, 35.0],
-                'riesgo_alto' => [35.1, 45.0],
-                'riesgo_muy_alto' => [45.1, 100.0]
-            ],
-            'dim_demandas_jornada' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
+            'dim_demandas_ambientales' => IntralaboralAScoring::getBaremoDimension('demandas_ambientales_esfuerzo_fisico'),
+            'dim_demandas_emocionales' => IntralaboralAScoring::getBaremoDimension('demandas_emocionales'),
+            'dim_demandas_cuantitativas' => IntralaboralAScoring::getBaremoDimension('demandas_cuantitativas'),
+            'dim_influencia_entorno' => IntralaboralAScoring::getBaremoDimension('influencia_trabajo_entorno_extralaboral'),
+            'dim_exigencias_responsabilidad' => IntralaboralAScoring::getBaremoDimension('exigencias_responsabilidad_cargo'),
+            'dim_demandas_carga_mental' => IntralaboralAScoring::getBaremoDimension('demandas_carga_mental'),
+            'dim_consistencia_rol' => IntralaboralAScoring::getBaremoDimension('consistencia_rol'),
+            'dim_demandas_jornada' => IntralaboralAScoring::getBaremoDimension('demandas_jornada_trabajo'),
             // Dominio 4: Recompensas (2 dimensiones)
-            'dim_recompensas_pertenencia' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 5.0],
-                'riesgo_medio' => [5.1, 10.0],
-                'riesgo_alto' => [10.1, 20.0],
-                'riesgo_muy_alto' => [20.1, 100.0]
-            ],
-            'dim_reconocimiento_compensacion' => [
-                'sin_riesgo' => [0.0, 4.2],
-                'riesgo_bajo' => [4.3, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ]
+            'dim_recompensas_pertenencia' => IntralaboralAScoring::getBaremoDimension('recompensas_pertenencia_estabilidad'),
+            'dim_reconocimiento_compensacion' => IntralaboralAScoring::getBaremoDimension('reconocimiento_compensacion'),
         ];
 
         // Función helper para calcular detalle
@@ -2223,174 +1837,39 @@ class ReportsController extends BaseController
             return null;
         }
 
-        // BAREMOS OFICIALES - Resolución 2404/2019
+        // BAREMOS - Desde fuente única autorizada (IntralaboralBScoring)
+        $baremoIntralaboralTotal = IntralaboralBScoring::getBaremoTotal();
 
-        // Tabla 33: Intralaboral Total Forma B - Corregidos según auditoría 2025-11-25
-        $baremoIntralaboralTotal = [
-            'sin_riesgo' => [0.0, 20.6],
-            'riesgo_bajo' => [20.7, 26.0],
-            'riesgo_medio' => [26.1, 31.2],
-            'riesgo_alto' => [31.3, 38.7],
-            'riesgo_muy_alto' => [38.8, 100.0]
-        ];
-
-        // Tabla 32: Dominios Forma B (auxiliares, operarios)
+        // Dominios Forma B (Tabla 32)
         $baremoDominios = [
-            'liderazgo' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 17.5],
-                'riesgo_medio' => [17.6, 26.7],
-                'riesgo_alto' => [26.8, 38.3],
-                'riesgo_muy_alto' => [38.4, 100.0]
-            ],
-            'control' => [
-                'sin_riesgo' => [0.0, 19.4],
-                'riesgo_bajo' => [19.5, 26.4],
-                'riesgo_medio' => [26.5, 34.7],
-                'riesgo_alto' => [34.8, 43.1],
-                'riesgo_muy_alto' => [43.2, 100.0]
-            ],
-            'demandas' => [
-                'sin_riesgo' => [0.0, 26.9],
-                'riesgo_bajo' => [27.0, 33.3],
-                'riesgo_medio' => [33.4, 37.8],
-                'riesgo_alto' => [37.9, 44.2],
-                'riesgo_muy_alto' => [44.3, 100.0]
-            ],
-            'recompensas' => [
-                'sin_riesgo' => [0.0, 2.5],
-                'riesgo_bajo' => [2.6, 10.0],
-                'riesgo_medio' => [10.1, 17.5],
-                'riesgo_alto' => [17.6, 27.5],
-                'riesgo_muy_alto' => [27.6, 100.0]
-            ]
+            'liderazgo' => IntralaboralBScoring::getBaremoDominio('liderazgo_relaciones_sociales'),
+            'control' => IntralaboralBScoring::getBaremoDominio('control'),
+            'demandas' => IntralaboralBScoring::getBaremoDominio('demandas'),
+            'recompensas' => IntralaboralBScoring::getBaremoDominio('recompensas'),
         ];
 
-        // Tabla 27: Dimensiones Forma B (solo 16 dimensiones)
+        // Dimensiones Forma B (Tabla 30 - 16 dimensiones) - Nombres exactos de IntralaboralBScoring
         $baremoDimensiones = [
-            // Dominio 1: Liderazgo (4 dimensiones - igual que A)
-            'dim_caracteristicas_liderazgo' => [
-                'sin_riesgo' => [0.0, 3.8],
-                'riesgo_bajo' => [3.9, 13.5],
-                'riesgo_medio' => [13.6, 25.0],
-                'riesgo_alto' => [25.1, 38.5],
-                'riesgo_muy_alto' => [38.6, 100.0]
-            ],
-            'dim_relaciones_sociales' => [
-                'sin_riesgo' => [0.0, 6.3],
-                'riesgo_bajo' => [6.4, 14.6],
-                'riesgo_medio' => [14.7, 27.1],
-                'riesgo_alto' => [27.2, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ],
-            'dim_retroalimentacion' => [
-                'sin_riesgo' => [0.0, 5.0],
-                'riesgo_bajo' => [5.1, 20.0],
-                'riesgo_medio' => [20.1, 30.0],
-                'riesgo_alto' => [30.1, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_relacion_colaboradores' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 5.0],
-                'riesgo_medio' => [5.1, 15.0],
-                'riesgo_alto' => [15.1, 30.0],
-                'riesgo_muy_alto' => [30.1, 100.0]
-            ],
-            // Dominio 2: Control (5 dimensiones - igual que A)
-            'dim_claridad_rol' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 5.0],
-                'riesgo_medio' => [5.1, 15.0],
-                'riesgo_alto' => [15.1, 30.0],
-                'riesgo_muy_alto' => [30.1, 100.0]
-            ],
-            'dim_capacitacion' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_participacion_cambio' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 33.3],
-                'riesgo_medio' => [33.4, 41.7],
-                'riesgo_alto' => [41.8, 58.3],
-                'riesgo_muy_alto' => [58.4, 100.0]
-            ],
-            'dim_oportunidades_desarrollo' => [
-                'sin_riesgo' => [0.0, 12.5],
-                'riesgo_bajo' => [12.6, 25.0],
-                'riesgo_medio' => [25.1, 37.5],
-                'riesgo_alto' => [37.6, 56.3],
-                'riesgo_muy_alto' => [56.4, 100.0]
-            ],
-            'dim_control_autonomia' => [
-                'sin_riesgo' => [0.0, 33.3],
-                'riesgo_bajo' => [33.4, 50.0],
-                'riesgo_medio' => [50.1, 66.7],
-                'riesgo_alto' => [66.8, 75.0],
-                'riesgo_muy_alto' => [75.1, 100.0]
-            ],
-            // Dominio 3: Demandas (6 dimensiones - SIN 3.5, 3.6)
-            'dim_demandas_ambientales' => [
-                'sin_riesgo' => [0.0, 22.9],
-                'riesgo_bajo' => [23.0, 31.3],
-                'riesgo_medio' => [31.4, 39.6],
-                'riesgo_alto' => [39.7, 47.9],
-                'riesgo_muy_alto' => [48.0, 100.0]
-            ],
-            'dim_demandas_emocionales' => [
-                'sin_riesgo' => [0.0, 19.4],
-                'riesgo_bajo' => [19.5, 27.8],
-                'riesgo_medio' => [27.9, 38.9],
-                'riesgo_alto' => [39.0, 47.2],
-                'riesgo_muy_alto' => [47.3, 100.0]
-            ],
-            'dim_demandas_cuantitativas' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 33.3],
-                'riesgo_medio' => [33.4, 41.7],
-                'riesgo_alto' => [41.8, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_influencia_entorno' => [
-                'sin_riesgo' => [0.0, 12.5],
-                'riesgo_bajo' => [12.6, 25.0],
-                'riesgo_medio' => [25.1, 31.3],
-                'riesgo_alto' => [31.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'dim_demandas_carga_mental' => [
-                'sin_riesgo' => [0.0, 50.0],
-                'riesgo_bajo' => [50.1, 65.0],
-                'riesgo_medio' => [65.1, 75.0],
-                'riesgo_alto' => [75.1, 85.0],
-                'riesgo_muy_alto' => [85.1, 100.0]
-            ],
-            'dim_demandas_jornada' => [
-                'sin_riesgo' => [0.0, 25.0],
-                'riesgo_bajo' => [25.1, 37.5],
-                'riesgo_medio' => [37.6, 45.8],
-                'riesgo_alto' => [45.9, 58.3],
-                'riesgo_muy_alto' => [58.4, 100.0]
-            ],
-            // Dominio 4: Recompensas (2 dimensiones - igual que A)
-            'dim_recompensas_pertenencia' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 6.3],
-                'riesgo_medio' => [6.4, 12.5],
-                'riesgo_alto' => [12.6, 18.8],
-                'riesgo_muy_alto' => [18.9, 100.0]
-            ],
-            'dim_reconocimiento_compensacion' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 12.5],
-                'riesgo_medio' => [12.6, 25.0],
-                'riesgo_alto' => [25.1, 37.5],
-                'riesgo_muy_alto' => [37.6, 100.0]
-            ]
+            // Dominio 1: Liderazgo (3 dimensiones - SIN relacion_colaboradores)
+            'dim_caracteristicas_liderazgo' => IntralaboralBScoring::getBaremoDimension('caracteristicas_liderazgo'),
+            'dim_relaciones_sociales' => IntralaboralBScoring::getBaremoDimension('relaciones_sociales_trabajo'),
+            'dim_retroalimentacion' => IntralaboralBScoring::getBaremoDimension('retroalimentacion_desempeno'),
+            // Dominio 2: Control (5 dimensiones)
+            'dim_claridad_rol' => IntralaboralBScoring::getBaremoDimension('claridad_rol'),
+            'dim_capacitacion' => IntralaboralBScoring::getBaremoDimension('capacitacion'),
+            'dim_participacion_cambio' => IntralaboralBScoring::getBaremoDimension('participacion_manejo_cambio'),
+            'dim_oportunidades_desarrollo' => IntralaboralBScoring::getBaremoDimension('oportunidades_desarrollo'),
+            'dim_control_autonomia' => IntralaboralBScoring::getBaremoDimension('control_autonomia_trabajo'),
+            // Dominio 3: Demandas (5 dimensiones - SIN exigencias_responsabilidad, consistencia_rol)
+            'dim_demandas_ambientales' => IntralaboralBScoring::getBaremoDimension('demandas_ambientales_esfuerzo_fisico'),
+            'dim_demandas_emocionales' => IntralaboralBScoring::getBaremoDimension('demandas_emocionales'),
+            'dim_demandas_cuantitativas' => IntralaboralBScoring::getBaremoDimension('demandas_cuantitativas'),
+            'dim_influencia_entorno' => IntralaboralBScoring::getBaremoDimension('influencia_trabajo_entorno_extralaboral'),
+            'dim_demandas_carga_mental' => IntralaboralBScoring::getBaremoDimension('demandas_carga_mental'),
+            'dim_demandas_jornada' => IntralaboralBScoring::getBaremoDimension('demandas_jornada_trabajo'),
+            // Dominio 4: Recompensas (2 dimensiones)
+            'dim_recompensas_pertenencia' => IntralaboralBScoring::getBaremoDimension('recompensas_pertenencia_estabilidad'),
+            'dim_reconocimiento_compensacion' => IntralaboralBScoring::getBaremoDimension('reconocimiento_compensacion'),
         ];
 
         // Función helper para calcular detalle
@@ -2445,11 +1924,11 @@ class ReportsController extends BaseController
             'dom_demandas' => $calculateDetail('dom_demandas_puntaje', $baremoDominios['demandas']),
             'dom_recompensas' => $calculateDetail('dom_recompensas_puntaje', $baremoDominios['recompensas']),
 
-            // 16 Dimensiones
+            // 16 Dimensiones (Forma B NO tiene: relacion_colaboradores, exigencias_responsabilidad, consistencia_rol)
             'dim_caracteristicas_liderazgo' => $calculateDetail('dim_caracteristicas_liderazgo_puntaje', $baremoDimensiones['dim_caracteristicas_liderazgo']),
             'dim_relaciones_sociales' => $calculateDetail('dim_relaciones_sociales_puntaje', $baremoDimensiones['dim_relaciones_sociales']),
             'dim_retroalimentacion' => $calculateDetail('dim_retroalimentacion_puntaje', $baremoDimensiones['dim_retroalimentacion']),
-            'dim_relacion_colaboradores' => $calculateDetail('dim_relacion_colaboradores_puntaje', $baremoDimensiones['dim_relacion_colaboradores']),
+            // dim_relacion_colaboradores - Solo Forma A
             'dim_claridad_rol' => $calculateDetail('dim_claridad_rol_puntaje', $baremoDimensiones['dim_claridad_rol']),
             'dim_capacitacion' => $calculateDetail('dim_capacitacion_puntaje', $baremoDimensiones['dim_capacitacion']),
             'dim_participacion_cambio' => $calculateDetail('dim_participacion_manejo_cambio_puntaje', $baremoDimensiones['dim_participacion_cambio']),
@@ -2459,7 +1938,9 @@ class ReportsController extends BaseController
             'dim_demandas_emocionales' => $calculateDetail('dim_demandas_emocionales_puntaje', $baremoDimensiones['dim_demandas_emocionales']),
             'dim_demandas_cuantitativas' => $calculateDetail('dim_demandas_cuantitativas_puntaje', $baremoDimensiones['dim_demandas_cuantitativas']),
             'dim_influencia_entorno' => $calculateDetail('dim_influencia_trabajo_entorno_extralaboral_puntaje', $baremoDimensiones['dim_influencia_entorno']),
+            // dim_exigencias_responsabilidad - Solo Forma A
             'dim_demandas_carga_mental' => $calculateDetail('dim_demandas_carga_mental_puntaje', $baremoDimensiones['dim_demandas_carga_mental']),
+            // dim_consistencia_rol - Solo Forma A
             'dim_demandas_jornada' => $calculateDetail('dim_demandas_jornada_trabajo_puntaje', $baremoDimensiones['dim_demandas_jornada']),
             'dim_recompensas_pertenencia' => $calculateDetail('dim_recompensas_pertenencia_puntaje', $baremoDimensiones['dim_recompensas_pertenencia']),
             'dim_reconocimiento_compensacion' => $calculateDetail('dim_reconocimiento_compensacion_puntaje', $baremoDimensiones['dim_reconocimiento_compensacion'])
@@ -2630,66 +2111,18 @@ class ReportsController extends BaseController
             return null;
         }
 
-        // Baremo Total: Tabla 34 Forma A (Jefes/Profesionales/Técnicos)
-        $baremoExtralaboralTotal = [
-            'sin_riesgo' => [0.0, 11.3],
-            'riesgo_bajo' => [11.4, 16.9],
-            'riesgo_medio' => [17.0, 22.6],
-            'riesgo_alto' => [22.7, 29.0],
-            'riesgo_muy_alto' => [29.1, 100.0]
-        ];
+        // BAREMOS - Desde fuente única autorizada (ExtralaboralScoring)
+        $baremoExtralaboralTotal = ExtralaboralScoring::getBaremoTotal('A');
 
-        // Baremos Dimensiones: Tabla 17 (Jefes/Profesionales/Técnicos)
+        // Dimensiones Extralaboral Forma A - Nombres exactos de ExtralaboralScoring
         $baremoDimensiones = [
-            'tiempo_fuera' => [
-                'sin_riesgo' => [0.0, 6.3],
-                'riesgo_bajo' => [6.4, 25.0],
-                'riesgo_medio' => [25.1, 37.5],
-                'riesgo_alto' => [37.6, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'relaciones_familiares' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'comunicacion' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 10.0],
-                'riesgo_medio' => [10.1, 20.0],
-                'riesgo_alto' => [20.1, 30.0],
-                'riesgo_muy_alto' => [30.1, 100.0]
-            ],
-            'situacion_economica' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'caracteristicas_vivienda' => [
-                'sin_riesgo' => [0.0, 5.6],
-                'riesgo_bajo' => [5.7, 11.1],
-                'riesgo_medio' => [11.2, 13.9],
-                'riesgo_alto' => [14.0, 22.2],
-                'riesgo_muy_alto' => [22.3, 100.0]
-            ],
-            'influencia_entorno' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 41.7],
-                'riesgo_muy_alto' => [41.8, 100.0]
-            ],
-            'desplazamiento' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 12.5],
-                'riesgo_medio' => [12.6, 25.0],
-                'riesgo_alto' => [25.1, 43.8],
-                'riesgo_muy_alto' => [43.9, 100.0]
-            ]
+            'tiempo_fuera' => ExtralaboralScoring::getBaremoDimension('tiempo_fuera_trabajo', 'A'),
+            'relaciones_familiares' => ExtralaboralScoring::getBaremoDimension('relaciones_familiares', 'A'),
+            'comunicacion' => ExtralaboralScoring::getBaremoDimension('comunicacion_relaciones', 'A'),
+            'situacion_economica' => ExtralaboralScoring::getBaremoDimension('situacion_economica', 'A'),
+            'caracteristicas_vivienda' => ExtralaboralScoring::getBaremoDimension('caracteristicas_vivienda', 'A'),
+            'influencia_entorno' => ExtralaboralScoring::getBaremoDimension('influencia_entorno', 'A'),
+            'desplazamiento' => ExtralaboralScoring::getBaremoDimension('desplazamiento', 'A'),
         ];
 
         // Función helper (formato compatible con vistas de intralaboral)
@@ -2758,66 +2191,18 @@ class ReportsController extends BaseController
             return null;
         }
 
-        // Baremo Total: Tabla 34 Forma B (Auxiliares/Operarios)
-        $baremoExtralaboralTotal = [
-            'sin_riesgo' => [0.0, 12.9],
-            'riesgo_bajo' => [13.0, 17.7],
-            'riesgo_medio' => [17.8, 24.2],
-            'riesgo_alto' => [24.3, 32.3],
-            'riesgo_muy_alto' => [32.4, 100.0]
-        ];
+        // BAREMOS - Desde fuente única autorizada (ExtralaboralScoring)
+        $baremoExtralaboralTotal = ExtralaboralScoring::getBaremoTotal('B');
 
-        // Baremos Dimensiones: Tabla 18 (Auxiliares/Operarios)
+        // Dimensiones Extralaboral Forma B - Nombres exactos de ExtralaboralScoring
         $baremoDimensiones = [
-            'tiempo_fuera' => [
-                'sin_riesgo' => [0.0, 6.3],
-                'riesgo_bajo' => [6.4, 25.0],
-                'riesgo_medio' => [25.1, 37.5],
-                'riesgo_alto' => [37.6, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'relaciones_familiares' => [
-                'sin_riesgo' => [0.0, 8.3],
-                'riesgo_bajo' => [8.4, 25.0],
-                'riesgo_medio' => [25.1, 33.3],
-                'riesgo_alto' => [33.4, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'comunicacion' => [
-                'sin_riesgo' => [0.0, 5.0],
-                'riesgo_bajo' => [5.1, 15.0],
-                'riesgo_medio' => [15.1, 25.0],
-                'riesgo_alto' => [25.1, 35.0],
-                'riesgo_muy_alto' => [35.1, 100.0]
-            ],
-            'situacion_economica' => [
-                'sin_riesgo' => [0.0, 16.7],
-                'riesgo_bajo' => [16.8, 25.0],
-                'riesgo_medio' => [25.1, 41.7],
-                'riesgo_alto' => [41.8, 50.0],
-                'riesgo_muy_alto' => [50.1, 100.0]
-            ],
-            'caracteristicas_vivienda' => [
-                'sin_riesgo' => [0.0, 5.6],
-                'riesgo_bajo' => [5.7, 11.1],
-                'riesgo_medio' => [11.2, 16.7],
-                'riesgo_alto' => [16.8, 27.8],
-                'riesgo_muy_alto' => [27.9, 100.0]
-            ],
-            'influencia_entorno' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 16.7],
-                'riesgo_medio' => [16.8, 25.0],
-                'riesgo_alto' => [25.1, 41.7],
-                'riesgo_muy_alto' => [41.8, 100.0]
-            ],
-            'desplazamiento' => [
-                'sin_riesgo' => [0.0, 0.9],
-                'riesgo_bajo' => [1.0, 12.5],
-                'riesgo_medio' => [12.6, 25.0],
-                'riesgo_alto' => [25.1, 43.8],
-                'riesgo_muy_alto' => [43.9, 100.0]
-            ]
+            'tiempo_fuera' => ExtralaboralScoring::getBaremoDimension('tiempo_fuera_trabajo', 'B'),
+            'relaciones_familiares' => ExtralaboralScoring::getBaremoDimension('relaciones_familiares', 'B'),
+            'comunicacion' => ExtralaboralScoring::getBaremoDimension('comunicacion_relaciones', 'B'),
+            'situacion_economica' => ExtralaboralScoring::getBaremoDimension('situacion_economica', 'B'),
+            'caracteristicas_vivienda' => ExtralaboralScoring::getBaremoDimension('caracteristicas_vivienda', 'B'),
+            'influencia_entorno' => ExtralaboralScoring::getBaremoDimension('influencia_entorno', 'B'),
+            'desplazamiento' => ExtralaboralScoring::getBaremoDimension('desplazamiento', 'B'),
         ];
 
         // Función helper (formato compatible con vistas de intralaboral)
@@ -2972,14 +2357,8 @@ class ReportsController extends BaseController
      */
     private function calculateEstresFormaADetails($results)
     {
-        // Baremo oficial para Estrés Total - Forma A (Tabla 23)
-        $baremoEstresTotal = [
-            ['min' => 0.0, 'max' => 7.8, 'nivel' => 'muy_bajo'],
-            ['min' => 7.9, 'max' => 12.6, 'nivel' => 'bajo'],
-            ['min' => 12.7, 'max' => 17.7, 'nivel' => 'medio'],
-            ['min' => 17.8, 'max' => 25.0, 'nivel' => 'alto'],
-            ['min' => 25.1, 'max' => 100.0, 'nivel' => 'muy_alto']
-        ];
+        // BAREMOS - Desde fuente única autorizada (EstresScoring)
+        $baremoEstresTotal = EstresScoring::getBaremoA();
 
         // Calcular puntaje bruto promedio según metodología oficial
         // Paso 2. Obtención del puntaje bruto total (Manual, página 381):
@@ -3061,16 +2440,16 @@ class ReportsController extends BaseController
 
         $puntajeBrutoPromedio = $countWorkers > 0 ? $puntajeBrutoTotal / $countWorkers : 0;
 
-        // Función auxiliar para calcular cada métrica
+        // Función auxiliar para calcular cada métrica (formato librería: 'nivel' => [min, max])
         $calculateDetail = function($field, $baremo) use ($results) {
             $valores = array_column($results, $field);
             $promedio = count($valores) > 0 ? array_sum($valores) / count($valores) : 0;
 
-            // Clasificar según baremo
+            // Clasificar según baremo (formato: 'nivel' => [min, max])
             $nivel = 'muy_bajo'; // Nivel por defecto para estrés
-            foreach ($baremo as $rango) {
-                if ($promedio >= $rango['min'] && $promedio <= $rango['max']) {
-                    $nivel = $rango['nivel'];
+            foreach ($baremo as $nivelKey => $rango) {
+                if ($promedio >= $rango[0] && $promedio <= $rango[1]) {
+                    $nivel = $nivelKey;
                     break;
                 }
             }
@@ -3097,14 +2476,8 @@ class ReportsController extends BaseController
      */
     private function calculateEstresFormaBDetails($results)
     {
-        // Baremo oficial para Estrés Total - Forma B (Tabla 24)
-        $baremoEstresTotal = [
-            ['min' => 0.0, 'max' => 6.5, 'nivel' => 'muy_bajo'],
-            ['min' => 6.6, 'max' => 11.8, 'nivel' => 'bajo'],
-            ['min' => 11.9, 'max' => 17.0, 'nivel' => 'medio'],
-            ['min' => 17.1, 'max' => 23.4, 'nivel' => 'alto'],
-            ['min' => 23.5, 'max' => 100.0, 'nivel' => 'muy_alto']
-        ];
+        // BAREMOS - Desde fuente única autorizada (EstresScoring)
+        $baremoEstresTotal = EstresScoring::getBaremoB();
 
         // Calcular puntaje bruto promedio según metodología oficial
         // Paso 2. Obtención del puntaje bruto total (Manual, página 381):
@@ -3186,16 +2559,16 @@ class ReportsController extends BaseController
 
         $puntajeBrutoPromedio = $countWorkers > 0 ? $puntajeBrutoTotal / $countWorkers : 0;
 
-        // Función auxiliar para calcular cada métrica
+        // Función auxiliar para calcular cada métrica (formato librería: 'nivel' => [min, max])
         $calculateDetail = function($field, $baremo) use ($results) {
             $valores = array_column($results, $field);
             $promedio = count($valores) > 0 ? array_sum($valores) / count($valores) : 0;
 
-            // Clasificar según baremo
+            // Clasificar según baremo (formato: 'nivel' => [min, max])
             $nivel = 'muy_bajo'; // Nivel por defecto para estrés
-            foreach ($baremo as $rango) {
-                if ($promedio >= $rango['min'] && $promedio <= $rango['max']) {
-                    $nivel = $rango['nivel'];
+            foreach ($baremo as $nivelKey => $rango) {
+                if ($promedio >= $rango[0] && $promedio <= $rango[1]) {
+                    $nivel = $nivelKey;
                     break;
                 }
             }

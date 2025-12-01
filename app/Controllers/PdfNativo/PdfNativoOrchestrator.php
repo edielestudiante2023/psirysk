@@ -5,71 +5,23 @@ namespace App\Controllers\PdfNativo;
 use App\Models\CalculatedResultModel;
 use App\Models\ReportSectionModel;
 use App\Libraries\PdfGaugeGenerator;
+use App\Libraries\IntralaboralAScoring;
+use App\Libraries\IntralaboralBScoring;
+use App\Libraries\ExtralaboralScoring;
+use App\Libraries\EstresScoring;
 
 /**
  * Orquestador del PDF Nativo completo usando DomPDF
  * Genera el informe completo de batería de riesgo psicosocial
  * Diseñado nativamente para DomPDF con optimizaciones específicas
+ *
+ * BAREMOS: Migrado a Single Source of Truth - usa librerías autorizadas
  */
 class PdfNativoOrchestrator extends PdfNativoBaseController
 {
     protected $calculatedResultModel;
     protected $reportSectionModel;
     protected $gaugeGenerator;
-
-    /**
-     * Baremos intralaboral total
-     */
-    protected $baremosIntraTotal = [
-        'A' => [
-            'sin_riesgo' => [0.0, 19.7],
-            'riesgo_bajo' => [19.8, 25.8],
-            'riesgo_medio' => [25.9, 31.5],
-            'riesgo_alto' => [31.6, 38.7],
-            'riesgo_muy_alto' => [38.8, 100.0],
-        ],
-        'B' => [
-            'sin_riesgo' => [0.0, 20.6],
-            'riesgo_bajo' => [20.7, 26.0],
-            'riesgo_medio' => [26.1, 31.2],
-            'riesgo_alto' => [31.3, 38.7],
-            'riesgo_muy_alto' => [38.8, 100.0],
-        ],
-    ];
-
-    /**
-     * Baremos dominios intralaborales
-     */
-    protected $baremosDominios = [
-        'A' => [
-            'liderazgo' => ['sin_riesgo' => [0.0, 9.1], 'riesgo_bajo' => [9.2, 17.7], 'riesgo_medio' => [17.8, 25.6], 'riesgo_alto' => [25.7, 34.8], 'riesgo_muy_alto' => [34.9, 100.0]],
-            'control' => ['sin_riesgo' => [0.0, 10.7], 'riesgo_bajo' => [10.8, 19.0], 'riesgo_medio' => [19.1, 29.8], 'riesgo_alto' => [29.9, 40.5], 'riesgo_muy_alto' => [40.6, 100.0]],
-            'demandas' => ['sin_riesgo' => [0.0, 28.5], 'riesgo_bajo' => [28.6, 35.0], 'riesgo_medio' => [35.1, 41.5], 'riesgo_alto' => [41.6, 47.5], 'riesgo_muy_alto' => [47.6, 100.0]],
-            'recompensas' => ['sin_riesgo' => [0.0, 4.5], 'riesgo_bajo' => [4.6, 11.4], 'riesgo_medio' => [11.5, 20.5], 'riesgo_alto' => [20.6, 29.5], 'riesgo_muy_alto' => [29.6, 100.0]],
-        ],
-        'B' => [
-            'liderazgo' => ['sin_riesgo' => [0.0, 8.3], 'riesgo_bajo' => [8.4, 17.5], 'riesgo_medio' => [17.6, 26.7], 'riesgo_alto' => [26.8, 38.3], 'riesgo_muy_alto' => [38.4, 100.0]],
-            'control' => ['sin_riesgo' => [0.0, 19.4], 'riesgo_bajo' => [19.5, 26.4], 'riesgo_medio' => [26.5, 34.7], 'riesgo_alto' => [34.8, 43.1], 'riesgo_muy_alto' => [43.2, 100.0]],
-            'demandas' => ['sin_riesgo' => [0.0, 26.9], 'riesgo_bajo' => [27.0, 33.3], 'riesgo_medio' => [33.4, 37.8], 'riesgo_alto' => [37.9, 44.2], 'riesgo_muy_alto' => [44.3, 100.0]],
-            'recompensas' => ['sin_riesgo' => [0.0, 2.5], 'riesgo_bajo' => [2.6, 10.0], 'riesgo_medio' => [10.1, 17.5], 'riesgo_alto' => [17.6, 27.5], 'riesgo_muy_alto' => [27.6, 100.0]],
-        ],
-    ];
-
-    /**
-     * Baremos extralaboral total
-     */
-    protected $baremosExtraTotal = [
-        'A' => ['sin_riesgo' => [0.0, 11.3], 'riesgo_bajo' => [11.4, 16.9], 'riesgo_medio' => [17.0, 22.6], 'riesgo_alto' => [22.7, 29.0], 'riesgo_muy_alto' => [29.1, 100.0]],
-        'B' => ['sin_riesgo' => [0.0, 12.9], 'riesgo_bajo' => [13.0, 17.7], 'riesgo_medio' => [17.8, 24.2], 'riesgo_alto' => [24.3, 32.3], 'riesgo_muy_alto' => [32.4, 100.0]],
-    ];
-
-    /**
-     * Baremos estrés
-     */
-    protected $baremosEstres = [
-        'A' => ['sin_riesgo' => [0.0, 7.8], 'riesgo_bajo' => [7.9, 12.6], 'riesgo_medio' => [12.7, 17.7], 'riesgo_alto' => [17.8, 25.0], 'riesgo_muy_alto' => [25.1, 100.0]],
-        'B' => ['sin_riesgo' => [0.0, 6.5], 'riesgo_bajo' => [6.6, 11.8], 'riesgo_medio' => [11.9, 17.0], 'riesgo_alto' => [17.1, 23.4], 'riesgo_muy_alto' => [23.5, 100.0]],
-    ];
 
     /**
      * Definición de dominios intralaborales
@@ -130,6 +82,7 @@ class PdfNativoOrchestrator extends PdfNativoBaseController
 
     /**
      * Definición de dimensiones extralaborales
+     * NOTA: Baremos migrados a ExtralaboralScoring (Single Source of Truth)
      */
     protected $dimensionesExtra = [
         'tiempo_fuera' => [
@@ -137,49 +90,42 @@ class PdfNativoOrchestrator extends PdfNativoBaseController
             'definicion' => 'Se refiere al tiempo que el individuo dedica a actividades diferentes a las laborales, como descansar, compartir con familia y amigos, atender responsabilidades personales o domésticas, realizar actividades de recreación y ocio.',
             'campo_puntaje' => 'extralaboral_tiempo_fuera_puntaje',
             'campo_nivel' => 'extralaboral_tiempo_fuera_nivel',
-            'baremo' => ['sin_riesgo' => [0.0, 6.3], 'riesgo_bajo' => [6.4, 25.0], 'riesgo_medio' => [25.1, 37.5], 'riesgo_alto' => [37.6, 50.0], 'riesgo_muy_alto' => [50.1, 100.0]],
         ],
         'relaciones_familiares' => [
             'nombre' => 'Relaciones Familiares',
             'definicion' => 'Propiedades que caracterizan las interacciones del individuo con su núcleo familiar.',
             'campo_puntaje' => 'extralaboral_relaciones_familiares_puntaje',
             'campo_nivel' => 'extralaboral_relaciones_familiares_nivel',
-            'baremo' => ['sin_riesgo' => [0.0, 8.3], 'riesgo_bajo' => [8.4, 25.0], 'riesgo_medio' => [25.1, 33.3], 'riesgo_alto' => [33.4, 50.0], 'riesgo_muy_alto' => [50.1, 100.0]],
         ],
         'comunicacion' => [
             'nombre' => 'Comunicación y Relaciones Interpersonales',
             'definicion' => 'Cualidades que caracterizan la comunicación e interacciones del individuo con sus allegados y amigos.',
             'campo_puntaje' => 'extralaboral_comunicacion_puntaje',
             'campo_nivel' => 'extralaboral_comunicacion_nivel',
-            'baremo' => ['sin_riesgo' => [0.0, 10.0], 'riesgo_bajo' => [10.1, 20.0], 'riesgo_medio' => [20.1, 30.0], 'riesgo_alto' => [30.1, 45.0], 'riesgo_muy_alto' => [45.1, 100.0]],
         ],
         'situacion_economica' => [
             'nombre' => 'Situación Económica del Grupo Familiar',
             'definicion' => 'Trata de la disponibilidad de medios económicos para que el trabajador y su grupo familiar atiendan sus gastos básicos.',
             'campo_puntaje' => 'extralaboral_situacion_economica_puntaje',
             'campo_nivel' => 'extralaboral_situacion_economica_nivel',
-            'baremo' => ['sin_riesgo' => [0.0, 16.7], 'riesgo_bajo' => [16.8, 25.0], 'riesgo_medio' => [25.1, 33.3], 'riesgo_alto' => [33.4, 50.0], 'riesgo_muy_alto' => [50.1, 100.0]],
         ],
         'caracteristicas_vivienda' => [
             'nombre' => 'Características de la Vivienda y de su Entorno',
             'definicion' => 'Se refiere a las condiciones de infraestructura, ubicación y entorno de las instalaciones físicas del lugar habitual de residencia del trabajador y de su grupo familiar.',
             'campo_puntaje' => 'extralaboral_caracteristicas_vivienda_puntaje',
             'campo_nivel' => 'extralaboral_caracteristicas_vivienda_nivel',
-            'baremo' => ['sin_riesgo' => [0.0, 5.6], 'riesgo_bajo' => [5.7, 11.1], 'riesgo_medio' => [11.2, 19.4], 'riesgo_alto' => [19.5, 30.6], 'riesgo_muy_alto' => [30.7, 100.0]],
         ],
         'influencia_entorno' => [
             'nombre' => 'Influencia del Entorno Extralaboral sobre el Trabajo',
             'definicion' => 'Corresponde al influjo de las exigencias de los roles familiares y personales en el bienestar y en la actividad laboral del trabajador.',
             'campo_puntaje' => 'extralaboral_influencia_entorno_puntaje',
             'campo_nivel' => 'extralaboral_influencia_entorno_nivel',
-            'baremo' => ['sin_riesgo' => [0.0, 8.3], 'riesgo_bajo' => [8.4, 16.7], 'riesgo_medio' => [16.8, 25.0], 'riesgo_alto' => [25.1, 41.7], 'riesgo_muy_alto' => [41.8, 100.0]],
         ],
         'desplazamiento' => [
             'nombre' => 'Desplazamiento Vivienda – Trabajo – Vivienda',
             'definicion' => 'Son las condiciones en que se realiza el traslado del trabajador desde su sitio de vivienda hasta su lugar de trabajo y viceversa. Comprende la facilidad, la comodidad del transporte y la duración del recorrido.',
             'campo_puntaje' => 'extralaboral_desplazamiento_puntaje',
             'campo_nivel' => 'extralaboral_desplazamiento_nivel',
-            'baremo' => ['sin_riesgo' => [0.0, 0.0], 'riesgo_bajo' => [0.1, 16.7], 'riesgo_medio' => [16.8, 33.3], 'riesgo_alto' => [33.4, 50.0], 'riesgo_muy_alto' => [50.1, 100.0]],
         ],
     ];
 
@@ -188,6 +134,78 @@ class PdfNativoOrchestrator extends PdfNativoBaseController
         $this->calculatedResultModel = new CalculatedResultModel();
         $this->reportSectionModel = new ReportSectionModel();
         $this->gaugeGenerator = new PdfGaugeGenerator();
+    }
+
+    // =========================================================================
+    // BAREMOS - Métodos helper que llaman a las librerías (Single Source of Truth)
+    // =========================================================================
+
+    /**
+     * Obtiene baremo intralaboral total según forma
+     */
+    protected function getBaremoIntraTotal(string $forma): array
+    {
+        return ($forma === 'A')
+            ? IntralaboralAScoring::getBaremoTotal()
+            : IntralaboralBScoring::getBaremoTotal();
+    }
+
+    /**
+     * Obtiene baremo de dominio intralaboral según forma
+     */
+    protected function getBaremoDominio(string $domKey, string $forma): array
+    {
+        // Mapeo de claves cortas a claves de librería
+        $mapeo = [
+            'liderazgo' => 'liderazgo_relaciones_sociales',
+            'control' => 'control',
+            'demandas' => 'demandas',
+            'recompensas' => 'recompensas',
+        ];
+        $libKey = $mapeo[$domKey] ?? $domKey;
+
+        return ($forma === 'A')
+            ? IntralaboralAScoring::getBaremoDominio($libKey)
+            : IntralaboralBScoring::getBaremoDominio($libKey);
+    }
+
+    /**
+     * Obtiene baremo extralaboral total según forma
+     */
+    protected function getBaremoExtraTotal(string $forma): array
+    {
+        return ExtralaboralScoring::getBaremoTotal($forma);
+    }
+
+    /**
+     * Obtiene baremo estrés según forma
+     */
+    protected function getBaremoEstres(string $forma): array
+    {
+        return ($forma === 'A')
+            ? EstresScoring::getBaremoA()
+            : EstresScoring::getBaremoB();
+    }
+
+    /**
+     * Obtiene baremo de dimensión extralaboral según forma
+     * Nota: Dimensiones extralaborales tienen el mismo baremo para A y B en la mayoría
+     */
+    protected function getBaremoDimensionExtra(string $dimKey, string $forma = 'A'): array
+    {
+        // Mapeo de claves del archivo a claves de librería
+        $mapeo = [
+            'tiempo_fuera' => 'tiempo_fuera_trabajo',
+            'relaciones_familiares' => 'relaciones_familiares',
+            'comunicacion' => 'comunicacion_relaciones',
+            'situacion_economica' => 'situacion_economica',
+            'caracteristicas_vivienda' => 'caracteristicas_vivienda',
+            'influencia_entorno' => 'influencia_entorno',
+            'desplazamiento' => 'desplazamiento',
+        ];
+        $libKey = $mapeo[$dimKey] ?? $dimKey;
+
+        return ExtralaboralScoring::getBaremoDimension($libKey, $forma) ?? [];
     }
 
     /**
@@ -407,15 +425,15 @@ que influyen negativamente en su salud y en desempeño laboral de las personas.
         $html = '<h1>Resultados Intralaboral Total</h1>';
         $html .= '<p>Los resultados totales del cuestionario intralaboral reflejan el nivel de riesgo psicosocial general asociado a las condiciones del trabajo.</p>';
 
-        // Forma A
+        // Forma A - BAREMOS desde Single Source of Truth
         if (!empty($resultsA)) {
-            $dataA = $this->calculateTotalData($resultsA, 'A', 'intralaboral_total_puntaje', 'intralaboral_total_nivel', $this->baremosIntraTotal['A']);
+            $dataA = $this->calculateTotalData($resultsA, 'A', 'intralaboral_total_puntaje', 'intralaboral_total_nivel', $this->getBaremoIntraTotal('A'));
             $html .= $this->renderTotalSection('Forma A - Jefes, Profesionales y Técnicos', $dataA);
         }
 
-        // Forma B
+        // Forma B - BAREMOS desde Single Source of Truth
         if (!empty($resultsB)) {
-            $dataB = $this->calculateTotalData($resultsB, 'B', 'intralaboral_total_puntaje', 'intralaboral_total_nivel', $this->baremosIntraTotal['B']);
+            $dataB = $this->calculateTotalData($resultsB, 'B', 'intralaboral_total_puntaje', 'intralaboral_total_nivel', $this->getBaremoIntraTotal('B'));
             $html .= $this->renderTotalSection('Forma B - Auxiliares y Operarios', $dataB);
         }
 
@@ -466,7 +484,8 @@ que influyen negativamente en su salud y en desempeño laboral de las personas.
     {
         $campoPuntaje = $dominio['campo_puntaje'];
         $campoNivel = $dominio['campo_nivel'];
-        $baremo = $this->baremosDominios[$forma][$domKey] ?? $this->baremosDominios['A'][$domKey];
+        // BAREMO desde Single Source of Truth
+        $baremo = $this->getBaremoDominio($domKey, $forma);
 
         // Calcular promedio
         $puntajes = array_filter(array_column($results, $campoPuntaje), fn($v) => $v !== null && $v !== '');
@@ -661,15 +680,15 @@ que influyen negativamente en su salud y en desempeño laboral de las personas.
         $html = '<h1>Resultados Extralaboral Total</h1>';
         $html .= '<p>El cuestionario extralaboral evalúa las condiciones externas al trabajo que pueden afectar la salud y el bienestar del trabajador.</p>';
 
-        // Forma A
+        // Forma A - BAREMOS desde Single Source of Truth
         if (!empty($resultsA)) {
-            $dataA = $this->calculateTotalData($resultsA, 'A', 'extralaboral_total_puntaje', 'extralaboral_total_nivel', $this->baremosExtraTotal['A']);
+            $dataA = $this->calculateTotalData($resultsA, 'A', 'extralaboral_total_puntaje', 'extralaboral_total_nivel', $this->getBaremoExtraTotal('A'));
             $html .= $this->renderTotalSection('Forma A - Jefes, Profesionales y Técnicos', $dataA);
         }
 
-        // Forma B
+        // Forma B - BAREMOS desde Single Source of Truth
         if (!empty($resultsB)) {
-            $dataB = $this->calculateTotalData($resultsB, 'B', 'extralaboral_total_puntaje', 'extralaboral_total_nivel', $this->baremosExtraTotal['B']);
+            $dataB = $this->calculateTotalData($resultsB, 'B', 'extralaboral_total_puntaje', 'extralaboral_total_nivel', $this->getBaremoExtraTotal('B'));
             $html .= $this->renderTotalSection('Forma B - Auxiliares y Operarios', $dataB);
         }
 
@@ -720,7 +739,8 @@ que influyen negativamente en su salud y en desempeño laboral de las personas.
     {
         $campoPuntaje = $dimension['campo_puntaje'];
         $campoNivel = $dimension['campo_nivel'];
-        $baremo = $dimension['baremo'];
+        // BAREMO desde Single Source of Truth
+        $baremo = $this->getBaremoDimensionExtra($dimKey, $forma);
 
         // Calcular promedio
         $puntajes = array_filter(array_column($results, $campoPuntaje), fn($v) => $v !== null && $v !== '');
@@ -902,7 +922,8 @@ que influyen negativamente en su salud y en desempeño laboral de las personas.
      */
     private function renderEstresPage($results, $forma, $batteryServiceId)
     {
-        $baremo = $this->baremosEstres[$forma] ?? $this->baremosEstres['A'];
+        // BAREMO desde Single Source of Truth
+        $baremo = $this->getBaremoEstres($forma);
 
         $puntajes = array_filter(array_column($results, 'estres_total_puntaje'), fn($v) => $v !== null && $v !== '');
         $promedio = !empty($puntajes) ? array_sum($puntajes) / count($puntajes) : 0;

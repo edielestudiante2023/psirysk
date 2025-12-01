@@ -2,10 +2,20 @@
 
 namespace App\Controllers\PdfEjecutivo;
 
+use App\Libraries\IntralaboralAScoring;
+use App\Libraries\ExtralaboralScoring;
+use App\Libraries\EstresScoring;
+
 /**
  * Controlador de Mapas de Calor para el Informe Ejecutivo PDF
  * Muestra distribución de riesgo por cuestionario y forma (A/B)
  * Incluye dominios, dimensiones y síntomas de estrés
+ *
+ * NOTA BAREMOS: Los totales (intralaboral, extralaboral, estrés) usan baremos
+ * de las librerías autorizadas (Single Source of Truth). Los baremos de
+ * dominios/dimensiones en el mapa GENERAL son aproximaciones para visualización
+ * mixta (cuando se combinan formas A y B). Los mapas por forma específica
+ * usan niveles pre-calculados de la BD.
  */
 class MapasCalorController extends PdfEjecutivoBaseController
 {
@@ -780,31 +790,11 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
     }
 
     /**
-     * Baremos para niveles de riesgo (Forma A como referencia general)
+     * Baremos genéricos para dominios y dimensiones en mapa GENERAL
+     * NOTA: Son aproximaciones para visualización mixta (formas A+B combinadas).
+     * Los mapas por forma específica usan niveles pre-calculados de la BD.
      */
-    protected $baremosGenerales = [
-        'intralaboral_total' => [
-            'sin_riesgo' => [0, 19.7],
-            'riesgo_bajo' => [19.8, 25.8],
-            'riesgo_medio' => [25.9, 31.5],
-            'riesgo_alto' => [31.6, 38.0],
-            'riesgo_muy_alto' => [38.1, 100],
-        ],
-        'extralaboral_total' => [
-            'sin_riesgo' => [0, 11.3],
-            'riesgo_bajo' => [11.4, 16.9],
-            'riesgo_medio' => [17.0, 22.6],
-            'riesgo_alto' => [22.7, 29.0],
-            'riesgo_muy_alto' => [29.1, 100],
-        ],
-        'estres_total' => [
-            'muy_bajo' => [0, 7.8],
-            'bajo' => [7.9, 12.6],
-            'medio' => [12.7, 17.7],
-            'alto' => [17.8, 25.0],
-            'muy_alto' => [25.1, 100],
-        ],
-        // Baremos genéricos para dominios y dimensiones
+    protected $baremosGenericos = [
         'dominio' => [
             'sin_riesgo' => [0, 19.9],
             'riesgo_bajo' => [20.0, 29.9],
@@ -822,11 +812,18 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
     ];
 
     /**
-     * Obtiene el nivel de riesgo según el puntaje y el baremo
+     * Obtiene el nivel de riesgo según el puntaje y el tipo
+     * Usa librerías autorizadas para totales, baremos genéricos para dominios/dimensiones
      */
     protected function getNivelPorPuntaje($puntaje, $tipoBaremo = 'dimension')
     {
-        $baremo = $this->baremosGenerales[$tipoBaremo] ?? $this->baremosGenerales['dimension'];
+        // BAREMOS - Desde fuente única autorizada (Single Source of Truth)
+        $baremo = match ($tipoBaremo) {
+            'intralaboral_total' => IntralaboralAScoring::getBaremoTotal(),
+            'extralaboral_total' => ExtralaboralScoring::getBaremoTotal('A'),
+            'estres_total' => EstresScoring::getBaremoA(),
+            default => $this->baremosGenericos[$tipoBaremo] ?? $this->baremosGenericos['dimension'],
+        };
 
         foreach ($baremo as $nivel => $rango) {
             if ($puntaje >= $rango[0] && $puntaje <= $rango[1]) {

@@ -323,31 +323,12 @@ class CalculationService
 
     /**
      * Determina el nivel de riesgo general según Tabla 34
-     * Baremos diferentes para Forma A y Forma B
+     * BAREMOS desde Single Source of Truth (EstresScoring::getBaremoGeneral)
      */
     protected function determinarNivelRiesgoGeneral($puntaje, $intralaboralType)
     {
-        // Tabla 34 - Baremos según tipo de formulario
-        if ($intralaboralType === 'A') {
-            // Forma A - Jefes, profesionales, técnicos
-            $baremos = [
-                'sin_riesgo' => [0.0, 18.8],
-                'riesgo_bajo' => [18.9, 24.4],
-                'riesgo_medio' => [24.5, 29.5],
-                'riesgo_alto' => [29.6, 35.4],
-                'riesgo_muy_alto' => [35.5, 100.0]
-            ];
-        } else {
-            // Forma B - Auxiliares, operarios
-            // Tabla 34: Baremos para el puntaje total general - Verificado 2025-11-25
-            $baremos = [
-                'sin_riesgo' => [0.0, 19.9],      // Correcto - mantiene rangos continuos
-                'riesgo_bajo' => [20.0, 24.8],
-                'riesgo_medio' => [24.9, 29.5],
-                'riesgo_alto' => [29.6, 35.4],
-                'riesgo_muy_alto' => [35.5, 100.0]
-            ];
-        }
+        // BAREMO desde fuente única autorizada
+        $baremos = EstresScoring::getBaremoGeneral($intralaboralType);
 
         // Usar epsilon para floating point comparison
         foreach ($baremos as $nivel => $rango) {

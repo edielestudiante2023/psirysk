@@ -274,16 +274,16 @@ function getNivelTexto($nivel) {
                                     </div>
                                 </div>
                                 <div class="d-flex flex-column" style="width: 75%;">
-                                    <div class="d-flex align-items-center justify-content-center p-2" style="flex: 1; background-color: <?= getNivelColor($calculations['dim_reconocimiento_compensacion']['nivel']) ?>; color: white; border-bottom: 1px solid white;">
-                                        <div class="text-center" style="font-size: 0.75rem;">
-                                            <div style="font-weight: 600;">Reconocimiento y compensación</div>
-                                            <div style="font-size: 1.2rem; font-weight: bold; margin-top: 3px;"><?= number_format($calculations['dim_reconocimiento_compensacion']['promedio'], 1) ?></div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex align-items-center justify-content-center p-2" style="flex: 1; background-color: <?= getNivelColor($calculations['dim_recompensas_pertenencia']['nivel']) ?>; color: white;">
+                                    <div class="d-flex align-items-center justify-content-center p-2" style="flex: 1; background-color: <?= getNivelColor($calculations['dim_recompensas_pertenencia']['nivel']) ?>; color: white; border-bottom: 1px solid white;">
                                         <div class="text-center" style="font-size: 0.75rem;">
                                             <div style="font-weight: 600;">Recompensas derivadas de la pertenencia y del trabajo que se realiza</div>
                                             <div style="font-size: 1.2rem; font-weight: bold; margin-top: 3px;"><?= number_format($calculations['dim_recompensas_pertenencia']['promedio'], 1) ?></div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center justify-content-center p-2" style="flex: 1; background-color: <?= getNivelColor($calculations['dim_reconocimiento_compensacion']['nivel']) ?>; color: white;">
+                                        <div class="text-center" style="font-size: 0.75rem;">
+                                            <div style="font-weight: 600;">Reconocimiento y compensación</div>
+                                            <div style="font-size: 1.2rem; font-weight: bold; margin-top: 3px;"><?= number_format($calculations['dim_reconocimiento_compensacion']['promedio'], 1) ?></div>
                                         </div>
                                     </div>
                                 </div>
@@ -506,8 +506,8 @@ function getNivelTexto($nivel) {
         ['key' => 'dim_influencia_entorno', 'nombre' => 'Influencia del trabajo sobre el entorno extralaboral', 'dominio' => 'Demandas'],
         ['key' => 'dim_demandas_carga_mental', 'nombre' => 'Demandas de carga mental', 'dominio' => 'Demandas'],
         ['key' => 'dim_demandas_jornada', 'nombre' => 'Demandas de la jornada de trabajo', 'dominio' => 'Demandas'],
-        ['key' => 'dim_reconocimiento_compensacion', 'nombre' => 'Reconocimiento y compensación', 'dominio' => 'Recompensas'],
         ['key' => 'dim_recompensas_pertenencia', 'nombre' => 'Recompensas derivadas de la pertenencia a la organización y del trabajo que se realiza', 'dominio' => 'Recompensas'],
+        ['key' => 'dim_reconocimiento_compensacion', 'nombre' => 'Reconocimiento y compensación', 'dominio' => 'Recompensas'],
     ];
     ?>
 

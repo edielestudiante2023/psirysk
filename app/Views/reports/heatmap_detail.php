@@ -344,7 +344,9 @@
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_caracteristicas_liderazgo']['nivel']) ?>">Características del liderazgo</div>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_relaciones_sociales']['nivel']) ?>">Relaciones sociales en el trabajo</div>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_retroalimentacion']['nivel']) ?>">Retroalimentación del desempeño</div>
+                                            <?php if (isset($heatmapCalculations['dim_relacion_colaboradores'])): ?>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_relacion_colaboradores']['nivel']) ?>">Relación con los colaboradores</div>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     <div class="domain-row">
@@ -368,9 +370,13 @@
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_emocionales']['nivel']) ?>">Demandas emocionales</div>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_cuantitativas']['nivel']) ?>">Demandas cuantitativas</div>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral']['nivel']) ?>">Influencia del trabajo sobre el entorno extralaboral</div>
+                                            <?php if (isset($heatmapCalculations['dim_demandas_responsabilidad'])): ?>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_responsabilidad']['nivel']) ?>">Exigencias de responsabilidad del cargo</div>
+                                            <?php endif; ?>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_carga_mental']['nivel']) ?>">Demandas de carga mental</div>
+                                            <?php if (isset($heatmapCalculations['dim_consistencia_rol'])): ?>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_consistencia_rol']['nivel']) ?>">Consistencia del rol</div>
+                                            <?php endif; ?>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_jornada_trabajo']['nivel']) ?>">Demandas de la jornada de trabajo</div>
                                         </div>
                                     </div>

@@ -3,6 +3,9 @@
 namespace App\Controllers\PdfEjecutivo;
 
 use App\Libraries\PdfGaugeGenerator;
+use App\Libraries\IntralaboralAScoring;
+use App\Libraries\IntralaboralBScoring;
+use App\Libraries\EstresScoring;
 
 /**
  * Controlador para la sección de Totales Intralaborales del PDF Ejecutivo
@@ -14,46 +17,6 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
     protected $gaugeGenerator;
 
     /**
-     * Baremos Intralaboral Total (Resolución 2404/2019)
-     */
-    protected $baremosIntralaboral = [
-        'A' => [
-            'sin_riesgo'      => [0.0, 19.7],
-            'riesgo_bajo'     => [19.8, 25.8],
-            'riesgo_medio'    => [25.9, 31.5],
-            'riesgo_alto'     => [31.6, 38.7],
-            'riesgo_muy_alto' => [38.8, 100.0],
-        ],
-        'B' => [
-            'sin_riesgo'      => [0.0, 20.6],
-            'riesgo_bajo'     => [20.7, 26.0],
-            'riesgo_medio'    => [26.1, 31.2],
-            'riesgo_alto'     => [31.3, 38.7],
-            'riesgo_muy_alto' => [38.8, 100.0],
-        ],
-    ];
-
-    /**
-     * Baremos Tabla 34 - Total General Psicosocial (Intralaboral + Extralaboral)
-     */
-    protected $baremosTabla34 = [
-        'A' => [
-            'sin_riesgo'      => [0.0, 18.8],
-            'riesgo_bajo'     => [18.9, 24.4],
-            'riesgo_medio'    => [24.5, 29.5],
-            'riesgo_alto'     => [29.6, 35.4],
-            'riesgo_muy_alto' => [35.5, 100.0],
-        ],
-        'B' => [
-            'sin_riesgo'      => [0.0, 19.9],
-            'riesgo_bajo'     => [20.0, 24.8],
-            'riesgo_medio'    => [24.9, 29.5],
-            'riesgo_alto'     => [29.6, 35.4],
-            'riesgo_muy_alto' => [35.5, 100.0],
-        ],
-    ];
-
-    /**
      * Acciones por nivel de riesgo
      */
     protected $acciones = [
@@ -63,6 +26,28 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
         'riesgo_alto'     => 'intervenir en marco de vigilancia epidemiológica',
         'riesgo_muy_alto' => 'intervenir inmediatamente en marco de vigilancia epidemiológica',
     ];
+
+    // =========================================================================
+    // BAREMOS - Desde Single Source of Truth (Librerías de Scoring)
+    // =========================================================================
+
+    /**
+     * Obtiene baremo Intralaboral Total según la forma
+     */
+    protected function getBaremoIntralaboral(string $forma): array
+    {
+        return ($forma === 'A')
+            ? IntralaboralAScoring::getBaremoTotal()
+            : IntralaboralBScoring::getBaremoTotal();
+    }
+
+    /**
+     * Obtiene baremo Tabla 34 (Total General Psicosocial) según la forma
+     */
+    protected function getBaremoTabla34(string $forma): array
+    {
+        return EstresScoring::getBaremoGeneral($forma);
+    }
 
     /**
      * Preview HTML
@@ -165,7 +150,7 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
         }
 
         $promedio = $sumaPuntaje / $total;
-        $nivel = $this->getNivelFromPuntaje($promedio, $this->baremosIntralaboral[$forma]);
+        $nivel = $this->getNivelFromPuntaje($promedio, $this->getBaremoIntralaboral($forma));
 
         return [
             'total'        => $total,
@@ -205,7 +190,7 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
         $promedio = $sumaPuntaje / $total;
 
         // Usar baremos forma A como referencia general
-        $nivel = $this->getNivelFromPuntaje($promedio, $this->baremosIntralaboral['A']);
+        $nivel = $this->getNivelFromPuntaje($promedio, $this->getBaremoIntralaboral('A'));
 
         return [
             'total'        => $total,
@@ -244,7 +229,7 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
         $promedioIntra = $sumaIntralaboral / $total;
         $promedioExtra = $sumaExtralaboral / $total;
         $promedioTotal = $sumaTotal / $total;
-        $nivelTotal = $this->getNivelFromPuntaje($promedioTotal, $this->baremosTabla34[$forma]);
+        $nivelTotal = $this->getNivelFromPuntaje($promedioTotal, $this->getBaremoTabla34($forma));
 
         return [
             'total'              => $total,
@@ -389,8 +374,11 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
         $accion = $this->acciones[$nivel] ?? 'mantener';
         $total = $stats['total'];
 
+        // Obtener baremo desde Single Source of Truth
+        $baremo = $this->getBaremoIntralaboral($forma);
+
         // Generar gauge SVG
-        $gaugeUri = $this->gaugeGenerator->generate($stats['promedio'], $this->baremosIntralaboral[$forma]);
+        $gaugeUri = $this->gaugeGenerator->generate($stats['promedio'], $baremo);
 
         // Texto interpretación
         $cargoTipo = $forma === 'A' ? 'cargos profesionales o de jefatura' : 'cargos auxiliares u operativos';
@@ -423,11 +411,11 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
             <td style="background: #F44336; color: white; text-align: center; padding: 3pt; border: 1pt solid #ccc;">Muy Alto</td>
         </tr>
         <tr>
-            <td style="background: #E8F5E9; text-align: center; padding: 3pt; border: 1pt solid #ccc;">' . $this->baremosIntralaboral[$forma]['sin_riesgo'][0] . ' - ' . $this->baremosIntralaboral[$forma]['sin_riesgo'][1] . '</td>
-            <td style="background: #F1F8E9; text-align: center; padding: 3pt; border: 1pt solid #ccc;">' . $this->baremosIntralaboral[$forma]['riesgo_bajo'][0] . ' - ' . $this->baremosIntralaboral[$forma]['riesgo_bajo'][1] . '</td>
-            <td style="background: #FFFDE7; text-align: center; padding: 3pt; border: 1pt solid #ccc;">' . $this->baremosIntralaboral[$forma]['riesgo_medio'][0] . ' - ' . $this->baremosIntralaboral[$forma]['riesgo_medio'][1] . '</td>
-            <td style="background: #FFF3E0; text-align: center; padding: 3pt; border: 1pt solid #ccc;">' . $this->baremosIntralaboral[$forma]['riesgo_alto'][0] . ' - ' . $this->baremosIntralaboral[$forma]['riesgo_alto'][1] . '</td>
-            <td style="background: #FFEBEE; text-align: center; padding: 3pt; border: 1pt solid #ccc;">' . $this->baremosIntralaboral[$forma]['riesgo_muy_alto'][0] . ' - ' . $this->baremosIntralaboral[$forma]['riesgo_muy_alto'][1] . '</td>
+            <td style="background: #E8F5E9; text-align: center; padding: 3pt; border: 1pt solid #ccc;">' . $baremo['sin_riesgo'][0] . ' - ' . $baremo['sin_riesgo'][1] . '</td>
+            <td style="background: #F1F8E9; text-align: center; padding: 3pt; border: 1pt solid #ccc;">' . $baremo['riesgo_bajo'][0] . ' - ' . $baremo['riesgo_bajo'][1] . '</td>
+            <td style="background: #FFFDE7; text-align: center; padding: 3pt; border: 1pt solid #ccc;">' . $baremo['riesgo_medio'][0] . ' - ' . $baremo['riesgo_medio'][1] . '</td>
+            <td style="background: #FFF3E0; text-align: center; padding: 3pt; border: 1pt solid #ccc;">' . $baremo['riesgo_alto'][0] . ' - ' . $baremo['riesgo_alto'][1] . '</td>
+            <td style="background: #FFEBEE; text-align: center; padding: 3pt; border: 1pt solid #ccc;">' . $baremo['riesgo_muy_alto'][0] . ' - ' . $baremo['riesgo_muy_alto'][1] . '</td>
         </tr>
     </table>
 </div>
@@ -647,7 +635,7 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
         $promedioTotalGeneral = $totalGeneral > 0 ? $sumaTotal / $totalGeneral : 0;
 
         // Usar baremo A como referencia
-        $nivelTotal = $this->getNivelFromPuntaje($promedioTotalGeneral, $this->baremosTabla34['A']);
+        $nivelTotal = $this->getNivelFromPuntaje($promedioTotalGeneral, $this->getBaremoTabla34('A'));
         $nivelNombre = $this->getRiskName($nivelTotal);
         $colorTotal = $this->getRiskColor($nivelTotal);
 
@@ -658,6 +646,28 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
 <p style="font-size: 10pt; color: #666; text-align: center; margin: 0 0 10pt 0;">
     Intralaboral + Extralaboral (Tabla 34 - Resolución 2404/2019)
 </p>
+
+<!-- Descripción de cuestionarios por forma -->
+<table style="width: 100%; border-collapse: collapse; margin: 8pt 0;">
+    <tr>
+        <td style="width: 50%; text-align: center; padding: 8pt; background-color: #e3f2fd; border: 1pt solid #1976D2; vertical-align: middle;">
+            <span style="font-size: 9pt; color: #1976D2; line-height: 1.4;">
+                Cuestionario de factores de<br>
+                riesgo intralaboral <strong>forma A</strong><br>
+                y cuestionario de factores<br>
+                de riesgo extralaboral
+            </span>
+        </td>
+        <td style="width: 50%; text-align: center; padding: 8pt; background-color: #fff3e0; border: 1pt solid #FF9800; vertical-align: middle;">
+            <span style="font-size: 9pt; color: #e65100; line-height: 1.4;">
+                Cuestionario de factores de<br>
+                riesgo intralaboral <strong>forma B</strong><br>
+                y cuestionario de factores<br>
+                de riesgo extralaboral
+            </span>
+        </td>
+    </tr>
+</table>
 
 <!-- Fórmula -->
 <div style="background-color: #fff3e0; border: 1pt solid #FF9800; padding: 10pt; margin: 10pt 0; text-align: center;">

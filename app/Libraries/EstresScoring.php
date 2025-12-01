@@ -483,4 +483,45 @@ class EstresScoring
     {
         return ($forma === 'A') ? self::$baremosJefes : self::$baremosAuxiliares;
     }
+
+    // =========================================================================
+    // BAREMOS TABLA 34 - TOTAL GENERAL PSICOSOCIAL
+    // Combina los tres cuestionarios (Intralaboral + Extralaboral + Estrés)
+    // =========================================================================
+
+    /**
+     * Baremos Tabla 34 - Total General Psicosocial
+     * Forma A: Jefes, Profesionales, Técnicos
+     */
+    private static $baremosGeneralA = [
+        'sin_riesgo'      => [0.0, 18.8],
+        'riesgo_bajo'     => [18.9, 24.4],
+        'riesgo_medio'    => [24.5, 29.5],
+        'riesgo_alto'     => [29.6, 35.4],
+        'riesgo_muy_alto' => [35.5, 100.0],
+    ];
+
+    /**
+     * Baremos Tabla 34 - Total General Psicosocial
+     * Forma B: Auxiliares, Operarios
+     */
+    private static $baremosGeneralB = [
+        'sin_riesgo'      => [0.0, 19.9],
+        'riesgo_bajo'     => [20.0, 24.8],
+        'riesgo_medio'    => [24.9, 29.5],
+        'riesgo_alto'     => [29.6, 35.4],
+        'riesgo_muy_alto' => [35.5, 100.0],
+    ];
+
+    /**
+     * Obtiene el baremo de riesgo general (Tabla 34) según la forma
+     * Este baremo se aplica al puntaje combinado de los 3 cuestionarios
+     *
+     * @param string $forma 'A' o 'B'
+     * @return array Baremo de riesgo general
+     */
+    public static function getBaremoGeneral($forma = 'A')
+    {
+        return ($forma === 'A') ? self::$baremosGeneralA : self::$baremosGeneralB;
+    }
 }

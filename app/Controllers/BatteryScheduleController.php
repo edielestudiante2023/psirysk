@@ -5,6 +5,8 @@ namespace App\Controllers;
 use App\Models\BatteryScheduleModel;
 use App\Models\BatteryServiceModel;
 use App\Models\CalculatedResultsModel;
+use App\Libraries\IntralaboralAScoring;
+use App\Libraries\IntralaboralBScoring;
 
 class BatteryScheduleController extends BaseController
 {
@@ -201,28 +203,16 @@ class BatteryScheduleController extends BaseController
 
     /**
      * Convierte puntaje a nivel de riesgo según baremos
+     * BAREMOS desde Single Source of Truth (IntralaboralA/BScoring)
      */
     private function getRiskLevelFromScore(float $score, string $formType): string
     {
-        // Baremos Tabla 33 (Total Intralaboral) - Corregidos según auditoría 2025-11-25
-        $baremos = [
-            'A' => [
-                'sin_riesgo' => [0.0, 19.7],
-                'riesgo_bajo' => [19.8, 25.8],
-                'riesgo_medio' => [25.9, 31.5],
-                'riesgo_alto' => [31.6, 38.0],
-                'riesgo_muy_alto' => [38.1, 100.0],
-            ],
-            'B' => [
-                'sin_riesgo' => [0.0, 20.6],
-                'riesgo_bajo' => [20.7, 26.0],
-                'riesgo_medio' => [26.1, 31.2],
-                'riesgo_alto' => [31.3, 38.7],
-                'riesgo_muy_alto' => [38.8, 100.0],
-            ],
-        ];
+        // BAREMO desde fuente única autorizada
+        $baremo = ($formType === 'A')
+            ? IntralaboralAScoring::getBaremoTotal()
+            : IntralaboralBScoring::getBaremoTotal();
 
-        foreach ($baremos[$formType] as $level => $range) {
+        foreach ($baremo as $level => $range) {
             if ($score >= $range[0] && $score <= $range[1]) {
                 return $level;
             }

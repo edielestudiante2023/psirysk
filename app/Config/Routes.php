@@ -101,6 +101,7 @@ $routes->group('workers', function($routes) {
     $routes->post('delete/(:num)', 'WorkerController::delete/$1'); // Eliminar trabajador
     $routes->post('mark-no-participo/(:num)', 'WorkerController::markAsNoParticipo/$1'); // Marcar como No Participó (individual)
     $routes->post('mark-all-no-participo/(:num)', 'WorkerController::markAllAsNoParticipo/$1'); // Marcar TODOS como No Participó (masivo)
+    $routes->post('calculate-all-results/(:num)', 'WorkerController::calculateAllResults/$1'); // Calcular resultados masivo
     $routes->get('results/(:num)', 'WorkerController::results/$1'); // Ver resultados individuales
     $routes->get('export-responses/(:num)', 'WorkerController::exportResponses/$1'); // Exportar respuestas a Excel
 
@@ -114,6 +115,7 @@ $routes->group('workers', function($routes) {
 $routes->group('csv-import', function($routes) {
     $routes->get('/', 'CsvImportController::index'); // Vista principal
     $routes->post('upload', 'CsvImportController::upload'); // Procesar carga
+    $routes->delete('delete/(:num)', 'CsvImportController::deleteImport/$1'); // Eliminar importación
     $routes->get('download-template', 'CsvImportController::downloadTemplate'); // Descargar plantilla (legacy)
     $routes->get('download-template-forma-a', 'CsvImportController::downloadTemplateFormaA'); // Plantilla Forma A
     $routes->get('download-template-forma-b', 'CsvImportController::downloadTemplateFormaB'); // Plantilla Forma B

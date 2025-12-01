@@ -16,6 +16,7 @@ class CsvImportModel extends Model
         'battery_service_id',
         'imported_by',
         'file_name',
+        'form_type',
         'total_rows',
         'imported_rows',
         'failed_rows',

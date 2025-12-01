@@ -422,13 +422,13 @@
                         <label class="form-label">¿Hace cuántos años que trabaja en esta empresa? *</label>
                         <div class="d-flex gap-3 align-items-center">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="time_in_company_type" value="less_than_year" id="timeLess"
-                                       <?= isset($demographics['time_in_company_type']) && $demographics['time_in_company_type'] === 'less_than_year' ? 'checked' : '' ?> required>
+                                <input class="form-check-input" type="radio" name="time_in_company_type" value="Menos_de_un_ano" id="timeLess"
+                                       <?= isset($demographics['time_in_company_type']) && $demographics['time_in_company_type'] === 'Menos_de_un_ano' ? 'checked' : '' ?> required>
                                 <label class="form-check-label" for="timeLess">Si lleva menos de un año marque esta opción</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="time_in_company_type" value="more_than_year" id="timeMore"
-                                       <?= isset($demographics['time_in_company_type']) && $demographics['time_in_company_type'] === 'more_than_year' ? 'checked' : '' ?>>
+                                <input class="form-check-input" type="radio" name="time_in_company_type" value="Mas_de_un_ano" id="timeMore"
+                                       <?= isset($demographics['time_in_company_type']) && $demographics['time_in_company_type'] === 'Mas_de_un_ano' ? 'checked' : '' ?>>
                                 <label class="form-check-label" for="timeMore">Si lleva más de un año, anote cuántos años</label>
                             </div>
                             <input type="number" class="form-control" name="time_in_company_years" style="max-width: 100px;"
@@ -490,13 +490,13 @@
                         <label class="form-label">¿Hace cuántos años que desempeña el cargo u oficio actual en esta empresa? *</label>
                         <div class="d-flex gap-3 align-items-center">
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="time_in_position_type" value="less_than_year" id="posTimeLess"
-                                       <?= isset($demographics['time_in_position_type']) && $demographics['time_in_position_type'] === 'less_than_year' ? 'checked' : '' ?> required>
+                                <input class="form-check-input" type="radio" name="time_in_position_type" value="Menos_de_un_ano" id="posTimeLess"
+                                       <?= isset($demographics['time_in_position_type']) && $demographics['time_in_position_type'] === 'Menos_de_un_ano' ? 'checked' : '' ?> required>
                                 <label class="form-check-label" for="posTimeLess">Si lleva menos de un año marque esta opción</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="time_in_position_type" value="more_than_year" id="posTimeMore"
-                                       <?= isset($demographics['time_in_position_type']) && $demographics['time_in_position_type'] === 'more_than_year' ? 'checked' : '' ?>>
+                                <input class="form-check-input" type="radio" name="time_in_position_type" value="Mas_de_un_ano" id="posTimeMore"
+                                       <?= isset($demographics['time_in_position_type']) && $demographics['time_in_position_type'] === 'Mas_de_un_ano' ? 'checked' : '' ?>>
                                 <label class="form-check-label" for="posTimeMore">Si lleva más de un año, anote cuántos años</label>
                             </div>
                             <input type="number" class="form-control" name="time_in_position_years" style="max-width: 100px;"
@@ -762,7 +762,7 @@
         // Validar tiempo en empresa
         timeInCompanyRadios.forEach(radio => {
             radio.addEventListener('change', function() {
-                if (this.value === 'more_than_year') {
+                if (this.value === 'Mas_de_un_ano') {
                     timeInCompanyYearsInput.required = true;
                     timeInCompanyYearsInput.style.borderColor = '#667eea';
                 } else {
@@ -776,7 +776,7 @@
         // Validar tiempo en cargo
         timeInPositionRadios.forEach(radio => {
             radio.addEventListener('change', function() {
-                if (this.value === 'more_than_year') {
+                if (this.value === 'Mas_de_un_ano') {
                     timeInPositionYearsInput.required = true;
                     timeInPositionYearsInput.style.borderColor = '#667eea';
                 } else {
@@ -929,7 +929,7 @@
             const timeInCompanyType = document.querySelector('input[name="time_in_company_type"]:checked');
             const timeInPositionType = document.querySelector('input[name="time_in_position_type"]:checked');
 
-            if (timeInCompanyType && timeInCompanyType.value === 'more_than_year') {
+            if (timeInCompanyType && timeInCompanyType.value === 'Mas_de_un_ano') {
                 if (!timeInCompanyYearsInput.value || timeInCompanyYearsInput.value <= 0) {
                     alert('Por favor, indique cuántos años lleva trabajando en esta empresa.');
                     timeInCompanyYearsInput.focus();
@@ -937,7 +937,7 @@
                 }
             }
 
-            if (timeInPositionType && timeInPositionType.value === 'more_than_year') {
+            if (timeInPositionType && timeInPositionType.value === 'Mas_de_un_ano') {
                 if (!timeInPositionYearsInput.value || timeInPositionYearsInput.value <= 0) {
                     alert('Por favor, indique cuántos años lleva en el cargo actual.');
                     timeInPositionYearsInput.focus();

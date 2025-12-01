@@ -6,6 +6,7 @@
     <title><?= $title ?> - PsyRisk</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -70,7 +71,7 @@
                         <i class="fas fa-building me-2"></i> Clientes
                     </a>
                     <a class="nav-link" href="<?= base_url('battery-services') ?>">
-                        <i class="fas fa-clipboard-check me-2"></i> Servicios de Batería
+                        <i class="fas fa-clipboard-check me-2"></i> Servicios de Bateria
                     </a>
                     <a class="nav-link" href="<?= base_url('workers') ?>">
                         <i class="fas fa-users me-2"></i> Trabajadores
@@ -80,7 +81,7 @@
                     </a>
                     <hr class="text-white-50 mx-3">
                     <a class="nav-link" href="<?= base_url('logout') ?>">
-                        <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                        <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesion
                     </a>
                 </nav>
             </div>
@@ -90,7 +91,7 @@
                 <!-- Top Navbar -->
                 <nav class="navbar navbar-custom navbar-expand-lg p-3">
                     <div class="container-fluid">
-                        <h4 class="mb-0"><i class="fas fa-life-ring text-warning me-2"></i>Módulo de Contingencia - Importación CSV</h4>
+                        <h4 class="mb-0"><i class="fas fa-life-ring text-warning me-2"></i>Modulo de Contingencia - Importacion CSV</h4>
                         <div class="ms-auto">
                             <div class="btn-group" role="group">
                                 <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
@@ -115,28 +116,11 @@
 
                 <!-- Content -->
                 <div class="p-4">
-                    <!-- Alerts -->
-                    <?php if (session()->getFlashdata('success')): ?>
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle me-2"></i>
-                            <?= session()->getFlashdata('success') ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (session()->getFlashdata('error')): ?>
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <?= session()->getFlashdata('error') ?>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    <?php endif; ?>
-
                     <!-- Warning Alert -->
                     <div class="alert alert-warning shadow-sm">
-                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Módulo de Contingencia</h5>
-                        <p class="mb-0">Este módulo permite importar respuestas desde archivos CSV cuando el sistema principal no está disponible (ej: caída de Cloudflare, problemas con el servidor, etc.)</p>
-                        <small class="text-muted">Úsalo solo en casos de emergencia cuando necesites migrar datos desde LimeSurvey u otro sistema externo.</small>
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Modulo de Contingencia</h5>
+                        <p class="mb-0">Este modulo permite importar respuestas desde archivos CSV cuando el sistema principal no esta disponible (ej: caida de Cloudflare, problemas con el servidor, etc.)</p>
+                        <small class="text-muted">Usalo solo en casos de emergencia cuando necesites migrar datos desde LimeSurvey u otro sistema externo.</small>
                     </div>
 
                     <!-- Instrucciones Paso a Paso -->
@@ -144,14 +128,14 @@
                         <h5><i class="fas fa-list-ol me-2"></i>Paso a Paso - IMPORTANTE</h5>
                         <ol class="mb-0">
                             <li class="mb-2">
-                                <strong>CREAR SERVICIO:</strong> Ve a "Servicios de Batería" y crea un nuevo servicio (o usa uno existente)
+                                <strong>CREAR SERVICIO:</strong> Ve a "Servicios de Bateria" y crea un nuevo servicio (o usa uno existente)
                             </li>
                             <li class="mb-2">
                                 <strong>CARGAR TRABAJADORES:</strong> Desde el servicio, ve a "Trabajadores" y carga el CSV con los datos de los trabajadores
-                                <br><small class="text-muted">⚠️ Este paso es OBLIGATORIO. Sin trabajadores en el sistema, no se puede importar respuestas.</small>
+                                <br><small class="text-muted">Este paso es OBLIGATORIO. Sin trabajadores en el sistema, no se puede importar respuestas.</small>
                             </li>
                             <li class="mb-2">
-                                <strong>DESCARGAR PLANTILLA:</strong> Descarga la plantilla de Forma A o Forma B según el tipo de trabajadores
+                                <strong>DESCARGAR PLANTILLA:</strong> Descarga la plantilla de Forma A o Forma B segun el tipo de trabajadores
                             </li>
                             <li class="mb-2">
                                 <strong>LLENAR CSV:</strong> Completa el CSV con las respuestas. Los documentos en el CSV <strong>DEBEN coincidir exactamente</strong> con los documentos de los trabajadores ya cargados en el servicio
@@ -167,11 +151,11 @@
                         <h6><i class="fas fa-info-circle me-2"></i>Formato del CSV</h6>
                         <p class="mb-1">Formato matriz: un trabajador por fila, todas las respuestas en columnas.</p>
                         <ul class="mb-0">
-                            <li><strong>Estructura:</strong> <code>documento</code>, <code>nombre</code>, <strong>Ficha de Datos (23 campos)</strong>, <code>intralaboral_1</code>..., <code>extralaboral_1</code>..., <code>estres_1</code>...</li>
-                            <li><strong>Ficha de Datos Generales (ANEXO 3):</strong> Datos sociodemográficos del trabajador (género, edad, educación, cargo, etc.)</li>
+                            <li><strong>Estructura:</strong> <code>documento</code>, <code>nombre</code>, <strong>Ficha de Datos (22 campos)</strong>, <code>intralaboral_1</code>..., <code>extralaboral_1</code>..., <code>estres_1</code>...</li>
+                            <li><strong>Ficha de Datos Generales (ANEXO 3):</strong> Datos sociodemograficos del trabajador (genero, edad, educacion, cargo, etc.)</li>
                             <li><strong>Respuestas en texto:</strong> Siempre, Casi siempre, Algunas veces, Casi nunca, Nunca</li>
-                            <li><strong>Forma A:</strong> 23 datos + 123 intralaboral + 31 extralaboral + 31 estrés</li>
-                            <li><strong>Forma B:</strong> 23 datos + 97 intralaboral + 31 extralaboral + 31 estrés</li>
+                            <li><strong>Forma A:</strong> 22 datos + 123 intralaboral (con atiende_clientes y es_jefe intercalados) + 31 extralaboral + 31 estres</li>
+                            <li><strong>Forma B:</strong> 22 datos + 97 intralaboral (con atiende_clientes intercalado) + 31 extralaboral + 31 estres</li>
                             <li><strong>Compatible:</strong> Excel y Google Sheets</li>
                         </ul>
                     </div>
@@ -212,15 +196,15 @@
                                     <label class="form-label">Archivo CSV</label>
                                     <div class="upload-zone" onclick="document.getElementById('csv_file').click()">
                                         <i class="fas fa-cloud-upload-alt fa-4x text-primary mb-3"></i>
-                                        <h5>Haz clic o arrastra el archivo aquí</h5>
-                                        <p class="text-muted">Solo archivos CSV (máximo 10MB)</p>
+                                        <h5>Haz clic o arrastra el archivo aqui</h5>
+                                        <p class="text-muted">Solo archivos CSV (maximo 10MB)</p>
                                         <input type="file" class="form-control d-none" id="csv_file" name="csv_file" accept=".csv,.txt" required>
                                         <p id="file_name" class="text-success fw-bold mt-2"></p>
                                     </div>
                                 </div>
 
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <button type="submit" class="btn btn-primary btn-lg">
+                                    <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
                                         <i class="fas fa-upload me-2"></i>Importar CSV
                                     </button>
                                 </div>
@@ -237,7 +221,7 @@
                             <?php if (empty($imports)): ?>
                                 <div class="text-center py-5">
                                     <i class="fas fa-file-csv fa-4x text-muted mb-3"></i>
-                                    <p class="text-muted">No hay importaciones registradas aún.</p>
+                                    <p class="text-muted">No hay importaciones registradas aun.</p>
                                 </div>
                             <?php else: ?>
                                 <div class="table-responsive">
@@ -246,11 +230,13 @@
                                             <tr>
                                                 <th>Fecha</th>
                                                 <th>Servicio</th>
+                                                <th>Tipo</th>
                                                 <th>Archivo</th>
                                                 <th>Total Filas</th>
                                                 <th>Importadas</th>
                                                 <th>Fallidas</th>
                                                 <th>Estado</th>
+                                                <th>Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -258,6 +244,11 @@
                                                 <tr>
                                                     <td><?= date('d/m/Y H:i', strtotime($import['created_at'])) ?></td>
                                                     <td><?= esc($import['service_name']) ?></td>
+                                                    <td>
+                                                        <span class="badge bg-<?= ($import['form_type'] ?? '') === 'A' ? 'primary' : 'info' ?>">
+                                                            Forma <?= $import['form_type'] ?? '?' ?>
+                                                        </span>
+                                                    </td>
                                                     <td>
                                                         <i class="fas fa-file-csv text-success me-1"></i>
                                                         <?= esc($import['file_name']) ?>
@@ -276,12 +267,20 @@
                                                         $badgeColor = [
                                                             'procesando' => 'primary',
                                                             'completado' => 'success',
+                                                            'completado_con_errores' => 'warning',
                                                             'error' => 'danger'
                                                         ];
                                                         ?>
                                                         <span class="badge bg-<?= $badgeColor[$import['status']] ?? 'secondary' ?>">
-                                                            <?= ucfirst($import['status']) ?>
+                                                            <?= ucfirst(str_replace('_', ' ', $import['status'])) ?>
                                                         </span>
+                                                    </td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                                onclick="deleteImport(<?= $import['id'] ?>, '<?= esc($import['service_name']) ?>')"
+                                                                title="Eliminar importacion">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>
@@ -299,6 +298,29 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Mostrar SweetAlert si hay mensaje de exito
+        <?php if (session()->getFlashdata('success')): ?>
+        window.scrollTo(0, 0);
+        Swal.fire({
+            icon: 'success',
+            title: 'Importacion Exitosa',
+            html: '<?= session()->getFlashdata('success') ?>',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#28a745'
+        });
+        <?php endif; ?>
+
+        <?php if (session()->getFlashdata('error')): ?>
+        window.scrollTo(0, 0);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error en Importacion',
+            html: '<?= session()->getFlashdata('error') ?>',
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#dc3545'
+        });
+        <?php endif; ?>
+
         // Mostrar nombre del archivo seleccionado
         document.getElementById('csv_file').addEventListener('change', function(e) {
             const fileName = e.target.files[0]?.name;
@@ -343,6 +365,91 @@
                 document.getElementById('file_name').textContent = '📄 ' + files[0].name;
             }
         });
+
+        // Mostrar loading al enviar formulario
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Importando...';
+
+            Swal.fire({
+                title: 'Procesando...',
+                html: 'Importando datos del CSV. Por favor espere.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        });
+
+        // Funcion para eliminar importacion
+        function deleteImport(importId, serviceName) {
+            Swal.fire({
+                title: 'Eliminar Importacion?',
+                html: `<p>Esta accion eliminara:</p>
+                       <ul class="text-start">
+                         <li>Todas las respuestas importadas</li>
+                         <li>Todos los resultados calculados</li>
+                         <li>El registro de la importacion</li>
+                       </ul>
+                       <p class="text-danger fw-bold">Servicio: ${serviceName}</p>
+                       <p class="text-danger">Esta accion NO se puede deshacer.</p>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Si, eliminar todo',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Eliminando...',
+                        html: 'Por favor espere...',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    fetch(`<?= base_url('csv-import/delete') ?>/${importId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Eliminado',
+                                text: data.message,
+                                confirmButtonColor: '#28a745'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message,
+                                confirmButtonColor: '#dc3545'
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error de conexion: ' + error.message,
+                            confirmButtonColor: '#dc3545'
+                        });
+                    });
+                }
+            });
+        }
     </script>
 </body>
 </html>

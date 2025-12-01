@@ -100,9 +100,14 @@
                             <h4 class="mb-0"><?= $title ?></h4>
                             <small class="text-muted"><?= esc($service['service_name']) ?> - <?= esc($service['company_name']) ?></small>
                         </div>
-                        <a href="<?= base_url('workers/upload/' . $service['id']) ?>" class="btn btn-success">
-                            <i class="fas fa-upload me-2"></i>Cargar CSV
-                        </a>
+                        <div>
+                            <a href="<?= base_url('battery-services/' . $service['id']) ?>" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-arrow-left me-2"></i>Ver Servicio
+                            </a>
+                            <a href="<?= base_url('workers/upload/' . $service['id']) ?>" class="btn btn-success">
+                                <i class="fas fa-upload me-2"></i>Cargar CSV
+                            </a>
+                        </div>
                     </div>
                 </nav>
 
@@ -387,6 +392,16 @@
                                             <i class="fas fa-arrow-left me-2"></i>Volver al Servicio
                                         </a>
                                         <div>
+                                            <?php
+                                            $completadosSinResultados = count(array_filter($workers, fn($w) => $w['status'] === 'completado'));
+                                            ?>
+                                            <?php if ($completadosSinResultados > 0): ?>
+                                                <button class="btn btn-info me-2" id="calculateAllResultsBtn"
+                                                        data-service-id="<?= $service['id'] ?>"
+                                                        data-count="<?= $completadosSinResultados ?>">
+                                                    <i class="fas fa-calculator me-2"></i>Calcular Resultados (<?= $completadosSinResultados ?>)
+                                                </button>
+                                            <?php endif; ?>
                                             <?php if ($pendientesYEnProgreso > 0): ?>
                                                 <button class="btn btn-dark me-2" id="markAllNoParticipoBtn"
                                                         data-service-id="<?= $service['id'] ?>"
@@ -826,6 +841,54 @@
                     btn.innerHTML = originalHTML;
                 }
             });
+        });
+
+        // Calculate ALL results for completed workers (MASIVO)
+        document.getElementById('calculateAllResultsBtn')?.addEventListener('click', async function() {
+            const serviceId = this.dataset.serviceId;
+            const count = this.dataset.count;
+            const btn = this;
+
+            if (!confirm(`¿Calcular resultados para ${count} trabajador(es) completados?\n\nEsto procesará los resultados de todos los cuestionarios (Intralaboral, Extralaboral y Estrés) para cada trabajador.\n\nEl proceso puede tomar algunos segundos.`)) {
+                return;
+            }
+
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Calculando...';
+
+            try {
+                const response = await fetch(`<?= base_url('workers/calculate-all-results/') ?>${serviceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    let message = `✓ Cálculo masivo completado!\n\nTotal procesados: ${result.total}\nExitosos: ${result.calculated}\nFallidos: ${result.failed}`;
+
+                    if (result.errors && result.errors.length > 0) {
+                        message += '\n\nErrores:\n' + result.errors.slice(0, 5).join('\n');
+                        if (result.errors.length > 5) {
+                            message += `\n... y ${result.errors.length - 5} más`;
+                        }
+                    }
+
+                    alert(message);
+                    location.reload();
+                } else {
+                    alert('✗ Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('✗ Error de conexión: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
         });
 
         // Mark ALL pending/in_progress as "No Participó" (MASIVO) with double confirmation

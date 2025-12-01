@@ -1549,4 +1549,82 @@ class WorkerController extends BaseController
 
         log_message('info', "Notificaciones de cierre enviadas para servicio ID: {$service['id']}");
     }
+
+    /**
+     * Calcular resultados para todos los trabajadores completados de un servicio
+     */
+    public function calculateAllResults($serviceId)
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No autenticado']);
+        }
+
+        // Verificar permisos
+        $roleName = session()->get('role_name');
+        if (!in_array($roleName, ['superadmin', 'consultor', 'admin'])) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No tienes permisos']);
+        }
+
+        // Verificar que el servicio existe
+        $service = $this->batteryServiceModel->find($serviceId);
+        if (!$service) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Servicio no encontrado']);
+        }
+
+        // Obtener todos los trabajadores completados
+        $workers = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('status', 'completado')
+            ->findAll();
+
+        if (empty($workers)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No hay trabajadores completados en este servicio'
+            ]);
+        }
+
+        $calculationService = new \App\Services\CalculationService();
+        $resultModel = new CalculatedResultModel();
+
+        $calculated = 0;
+        $failed = 0;
+        $errors = [];
+
+        foreach ($workers as $worker) {
+            try {
+                // Calcular resultados - verificar el valor de retorno
+                $result = $calculationService->calculateAndSaveResults($worker['id']);
+
+                if ($result !== false) {
+                    $calculated++;
+                } else {
+                    // El método retornó false (formularios incompletos u otro error)
+                    $failed++;
+                    $incompleteInfo = $calculationService->getIncompleteFormsInfo($worker['id'], $worker['intralaboral_type']);
+                    if (!empty($incompleteInfo)) {
+                        $errors[] = $worker['name'] . ': ' . $incompleteInfo[0]['message'];
+                    } else {
+                        $errors[] = $worker['name'] . ': Error desconocido al calcular';
+                    }
+                }
+
+            } catch (\Exception $e) {
+                $failed++;
+                $errors[] = $worker['name'] . ': ' . $e->getMessage();
+                log_message('error', 'Error calculando resultados para worker ' . $worker['id'] . ': ' . $e->getMessage());
+            }
+        }
+
+        $message = "Cálculo completado. Exitosos: {$calculated}, Fallidos: {$failed}";
+
+        return $this->response->setJSON([
+            'success' => true,
+            'message' => $message,
+            'total' => count($workers),
+            'calculated' => $calculated,
+            'failed' => $failed,
+            'errors' => $errors
+        ]);
+    }
 }

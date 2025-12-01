@@ -132,23 +132,24 @@ class CalculationService
         $esJefe = $worker['es_jefe'] ?? null;
 
         // Ajustar número esperado de preguntas según tipo y respuestas condicionales
+        // NOTA: Usar lógica de SUMAR desde base, no restar desde máximo
+        // Esto maneja correctamente valores NULL (no respondió = no tiene esas preguntas)
         if ($intralaboralType === 'A') {
-            // Forma A: Base 123 preguntas, menos condicionales si respondió "No"
-            $expectedQuestions = 123;
-            // Si NO atiende clientes, restar 9 preguntas (106-114)
-            if ($atiendeClientes === 0 || $atiendeClientes === '0' || $atiendeClientes === false) {
-                $expectedQuestions -= 9;
+            // Forma A: 105 base + 9 si atiende_clientes=1 + 9 si es_jefe=1
+            $expectedQuestions = 105;
+            // Si atiende clientes, agregar 9 preguntas (106-114)
+            if ($atiendeClientes === 1 || $atiendeClientes === '1' || $atiendeClientes === true) {
+                $expectedQuestions += 9;
             }
-            // Si NO es jefe, restar 9 preguntas (115-123)
-            if ($esJefe === 0 || $esJefe === '0' || $esJefe === false) {
-                $expectedQuestions -= 9;
+            // Si es jefe, agregar 9 preguntas (115-123)
+            if ($esJefe === 1 || $esJefe === '1' || $esJefe === true) {
+                $expectedQuestions += 9;
             }
         } else {
-            // Forma B: 97 preguntas si atiende clientes, 88 si no atiende
+            // Forma B: 88 base + 9 si atiende_clientes=1
+            $expectedQuestions = 88;
             if ($atiendeClientes === 1 || $atiendeClientes === '1' || $atiendeClientes === true) {
-                $expectedQuestions = 97; // Incluye preguntas 89-97
-            } else {
-                $expectedQuestions = 88; // No incluye preguntas 89-97
+                $expectedQuestions += 9; // Incluye preguntas 89-97
             }
         }
 
@@ -221,18 +222,22 @@ class CalculationService
         $esJefe = $worker['es_jefe'] ?? null;
 
         // Ajustar número esperado de preguntas según tipo y respuestas condicionales
+        // NOTA: Usar lógica de SUMAR desde base, no restar desde máximo
         if ($intralaboralType === 'A') {
-            $expectedQuestions = 123;
-            // Forma A: restar preguntas condicionales si respondió "No"
-            if ($atiendeClientes === 0 || $atiendeClientes === '0' || $atiendeClientes === false) {
-                $expectedQuestions -= 9; // Preguntas 106-114
+            // Forma A: 105 base + 9 si atiende_clientes=1 + 9 si es_jefe=1
+            $expectedQuestions = 105;
+            if ($atiendeClientes === 1 || $atiendeClientes === '1' || $atiendeClientes === true) {
+                $expectedQuestions += 9; // Preguntas 106-114
             }
-            if ($esJefe === 0 || $esJefe === '0' || $esJefe === false) {
-                $expectedQuestions -= 9; // Preguntas 115-123
+            if ($esJefe === 1 || $esJefe === '1' || $esJefe === true) {
+                $expectedQuestions += 9; // Preguntas 115-123
             }
         } else {
-            // Forma B: 97 si atiende clientes, 88 si no
-            $expectedQuestions = ($atiendeClientes === 1 || $atiendeClientes === '1' || $atiendeClientes === true) ? 97 : 88;
+            // Forma B: 88 base + 9 si atiende_clientes=1
+            $expectedQuestions = 88;
+            if ($atiendeClientes === 1 || $atiendeClientes === '1' || $atiendeClientes === true) {
+                $expectedQuestions += 9;
+            }
         }
 
         $actualCount = $this->responseModel->where('worker_id', $workerId)

@@ -103,9 +103,12 @@ class ReportsController extends BaseController
     {
         $labels = [];
         $mapping = [
+            'Menos_de_un_ano' => 'Menos de 1 año',
+            'Mas_de_un_ano' => 'Más de 1 año',
+            // Valores legacy (por compatibilidad con datos antiguos)
             'less_than_year' => 'Menos de 1 año',
             'more_than_year' => 'Más de 1 año',
-            'Meses' => 'Menos de 1 año', // Valor legacy del CSV
+            'Meses' => 'Menos de 1 año',
             '0' => 'Menos de 1 año'
         ];
 

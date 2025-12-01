@@ -82,9 +82,8 @@ class CsvImportController extends BaseController
 
         $userId = session()->get('id');
 
-        // Obtener servicios del consultor
+        // Obtener todos los servicios en curso (todos los consultores ven todos)
         $services = $this->batteryServiceModel
-            ->where('consultant_id', $userId)
             ->where('status', 'en_curso')
             ->orderBy('created_at', 'DESC')
             ->findAll();
@@ -275,6 +274,7 @@ class CsvImportController extends BaseController
             'battery_service_id' => $serviceId,
             'imported_by' => session()->get('id'),
             'file_name' => $file->getName(),
+            'form_type' => $formType,
             'status' => 'procesando'
         ]);
 
@@ -310,6 +310,66 @@ class CsvImportController extends BaseController
             ]);
 
             return redirect()->to('/csv-import')->with('error', 'Error al procesar CSV: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Eliminar una importación completa (reversión)
+     */
+    public function deleteImport($importId)
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No autorizado']);
+        }
+
+        $roleName = session()->get('role_name');
+        if ($roleName !== 'consultor' && $roleName !== 'superadmin') {
+            return $this->response->setJSON(['success' => false, 'message' => 'No tienes permisos']);
+        }
+
+        // Obtener la importación
+        $import = $this->csvImportModel->find($importId);
+        if (!$import) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Importación no encontrada']);
+        }
+
+        $serviceId = $import['battery_service_id'];
+
+        try {
+            $db = \Config\Database::connect();
+
+            // Obtener los trabajadores del servicio que tienen respuestas
+            $workers = $this->workerModel->where('battery_service_id', $serviceId)->findAll();
+            $workerIds = array_column($workers, 'id');
+
+            if (!empty($workerIds)) {
+                // Eliminar respuestas de estos trabajadores
+                $db->table('responses')->whereIn('worker_id', $workerIds)->delete();
+
+                // Eliminar resultados calculados
+                $db->table('calculated_results')->whereIn('worker_id', $workerIds)->delete();
+
+                // Resetear estado de trabajadores a pendiente
+                $this->workerModel->whereIn('id', $workerIds)->set([
+                    'status' => 'pendiente',
+                    'started_at' => null,
+                    'completed_at' => null
+                ])->update();
+            }
+
+            // Eliminar el registro de importación
+            $this->csvImportModel->delete($importId);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Importación eliminada correctamente. Se eliminaron las respuestas y resultados de ' . count($workerIds) . ' trabajadores.'
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al eliminar: ' . $e->getMessage()
+            ]);
         }
     }
 
@@ -557,10 +617,24 @@ class CsvImportController extends BaseController
             }
         }
 
+        // Procesar es_jefe (va a workers, no a worker_demographics)
+        if (isset($data['es_jefe']) && trim($data['es_jefe']) !== '') {
+            $esJefe = strtolower(trim($data['es_jefe']));
+            $newValue = ($esJefe === 'sí' || $esJefe === 'si') ? 1 : 0;
+
+            // Normalizar valor actual (NULL se trata como 0)
+            $currentValue = $worker['es_jefe'] === null ? 0 : (int)$worker['es_jefe'];
+
+            // Solo acumular si el valor es diferente
+            if ($currentValue !== $newValue) {
+                $workerUpdates['es_jefe'] = $newValue;
+            }
+        }
+
         // Procesar cada columna del CSV
         foreach ($headers as $index => $header) {
-            // Ignorar campos básicos y demográficos
-            if (in_array($header, ['documento', 'nombre']) || isset($demographicFieldsMap[$header])) {
+            // Ignorar campos básicos, demográficos y preguntas filtro (ya procesados arriba)
+            if (in_array($header, ['documento', 'nombre', 'atiende_clientes', 'es_jefe']) || isset($demographicFieldsMap[$header])) {
                 continue;
             }
 
@@ -672,8 +746,29 @@ class CsvImportController extends BaseController
                 ->where('form_type', 'estres')
                 ->countAllResults();
 
-            // Determinar si está completo
-            $expectedIntralaboralTotal = ($formType === 'A') ? 123 : 97;
+            // Determinar preguntas esperadas según respuestas filtro (atiende_clientes, es_jefe)
+            // Refrescar datos del trabajador para obtener atiende_clientes y es_jefe actualizados
+            $workerRefresh = $this->workerModel->find($worker['id']);
+            $atiendeClientes = (int)($workerRefresh['atiende_clientes'] ?? 0);
+            $esJefe = (int)($workerRefresh['es_jefe'] ?? 0);
+
+            if ($formType === 'A') {
+                // Forma A: 105 base + (9 si atiende_clientes) + (9 si es_jefe)
+                $expectedIntralaboralTotal = 105;
+                if ($atiendeClientes === 1) {
+                    $expectedIntralaboralTotal += 9; // Preguntas 106-114
+                }
+                if ($esJefe === 1) {
+                    $expectedIntralaboralTotal += 9; // Preguntas 115-123
+                }
+            } else {
+                // Forma B: 88 base + (9 si atiende_clientes)
+                $expectedIntralaboralTotal = 88;
+                if ($atiendeClientes === 1) {
+                    $expectedIntralaboralTotal += 9; // Preguntas 89-97
+                }
+            }
+
             $isComplete = (
                 $hasDemographics &&
                 $intralaboralCount >= $expectedIntralaboralTotal &&
@@ -683,6 +778,7 @@ class CsvImportController extends BaseController
 
             log_message('error', "📊 [importHorizontalRow] Verificando completitud:");
             log_message('error', "   - Ficha Datos: " . ($hasDemographics ? 'Sí' : 'No'));
+            log_message('error', "   - atiende_clientes: {$atiendeClientes}, es_jefe: {$esJefe}");
             log_message('error', "   - Intralaboral: {$intralaboralCount}/{$expectedIntralaboralTotal}");
             log_message('error', "   - Extralaboral: {$extralaboralCount}/31");
             log_message('error', "   - Estrés: {$estresCount}/31");
@@ -801,23 +897,32 @@ class CsvImportController extends BaseController
         }
 
         // Generar encabezados para Forma A
-        // Ficha Datos: 23 campos + Intralaboral A: 123 preguntas + Extralaboral: 31 preguntas + Estrés: 31 preguntas
+        // Estructura: documento, nombre, ficha_datos(22), intralaboral_1-105, atiende_clientes,
+        //             intralaboral_106-114, es_jefe, intralaboral_115-123, extralaboral(31), estres(31)
         $headers = ['documento', 'nombre'];
 
-        // Ficha de Datos Generales (23 campos demográficos)
+        // Ficha de Datos Generales (22 campos demográficos)
         $fichaFields = [
             'genero', 'año_nacimiento', 'estado_civil', 'nivel_educacion', 'ocupacion',
             'ciudad_residencia', 'departamento_residencia', 'estrato', 'tipo_vivienda', 'dependientes',
             'ciudad_trabajo', 'departamento_trabajo', 'tipo_tiempo_empresa', 'años_empresa',
             'nombre_cargo', 'tipo_cargo', 'tipo_tiempo_cargo', 'años_cargo',
-            'departamento_area', 'tipo_contrato', 'horas_dia', 'tipo_salario', 'atiende_clientes'
+            'departamento_area', 'tipo_contrato', 'horas_dia', 'tipo_salario'
         ];
         foreach ($fichaFields as $field) {
             $headers[] = $field;
         }
 
-        // Intralaboral A (123 preguntas)
-        for ($i = 1; $i <= 123; $i++) {
+        // Intralaboral A: preguntas 1-105, luego atiende_clientes, luego 106-114, luego es_jefe, luego 115-123
+        for ($i = 1; $i <= 105; $i++) {
+            $headers[] = "intralaboral_$i";
+        }
+        $headers[] = 'atiende_clientes';  // Entre pregunta 105 y 106
+        for ($i = 106; $i <= 114; $i++) {
+            $headers[] = "intralaboral_$i";
+        }
+        $headers[] = 'es_jefe';  // Entre pregunta 114 y 115
+        for ($i = 115; $i <= 123; $i++) {
             $headers[] = "intralaboral_$i";
         }
 
@@ -841,20 +946,33 @@ class CsvImportController extends BaseController
         $exampleRow = array_merge($exampleRow, [
             'Masculino', '1985', 'Casado(a)', 'Profesional', 'Ingeniero',
             'Bogotá', 'Cundinamarca', '3', 'Propia', '2',
-            'Bogotá', 'Cundinamarca', 'Años', '5',
-            'Jefe de Proyecto', 'Jefatura', 'Años', '3',
-            'Operaciones', 'Indefinido', '8', 'Fijo', 'Sí'
+            'Bogotá', 'Cundinamarca', 'Mas_de_un_ano', '5',
+            'Jefe de Proyecto', 'Jefatura', 'Mas_de_un_ano', '3',
+            'Operaciones', 'Indefinido', '8', 'Fijo'
         ]);
 
-        // Intralaboral A
-        for ($i = 0; $i < 123; $i++) {
+        // Intralaboral A: 1-105
+        for ($i = 0; $i < 105; $i++) {
             $exampleRow[] = 'Siempre';
         }
+        $exampleRow[] = 'Sí';  // atiende_clientes
+        // Intralaboral A: 106-114
+        for ($i = 0; $i < 9; $i++) {
+            $exampleRow[] = 'Siempre';
+        }
+        $exampleRow[] = 'Sí';  // es_jefe
+        // Intralaboral A: 115-123
+        for ($i = 0; $i < 9; $i++) {
+            $exampleRow[] = 'Siempre';
+        }
+
+        // Extralaboral
         for ($i = 0; $i < 31; $i++) {
             $exampleRow[] = 'Casi siempre';
         }
+        // Estrés
         for ($i = 0; $i < 31; $i++) {
-            $exampleRow[] = 'Siempre';
+            $exampleRow[] = 'A veces';
         }
 
         $csv .= implode(';', $exampleRow) . "\n";
@@ -880,23 +998,29 @@ class CsvImportController extends BaseController
         }
 
         // Generar encabezados para Forma B
-        // Ficha Datos: 23 campos + Intralaboral B: 97 preguntas + Extralaboral: 31 preguntas + Estrés: 31 preguntas
+        // Estructura: documento, nombre, ficha_datos(22), intralaboral_1-88, atiende_clientes,
+        //             intralaboral_89-97, extralaboral(31), estres(31)
+        // NOTA: Forma B NO tiene pregunta "es_jefe" (solo Forma A la tiene)
         $headers = ['documento', 'nombre'];
 
-        // Ficha de Datos Generales (23 campos demográficos)
+        // Ficha de Datos Generales (22 campos demográficos)
         $fichaFields = [
             'genero', 'año_nacimiento', 'estado_civil', 'nivel_educacion', 'ocupacion',
             'ciudad_residencia', 'departamento_residencia', 'estrato', 'tipo_vivienda', 'dependientes',
             'ciudad_trabajo', 'departamento_trabajo', 'tipo_tiempo_empresa', 'años_empresa',
             'nombre_cargo', 'tipo_cargo', 'tipo_tiempo_cargo', 'años_cargo',
-            'departamento_area', 'tipo_contrato', 'horas_dia', 'tipo_salario', 'atiende_clientes'
+            'departamento_area', 'tipo_contrato', 'horas_dia', 'tipo_salario'
         ];
         foreach ($fichaFields as $field) {
             $headers[] = $field;
         }
 
-        // Intralaboral B (97 preguntas)
-        for ($i = 1; $i <= 97; $i++) {
+        // Intralaboral B: preguntas 1-88, luego atiende_clientes, luego 89-97
+        for ($i = 1; $i <= 88; $i++) {
+            $headers[] = "intralaboral_$i";
+        }
+        $headers[] = 'atiende_clientes';  // Entre pregunta 88 y 89
+        for ($i = 89; $i <= 97; $i++) {
             $headers[] = "intralaboral_$i";
         }
 
@@ -918,22 +1042,30 @@ class CsvImportController extends BaseController
 
         // Ejemplo de datos demográficos
         $exampleRow = array_merge($exampleRow, [
-            'Femenino', '1990', 'Soltera', 'Técnico', 'Auxiliar Administrativa',
+            'Femenino', '1990', 'Soltero(a)', 'Tecnico_Tecnologo', 'Auxiliar Administrativa',
             'Medellín', 'Antioquia', '2', 'Arriendo', '1',
-            'Medellín', 'Antioquia', 'Meses', '18',
-            'Auxiliar Contable', 'Auxiliar', 'Meses', '12',
-            'Contabilidad', 'Temporal', '8', 'Fijo', 'No'
+            'Medellín', 'Antioquia', 'Menos_de_un_ano', '',
+            'Auxiliar Contable', 'Auxiliar', 'Menos_de_un_ano', '',
+            'Contabilidad', 'Temporal', '8', 'Fijo'
         ]);
 
-        // Intralaboral B
-        for ($i = 0; $i < 97; $i++) {
+        // Intralaboral B: 1-88
+        for ($i = 0; $i < 88; $i++) {
             $exampleRow[] = 'Siempre';
         }
+        $exampleRow[] = 'No';  // atiende_clientes (entre pregunta 88 y 89)
+        // Intralaboral B: 89-97
+        for ($i = 0; $i < 9; $i++) {
+            $exampleRow[] = 'Siempre';
+        }
+
+        // Extralaboral
         for ($i = 0; $i < 31; $i++) {
             $exampleRow[] = 'Casi siempre';
         }
+        // Estrés
         for ($i = 0; $i < 31; $i++) {
-            $exampleRow[] = 'Siempre';
+            $exampleRow[] = 'A veces';
         }
 
         $csv .= implode(';', $exampleRow) . "\n";

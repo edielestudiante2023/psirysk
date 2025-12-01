@@ -36,22 +36,12 @@ class BatteryServiceController extends BaseController
         $roleName = session()->get('role_name');
         $userId = session()->get('id');
 
-        // Superadmin ve todos los servicios
-        if ($roleName === 'superadmin') {
+        // Superadmin y Consultor ven todos los servicios
+        if (in_array($roleName, ['superadmin', 'consultor'])) {
             $services = $this->batteryServiceModel
                 ->select('battery_services.*, companies.name as company_name, consultants.nombre_completo as consultant_name')
                 ->join('companies', 'companies.id = battery_services.company_id')
                 ->join('consultants', 'consultants.id = battery_services.consultant_id', 'left')
-                ->orderBy('battery_services.created_at', 'DESC')
-                ->findAll();
-        }
-        // Consultor ve solo sus servicios (basado en empresa creada por el usuario)
-        elseif ($roleName === 'consultor') {
-            $services = $this->batteryServiceModel
-                ->select('battery_services.*, companies.name as company_name, consultants.nombre_completo as consultant_name')
-                ->join('companies', 'companies.id = battery_services.company_id')
-                ->join('consultants', 'consultants.id = battery_services.consultant_id', 'left')
-                ->where('companies.created_by', $userId)
                 ->orderBy('battery_services.created_at', 'DESC')
                 ->findAll();
         } else {
@@ -159,11 +149,10 @@ class BatteryServiceController extends BaseController
             return redirect()->to('/battery-services')->with('error', 'Servicio no encontrado');
         }
 
-        // Verificar permisos
+        // Verificar permisos (consultores pueden ver/editar todos los servicios)
         $roleName = session()->get('role_name');
-        $userId = session()->get('id');
-        if ($roleName === 'consultor' && $service['consultant_id'] != $userId) {
-            return redirect()->to('/battery-services')->with('error', 'No tienes permisos');
+        if (!in_array($roleName, ['superadmin', 'consultor'])) {
+            return redirect()->to('/dashboard')->with('error', 'No tienes permisos');
         }
 
         // Obtener todas las empresas activas (sin filtrar por created_by)
@@ -215,6 +204,23 @@ class BatteryServiceController extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        $newStatus = $this->request->getPost('status');
+
+        // VALIDACIÓN: No permitir pasar a "finalizado" si hay trabajadores sin resolver
+        if ($newStatus === 'finalizado' && $service['status'] !== 'finalizado') {
+            $workerModel = new \App\Models\WorkerModel();
+            $pendingWorkers = $workerModel
+                ->where('battery_service_id', $id)
+                ->whereIn('status', ['pendiente', 'en_progreso'])
+                ->countAllResults();
+
+            if ($pendingWorkers > 0) {
+                return redirect()->back()->withInput()->with('error',
+                    "No es posible pasar a estado 'Finalizado'. Hay {$pendingWorkers} trabajador(es) en estado pendiente o en progreso. Primero debe marcarlos como 'No Participó' o esperar a que completen la evaluación."
+                );
+            }
+        }
+
         $serviceDate = $this->request->getPost('service_date');
         $expirationDate = date('Y-m-d', strtotime($serviceDate . ' +15 days'));
 
@@ -227,7 +233,7 @@ class BatteryServiceController extends BaseController
             'link_expiration_date' => $expirationDate,
             'cantidad_forma_a' => $this->request->getPost('cantidad_forma_a') ?? 0,
             'cantidad_forma_b' => $this->request->getPost('cantidad_forma_b') ?? 0,
-            'status' => $this->request->getPost('status'),
+            'status' => $newStatus,
         ];
 
         if ($this->batteryServiceModel->update($id, $data)) {
@@ -235,6 +241,61 @@ class BatteryServiceController extends BaseController
         } else {
             return redirect()->back()->withInput()->with('error', 'Error al actualizar el servicio');
         }
+    }
+
+    /**
+     * Verificar si un servicio puede ser finalizado (AJAX)
+     * Devuelve JSON con información sobre trabajadores pendientes
+     */
+    public function checkCanFinalize($id)
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No autenticado']);
+        }
+
+        $service = $this->batteryServiceModel->find($id);
+        if (!$service) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Servicio no encontrado']);
+        }
+
+        $workerModel = new \App\Models\WorkerModel();
+
+        // Contar trabajadores por estado
+        $pendientes = $workerModel
+            ->where('battery_service_id', $id)
+            ->where('status', 'pendiente')
+            ->countAllResults();
+
+        $enProgreso = $workerModel
+            ->where('battery_service_id', $id)
+            ->where('status', 'en_progreso')
+            ->countAllResults();
+
+        $completados = $workerModel
+            ->where('battery_service_id', $id)
+            ->where('status', 'completado')
+            ->countAllResults();
+
+        $noParticipo = $workerModel
+            ->where('battery_service_id', $id)
+            ->where('status', 'no_participo')
+            ->countAllResults();
+
+        $sinResolver = $pendientes + $enProgreso;
+        $canFinalize = ($sinResolver === 0);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'canFinalize' => $canFinalize,
+            'pendientes' => $pendientes,
+            'enProgreso' => $enProgreso,
+            'completados' => $completados,
+            'noParticipo' => $noParticipo,
+            'sinResolver' => $sinResolver,
+            'message' => $canFinalize
+                ? 'El servicio puede ser finalizado.'
+                : "No es posible finalizar. Hay {$sinResolver} trabajador(es) sin resolver ({$pendientes} pendientes, {$enProgreso} en progreso)."
+        ]);
     }
 
     public function delete($id)
@@ -289,6 +350,80 @@ class BatteryServiceController extends BaseController
         ];
 
         return view('battery_services/view', $data);
+    }
+
+    /**
+     * Vista del servicio para clientes (cliente_empresa y cliente_gestor)
+     * Versión restringida de view() con accesos limitados
+     */
+    public function viewClient($id)
+    {
+        // Verificar autenticación
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to('/login');
+        }
+
+        $roleName = session()->get('role_name');
+        $userCompanyId = session()->get('company_id');
+
+        // Solo para roles de cliente
+        if (!in_array($roleName, ['cliente_empresa', 'cliente_gestor'])) {
+            return redirect()->to('/dashboard')->with('error', 'Acceso no autorizado');
+        }
+
+        // Verificar que el usuario tenga empresa asignada
+        if (!$userCompanyId) {
+            return redirect()->to('/logout')->with('error', 'Tu usuario no tiene una empresa asignada.');
+        }
+
+        $service = $this->batteryServiceModel
+            ->select('battery_services.*, companies.name as company_name, companies.nit, companies.parent_company_id')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->find($id);
+
+        if (!$service) {
+            return redirect()->to('/dashboard')->with('error', 'Servicio no encontrado');
+        }
+
+        // Verificar acceso según rol
+        $hasAccess = false;
+
+        if ($roleName === 'cliente_empresa') {
+            // Solo puede ver servicios de su propia empresa
+            $hasAccess = ($service['company_id'] == $userCompanyId);
+        } elseif ($roleName === 'cliente_gestor') {
+            // Puede ver servicios de su empresa o de empresas hijas
+            if ($service['company_id'] == $userCompanyId) {
+                $hasAccess = true;
+            } else {
+                // Verificar si la empresa del servicio es hija de la empresa gestora
+                $hasAccess = ($service['parent_company_id'] == $userCompanyId);
+            }
+        }
+
+        if (!$hasAccess) {
+            return redirect()->to('/dashboard')->with('error', 'No tienes acceso a este servicio');
+        }
+
+        // Determinar si el servicio está cerrado (para mostrar/ocultar secciones)
+        // Acepta tanto 'cerrado' como 'finalizado' por compatibilidad
+        $isServiceClosed = in_array($service['status'], ['cerrado', 'finalizado']);
+
+        // Get recommendations for risky dimensions (solo si está cerrado)
+        $recommendationsHtml = '';
+        if ($isServiceClosed) {
+            $recommendationsController = new \App\Controllers\RecommendationsController();
+            $recommendationsHtml = $recommendationsController->getRecommendationButtons($id);
+        }
+
+        $data = [
+            'title' => 'Detalle del Servicio',
+            'service' => $service,
+            'recommendations' => $recommendationsHtml,
+            'isServiceClosed' => $isServiceClosed,
+        ];
+
+        return view('battery_services/view_client', $data);
     }
 
     /**
@@ -580,12 +715,35 @@ class BatteryServiceController extends BaseController
         }
 
         $service = $this->batteryServiceModel
-            ->select('battery_services.*, companies.name as company_name')
+            ->select('battery_services.*, companies.name as company_name, companies.parent_company_id')
             ->join('companies', 'companies.id = battery_services.company_id')
             ->find($id);
 
         if (!$service) {
             return redirect()->to('/battery-services')->with('error', 'Servicio no encontrado');
+        }
+
+        // Verificar acceso según rol
+        $userRole = session()->get('role_name');
+        if (in_array($userRole, ['cliente_empresa', 'cliente_gestor'])) {
+            $userCompanyId = session()->get('company_id');
+            $hasAccess = false;
+
+            if ($userRole === 'cliente_empresa') {
+                $hasAccess = ($service['company_id'] == $userCompanyId);
+            } elseif ($userRole === 'cliente_gestor') {
+                $hasAccess = ($service['company_id'] == $userCompanyId) ||
+                             ($service['parent_company_id'] == $userCompanyId);
+            }
+
+            if (!$hasAccess) {
+                return redirect()->to('/dashboard')->with('error', 'No tienes permisos para ver este servicio');
+            }
+
+            // Cliente solo puede ver si el servicio está cerrado/finalizado
+            if (!in_array($service['status'], ['cerrado', 'finalizado'])) {
+                return redirect()->to('/dashboard')->with('error', 'Los reportes estarán disponibles cuando el servicio esté finalizado');
+            }
         }
 
         // Obtener todos los resultados calculados para este servicio

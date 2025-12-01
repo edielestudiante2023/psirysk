@@ -38,9 +38,9 @@ class ReportsController extends BaseController
             return redirect()->to('/dashboard')->with('error', 'No tienes permisos para acceder a esta sección');
         }
 
-        // Obtener información del servicio
+        // Obtener información del servicio incluyendo parent_company_id
         $service = $this->batteryServiceModel
-            ->select('battery_services.*, companies.name as company_name, companies.nit')
+            ->select('battery_services.*, companies.name as company_name, companies.nit, companies.parent_company_id')
             ->join('companies', 'companies.id = battery_services.company_id')
             ->find($serviceId);
 
@@ -48,23 +48,37 @@ class ReportsController extends BaseController
             return redirect()->to('/dashboard')->with('error', 'Servicio no encontrado');
         }
 
-        // Si es cliente, verificar que sea de su empresa
+        // Si es cliente, verificar acceso según rol
         if (in_array($userRole, ['cliente_empresa', 'cliente_gestor'])) {
             $userCompanyId = session()->get('company_id');
-            if ($service['company_id'] != $userCompanyId) {
+            $hasAccess = false;
+
+            if ($userRole === 'cliente_empresa') {
+                // Solo puede ver servicios de su propia empresa
+                $hasAccess = ($service['company_id'] == $userCompanyId);
+            } elseif ($userRole === 'cliente_gestor') {
+                // Puede ver servicios de su empresa o de empresas hijas
+                if ($service['company_id'] == $userCompanyId) {
+                    $hasAccess = true;
+                } else {
+                    // Verificar si la empresa del servicio es hija de la empresa gestora
+                    $hasAccess = ($service['parent_company_id'] == $userCompanyId);
+                }
+            }
+
+            if (!$hasAccess) {
                 return redirect()->to('/dashboard')->with('error', 'No tienes permisos para ver este servicio');
             }
 
             // IMPORTANTE: Cliente solo puede ver informes si el servicio está CERRADO
-            if ($service['status'] !== 'cerrado') {
+            // Acepta tanto 'cerrado' como 'finalizado' por compatibilidad
+            if (!in_array($service['status'], ['cerrado', 'finalizado'])) {
                 // Redirigir a vista de "Servicio en Proceso"
                 return view('reports/service_in_progress', ['service' => $service]);
             }
 
-            // NUEVO: Si no ha completado encuesta de satisfacción, redirigir
-            if (!$service['satisfaction_survey_completed']) {
-                return redirect()->to('/satisfaction/survey/' . $serviceId);
-            }
+            // NOTA: La encuesta de satisfacción se solicita SOLO al descargar PDFs
+            // Los dashboards interactivos están disponibles sin encuesta
         }
 
         // Consultor puede ver todo (en cualquier estado)
@@ -1149,7 +1163,8 @@ class ReportsController extends BaseController
         log_message('info', '[SURVEY-CHECK] Encuesta completada: ' . ($service['satisfaction_survey_completed'] ?? 'NULL'));
 
         // Verificar que el servicio esté cerrado
-        if ($service['status'] !== 'cerrado') {
+        // Acepta tanto 'cerrado' como 'finalizado' por compatibilidad
+        if (!in_array($service['status'], ['cerrado', 'finalizado'])) {
             log_message('warning', '[SURVEY-CHECK] Servicio no cerrado, bloqueando descarga');
             return $this->response->setJSON([
                 'completed' => false,

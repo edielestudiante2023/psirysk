@@ -150,10 +150,6 @@
             </a>
         </nav>
 
-        <!-- Logo RPS en sidebar inferior -->
-        <div class="mt-auto p-3 text-center" style="position: absolute; bottom: 0; width: 100%;">
-            <img src="<?= base_url('images/logos/logo_rps.png') ?>" alt="RPS" style="max-width: 80px; opacity: 0.8;">
-        </div>
     </aside>
 
     <!-- Main Content -->

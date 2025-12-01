@@ -75,6 +75,9 @@
                     <a class="nav-link" href="<?= base_url('companies') ?>">
                         <i class="fas fa-building me-2"></i> Clientes
                     </a>
+                    <a class="nav-link" href="<?= base_url('satisfaction/dashboard') ?>">
+                        <i class="fas fa-star me-2"></i> Encuestas Satisfaccion
+                    </a>
                     <hr class="text-white-50 mx-3">
                     <a class="nav-link" href="<?= base_url('logout') ?>">
                         <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión

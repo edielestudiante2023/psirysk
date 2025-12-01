@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= $title ?> - PsyRisk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%); min-height: 100vh; }
+        .header-banner {
+            background: linear-gradient(135deg, #1a365d 0%, #2c5282 50%, #3182ce 100%);
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .info-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 0.25rem;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .section-title.danger { border-left: 4px solid #dc3545; }
+        .section-title.primary { border-left: 4px solid #0d6efd; }
+        .section-title.success { border-left: 4px solid #198754; }
+        .section-title h5 { margin: 0; font-weight: 600; }
+
+        .action-card {
+            border: none;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            height: 100%;
+            overflow: hidden;
+        }
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .action-card .card-header {
+            border: none;
+            padding: 1rem;
+        }
+        .action-card .card-body {
+            padding: 1rem;
+        }
+        .action-card .btn {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .quick-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            border: 2px solid transparent;
+        }
+        .quick-action-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .quick-action-btn i { font-size: 1.25rem; }
+
+        .pdf-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+        .pdf-card {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .pdf-card:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .pdf-card .card-header {
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+        }
+        .pdf-card .card-body {
+            padding: 0.75rem 1rem;
+        }
+        .pdf-card .btn-sm {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .informe-destacado {
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+        }
+        .informe-destacado .card-header {
+            padding: 1.25rem 1.5rem;
+        }
+
+        .recommendations-accordion .accordion-button {
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 1.25rem 1.5rem;
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+            border: 2px solid #ffc107;
+        }
+        .recommendations-accordion .accordion-button:not(.collapsed) {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: #212529;
+            box-shadow: none;
+        }
+        .recommendations-accordion .accordion-button::after {
+            filter: brightness(0);
+        }
+
+        .nav-footer {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .content-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+
+        .service-pending-notice {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeeba 100%);
+            border: 2px solid #ffc107;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Banner -->
+    <div class="header-banner">
+        <div class="container-fluid px-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-2" style="background: transparent;">
+                            <li class="breadcrumb-item"><a href="<?= base_url('dashboard') ?>" class="text-white-50">Dashboard</a></li>
+                            <li class="breadcrumb-item text-white"><?= esc($service['service_name']) ?></li>
+                        </ol>
+                    </nav>
+                    <h3 class="mb-1"><i class="fas fa-clipboard-check me-2"></i><?= esc($service['service_name']) ?></h3>
+                    <p class="mb-0 opacity-75"><?= esc($service['company_name']) ?> - NIT: <?= esc($service['nit']) ?></p>
+                </div>
+                <div class="text-end">
+                    <div class="info-badge mb-2">
+                        <i class="fas fa-calendar me-1"></i> <?= date('d/m/Y', strtotime($service['service_date'])) ?>
+                    </div>
+                    <span class="badge bg-<?= $isServiceClosed ? 'success' : 'warning' ?> ms-2 py-2 px-3">
+                        <?= $isServiceClosed ? 'Cerrado' : ucfirst(str_replace('_', ' ', $service['status'])) ?>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid px-4">
+        <?php if (session()->getFlashdata('success')): ?>
+            <div class="alert alert-success alert-dismissible fade show">
+                <?= session()->getFlashdata('success') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <?php if (session()->getFlashdata('warning')): ?>
+            <div class="alert alert-warning alert-dismissible fade show">
+                <?= session()->getFlashdata('warning') ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <!-- Acceso a Ver Trabajadores (SIEMPRE disponible) -->
+        <div class="content-section">
+            <div class="section-title primary mb-3">
+                <i class="fas fa-users fa-lg text-primary me-3"></i>
+                <h5>Trabajadores</h5>
+            </div>
+            <div class="quick-actions">
+                <a href="<?= base_url('client/workers/service/' . $service['id']) ?>" class="quick-action-btn btn btn-success text-white">
+                    <i class="fas fa-users"></i> Ver Trabajadores
+                </a>
+            </div>
+        </div>
+
+        <?php if (!$isServiceClosed): ?>
+            <!-- Aviso de servicio en proceso -->
+            <div class="service-pending-notice">
+                <i class="fas fa-hourglass-half fa-3x text-warning mb-3"></i>
+                <h4 class="mb-2">Servicio en Proceso</h4>
+                <p class="text-muted mb-0">
+                    Los informes y reportes estaran disponibles una vez que el servicio sea cerrado por el consultor.
+                </p>
+            </div>
+        <?php else: ?>
+            <!-- Acciones Rapidas (solo cuando esta cerrado) -->
+            <div class="content-section">
+                <div class="section-title primary mb-3">
+                    <i class="fas fa-bolt fa-lg text-primary me-3"></i>
+                    <h5>Acciones Rapidas</h5>
+                </div>
+                <div class="quick-actions">
+                    <a href="<?= base_url('battery-services/global-gauges/' . $service['id']) ?>" class="quick-action-btn btn btn-info text-white" target="_blank">
+                        <i class="fas fa-gauge-high"></i> Graficos Globales
+                    </a>
+                    <a href="<?= base_url('reports/heatmap/' . $service['id']) ?>" class="quick-action-btn btn btn-danger text-white" target="_blank">
+                        <i class="fas fa-fire"></i> Mapa de Calor General
+                    </a>
+                    <a href="<?= base_url('reports/consolidacion/' . $service['id']) ?>" class="quick-action-btn btn btn-warning" target="_blank">
+                        <i class="fas fa-chart-bar"></i> Consolidacion Grupal
+                    </a>
+                    <a href="<?= base_url('reports/ficha-datos-generales/' . $service['id']) ?>" class="quick-action-btn btn btn-secondary text-white" target="_blank">
+                        <i class="fas fa-id-card"></i> Ficha Demografica
+                    </a>
+                </div>
+            </div>
+
+            <!-- MAPAS DE CALOR POR INSTRUMENTO -->
+            <div class="content-section">
+                <div class="section-title danger">
+                    <i class="fas fa-fire fa-lg text-danger me-3"></i>
+                    <h5>Mapas de Calor por Instrumento</h5>
+                    <span class="badge bg-danger ms-auto">4 instrumentos</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="action-card card border-danger">
+                            <div class="card-header bg-danger bg-opacity-10">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-briefcase text-danger me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Intralaboral Forma A</h6>
+                                        <small class="text-muted">Jefes, profesionales</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <a href="<?= base_url('reports/intralaboral-a/' . $service['id']) ?>" class="btn btn-danger w-100" target="_blank">
+                                    <i class="fas fa-fire me-2"></i>Ver Mapa
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="action-card card border-danger">
+                            <div class="card-header bg-danger bg-opacity-10">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-hard-hat text-danger me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Intralaboral Forma B</h6>
+                                        <small class="text-muted">Auxiliares, operarios</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <a href="<?= base_url('reports/intralaboral-b/' . $service['id']) ?>" class="btn btn-danger w-100" target="_blank">
+                                    <i class="fas fa-fire me-2"></i>Ver Mapa
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="action-card card border-danger">
+                            <div class="card-header bg-danger bg-opacity-10">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-home text-danger me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Extralaboral</h6>
+                                        <small class="text-muted">Factores externos</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('reports/extralaboral-a/' . $service['id']) ?>" class="btn btn-outline-danger btn-sm" target="_blank">
+                                        <i class="fas fa-fire me-1"></i>Forma A
+                                    </a>
+                                    <a href="<?= base_url('reports/extralaboral-b/' . $service['id']) ?>" class="btn btn-outline-danger btn-sm" target="_blank">
+                                        <i class="fas fa-fire me-1"></i>Forma B
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-lg-6 col-md-6">
+                        <div class="action-card card border-danger">
+                            <div class="card-header bg-danger bg-opacity-10">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-heartbeat text-danger me-2"></i>
+                                    <div>
+                                        <h6 class="mb-0">Estres</h6>
+                                        <small class="text-muted">Sintomas</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="<?= base_url('reports/estres-a/' . $service['id']) ?>" class="btn btn-outline-danger btn-sm" target="_blank">
+                                        <i class="fas fa-fire me-1"></i>Forma A
+                                    </a>
+                                    <a href="<?= base_url('reports/estres-b/' . $service['id']) ?>" class="btn btn-outline-danger btn-sm" target="_blank">
+                                        <i class="fas fa-fire me-1"></i>Forma B
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRAFICACION CYCLOID -->
+            <div class="content-section">
+                <div class="section-title primary">
+                    <i class="fas fa-chart-line fa-lg text-primary me-3"></i>
+                    <h5>Graficacion Cycloid - Analisis Interactivo</h5>
+                    <span class="badge bg-primary ms-auto">3 modulos</span>
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="action-card card border-primary">
+                            <div class="card-header bg-primary bg-opacity-10">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-briefcase text-primary me-2"></i>
+                                    <h6 class="mb-0">Cycloid Intralaboral</h6>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-2">Graficas radiales por dominios y dimensiones con filtros.</p>
+                                <a href="<?= base_url('reports/intralaboral/' . $service['id']) ?>" class="btn btn-primary w-100" target="_blank">
+                                    <i class="fas fa-chart-line me-2"></i>Ver Cycloid
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="action-card card border-primary">
+                            <div class="card-header bg-primary bg-opacity-10">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-home text-primary me-2"></i>
+                                    <h6 class="mb-0">Cycloid Extralaboral</h6>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-2">7 dimensiones con segmentadores demograficos.</p>
+                                <a href="<?= base_url('reports/extralaboral/' . $service['id']) ?>" class="btn btn-primary w-100" target="_blank">
+                                    <i class="fas fa-chart-line me-2"></i>Ver Cycloid
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="action-card card border-primary">
+                            <div class="card-header bg-primary bg-opacity-10">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-heartbeat text-primary me-2"></i>
+                                    <h6 class="mb-0">Cycloid Estres</h6>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted small mb-2">Sintomas de estres con comparativas por grupos.</p>
+                                <a href="<?= base_url('reports/estres/' . $service['id']) ?>" class="btn btn-primary w-100" target="_blank">
+                                    <i class="fas fa-chart-line me-2"></i>Ver Cycloid
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF EJECUTIVO (Informes Completos) -->
+            <div class="content-section">
+                <div class="section-title success">
+                    <i class="fas fa-file-pdf fa-lg text-success me-3"></i>
+                    <h5>Informes PDF</h5>
+                </div>
+
+                <!-- Informes Completos -->
+                <div class="row g-3">
+                    <div class="col-lg-6">
+                        <div class="informe-destacado card" style="border: 3px solid #C41E3A;">
+                            <div class="card-header text-white" style="background: linear-gradient(135deg, #C41E3A 0%, #8B0000 100%);">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-pdf fa-2x me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0">Informe de Bateria Completo</h6>
+                                            <small>Resolucion 2764/2022</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-light text-dark">~80+ pag</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/completo/' . $service['id']) ?>" class="btn btn-outline-danger flex-fill" style="border-color: #C41E3A; color: #C41E3A;" target="_blank">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/' . $service['id']) ?>" class="btn text-white flex-fill" style="background-color: #C41E3A;" target="_blank">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="informe-destacado card" style="border: 3px solid #FF6B35;">
+                            <div class="card-header text-white" style="background: linear-gradient(135deg, #FF6B35 0%, #E65100 100%);">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-briefcase fa-2x me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0">Informe Ejecutivo</h6>
+                                            <small>Resumen + Planes de Accion</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-light text-dark">~15-30 pag</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex gap-2">
+                                    <a href="<?= base_url('pdfejecutivo/preview/ejecutivo/' . $service['id']) ?>" class="btn btn-outline-warning flex-fill" style="border-color: #FF6B35; color: #FF6B35;" target="_blank">
+                                        <i class="fas fa-eye me-2"></i>Ver HTML
+                                    </a>
+                                    <a href="<?= base_url('pdfejecutivo/download/ejecutivo/' . $service['id']) ?>" class="btn text-white flex-fill" style="background-color: #FF6B35;" target="_blank">
+                                        <i class="fas fa-download me-2"></i>Descargar PDF
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCION DE RECOMENDACIONES (DESPLEGABLE - AL FINAL) -->
+            <?php if (isset($recommendations) && !empty($recommendations)): ?>
+            <div class="accordion recommendations-accordion mb-4" id="recommendationsAccordion">
+                <div class="accordion-item border-0 shadow-sm rounded overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRecommendations">
+                            <i class="fas fa-exclamation-triangle text-warning me-3 fa-lg"></i>
+                            <div>
+                                <span class="fw-bold">Que hacer ahora?</span>
+                                <br>
+                                <small class="text-muted fw-normal">Las siguientes dimensiones presentan niveles de riesgo MEDIO (amarillo) o ALTO/MUY ALTO (rojo). Haga clic en "Ver Plan de Intervencion" para acceder a las recomendaciones del equipo de expertos Cycloid Talent SAS.</small>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapseRecommendations" class="accordion-collapse collapse">
+                        <div class="accordion-body bg-warning bg-opacity-10">
+                            <?= $recommendations ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+        <?php endif; ?>
+
+        <!-- Navegacion -->
+        <div class="nav-footer d-flex justify-content-between align-items-center mb-4">
+            <a href="<?= base_url('dashboard') ?>" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

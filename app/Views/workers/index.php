@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
     <style>
         body { background-color: #f8f9fa; }
         .sidebar {
@@ -108,28 +109,34 @@
                 <div class="p-4">
                     <!-- Estadísticas -->
                     <div class="row mb-4">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="stats-box">
                                 <h3 class="mb-0"><?= count($workers) ?></h3>
                                 <small>Total Trabajadores</small>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="stats-box" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
                                 <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'completado')) ?></h3>
                                 <small>Completados</small>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="stats-box" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
                                 <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'en_proceso')) ?></h3>
                                 <small>En Proceso</small>
                             </div>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <div class="stats-box" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%);">
                                 <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'pendiente')) ?></h3>
                                 <small>Pendientes</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="stats-box" style="background: linear-gradient(135deg, #212529 0%, #343a40 100%);">
+                                <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'no_participo')) ?></h3>
+                                <small>No Participó</small>
                             </div>
                         </div>
                     </div>
@@ -291,11 +298,18 @@
                                                         $statusColors = [
                                                             'pendiente' => 'secondary',
                                                             'en_progreso' => 'warning',
-                                                            'completado' => 'success'
+                                                            'completado' => 'success',
+                                                            'no_participo' => 'dark'
+                                                        ];
+                                                        $statusLabels = [
+                                                            'pendiente' => 'Pendiente',
+                                                            'en_progreso' => 'En Progreso',
+                                                            'completado' => 'Completado',
+                                                            'no_participo' => 'No Participó'
                                                         ];
                                                         ?>
-                                                        <span class="badge bg-<?= $statusColors[$worker['status']] ?>">
-                                                            <?= ucfirst($worker['status']) ?>
+                                                        <span class="badge bg-<?= $statusColors[$worker['status']] ?? 'secondary' ?>">
+                                                            <?= $statusLabels[$worker['status']] ?? ucfirst($worker['status']) ?>
                                                         </span>
                                                     </td>
                                                     <td>
@@ -335,6 +349,14 @@
                                                                         title="Eliminar trabajador">
                                                                     <i class="fas fa-trash"></i>
                                                                 </button>
+                                                                <?php if (!in_array($worker['status'], ['completado', 'no_participo'])): ?>
+                                                                    <button class="btn btn-outline-dark mark-no-participo-btn"
+                                                                            data-worker-id="<?= $worker['id'] ?>"
+                                                                            data-worker-name="<?= esc($worker['name']) ?>"
+                                                                            title="Marcar como No Participó">
+                                                                        <i class="fas fa-user-slash"></i>
+                                                                    </button>
+                                                                <?php endif; ?>
                                                             <?php else: ?>
                                                                 <span class="badge bg-secondary">Solo lectura</span>
                                                             <?php endif; ?>
@@ -357,18 +379,26 @@
                                             Solo consulta. La gestión de trabajadores es responsabilidad del consultor asignado.
                                         </div>
                                     <?php else: ?>
+                                        <?php
+                                        // Contar trabajadores pendientes o en_progreso para el botón masivo
+                                        $pendientesYEnProgreso = count(array_filter($workers, fn($w) => in_array($w['status'], ['pendiente', 'en_progreso'])));
+                                        ?>
                                         <a href="<?= base_url('battery-services/' . $service['id']) ?>" class="btn btn-secondary">
                                             <i class="fas fa-arrow-left me-2"></i>Volver al Servicio
                                         </a>
                                         <div>
+                                            <?php if ($pendientesYEnProgreso > 0): ?>
+                                                <button class="btn btn-dark me-2" id="markAllNoParticipoBtn"
+                                                        data-service-id="<?= $service['id'] ?>"
+                                                        data-count="<?= $pendientesYEnProgreso ?>">
+                                                    <i class="fas fa-users-slash me-2"></i>Marcar Todos No Participó (<?= $pendientesYEnProgreso ?>)
+                                                </button>
+                                            <?php endif; ?>
                                             <a href="<?= base_url('workers/create/' . $service['id']) ?>" class="btn btn-success me-2">
                                                 <i class="fas fa-user-plus me-2"></i>Añadir Trabajador
                                             </a>
                                             <button class="btn btn-primary me-2" id="sendBulkEmailsBtn" data-service-id="<?= $service['id'] ?>">
                                                 <i class="fas fa-paper-plane me-2"></i>Enviar Emails Masivo
-                                            </button>
-                                            <button class="btn btn-info">
-                                                <i class="fas fa-file-export me-2"></i>Exportar Lista
                                             </button>
                                         </div>
                                     <?php endif; ?>
@@ -439,6 +469,15 @@
                                     <option value="presencial">Presencial</option>
                                 </select>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Estado</label>
+                                <select class="form-select" id="edit_status" name="status" required>
+                                    <option value="pendiente">Pendiente</option>
+                                    <option value="en_progreso">En Progreso</option>
+                                    <option value="completado">Completado</option>
+                                    <option value="no_participo">No Participó</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -456,8 +495,13 @@
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <!-- DataTables Buttons para exportar Excel -->
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script>
-        // Initialize DataTable with column filters
+        // Initialize DataTable with column filters and Excel export
         $(document).ready(function() {
             var table = $('#workersTable').DataTable({
                 language: {
@@ -468,7 +512,21 @@
                 columnDefs: [
                     { orderable: false, targets: -1 } // Deshabilitar orden en columna Acciones
                 ],
-                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
+                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                     '<"row"<"col-sm-12"B>>' +
+                     'rtip',
+                buttons: [
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="fas fa-file-excel me-2"></i>Descargar Excel',
+                        className: 'btn btn-success mb-3',
+                        title: 'Trabajadores - <?= esc($service['service_name']) ?>',
+                        filename: 'Trabajadores_<?= preg_replace('/[^a-zA-Z0-9]/', '_', $service['service_name']) ?>_<?= date('Ymd') ?>',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7] // Excluir columna Acciones
+                        }
+                    }
+                ]
             });
 
             // Agregar filtros en cada columna
@@ -589,6 +647,7 @@
                     document.getElementById('edit_area').value = worker.area || '';
                     document.getElementById('edit_intralaboral_type').value = worker.intralaboral_type || 'A';
                     document.getElementById('edit_application_mode').value = worker.application_mode || 'virtual';
+                    document.getElementById('edit_status').value = worker.status || 'pendiente';
 
                     // Mostrar el modal
                     editModal.show();
@@ -682,7 +741,7 @@
             const serviceId = this.dataset.serviceId;
             const btn = this;
 
-            if (!confirm('¿Enviar enlaces de evaluación a TODOS los trabajadores del servicio?\n\nEsto incluye trabajadores que ya hayan recibido el email anteriormente.')) {
+            if (!confirm('¿Enviar enlaces de evaluación a los trabajadores PENDIENTES?\n\nSolo se enviará a trabajadores con estado "Pendiente" o "En Progreso".\nLos trabajadores "Completados" y "No Participó" serán excluidos.')) {
                 return;
             }
 
@@ -716,6 +775,107 @@
             } catch (error) {
                 alert('✗ Error de conexión: ' + error.message);
             } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
+        });
+
+        // Mark as "No Participó" with double confirmation (individual)
+        document.querySelectorAll('.mark-no-participo-btn').forEach(button => {
+            button.addEventListener('click', async function() {
+                const workerId = this.dataset.workerId;
+                const workerName = this.dataset.workerName;
+
+                // Primera confirmación
+                if (!confirm(`⚠️ MARCAR COMO "NO PARTICIPÓ"\n\nTrabajador: ${workerName}\n\nEsta acción:\n• Excluirá al trabajador de TODAS las estadísticas\n• No aparecerá en ningún informe\n• No se puede deshacer fácilmente\n\n¿Desea continuar?`)) {
+                    return;
+                }
+
+                // Segunda confirmación (doble confirmación requerida)
+                if (!confirm(`CONFIRMACIÓN FINAL\n\n¿Está SEGURO de que desea marcar a "${workerName}" como NO PARTICIPÓ?\n\nEl trabajador será excluido permanentemente de todos los cálculos e informes.`)) {
+                    return;
+                }
+
+                const btn = this;
+                const originalHTML = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                try {
+                    const response = await fetch(`<?= base_url('workers/mark-no-participo/') ?>${workerId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        alert('✓ ' + result.message);
+                        location.reload(); // Recargar para actualizar la tabla
+                    } else {
+                        alert('✗ Error: ' + result.message);
+                        btn.disabled = false;
+                        btn.innerHTML = originalHTML;
+                    }
+                } catch (error) {
+                    alert('✗ Error de conexión: ' + error.message);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
+            });
+        });
+
+        // Mark ALL pending/in_progress as "No Participó" (MASIVO) with double confirmation
+        document.getElementById('markAllNoParticipoBtn')?.addEventListener('click', async function() {
+            const serviceId = this.dataset.serviceId;
+            const count = this.dataset.count;
+            const btn = this;
+
+            // Primera confirmación
+            if (!confirm(`⚠️ ACCIÓN MASIVA: MARCAR TODOS COMO "NO PARTICIPÓ"\n\n${count} trabajador(es) serán marcados como "No Participó":\n• Todos los pendientes\n• Todos los que están en progreso\n\nEsta acción:\n• Excluirá a TODOS estos trabajadores de las estadísticas\n• No aparecerán en ningún informe\n• NO se puede deshacer fácilmente\n\n¿Desea continuar?`)) {
+                return;
+            }
+
+            // Segunda confirmación (doble confirmación requerida)
+            if (!confirm(`⚠️ CONFIRMACIÓN FINAL ⚠️\n\n¿Está ABSOLUTAMENTE SEGURO?\n\n${count} trabajador(es) serán marcados como "NO PARTICIPÓ" y excluidos permanentemente de todos los cálculos e informes.\n\nEscriba "SI" en el siguiente prompt para confirmar.`)) {
+                return;
+            }
+
+            // Tercera confirmación: prompt para escribir "SI"
+            const confirmText = prompt(`Para confirmar esta acción masiva, escriba "SI" (en mayúsculas):`);
+            if (confirmText !== 'SI') {
+                alert('Acción cancelada. No se escribió "SI" correctamente.');
+                return;
+            }
+
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
+
+            try {
+                const response = await fetch(`<?= base_url('workers/mark-all-no-participo/') ?>${serviceId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('✓ ' + result.message);
+                    location.reload(); // Recargar para actualizar la tabla
+                } else {
+                    alert('✗ Error: ' + result.message);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
+            } catch (error) {
+                alert('✗ Error de conexión: ' + error.message);
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
             }

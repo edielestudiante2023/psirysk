@@ -25,6 +25,9 @@
 <a class="nav-link" href="<?= base_url('reports') ?>">
     <i class="fas fa-chart-bar me-2"></i> Informes
 </a>
+<a class="nav-link" href="<?= base_url('satisfaction/dashboard') ?>">
+    <i class="fas fa-star me-2"></i> Encuestas Satisfaccion
+</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>

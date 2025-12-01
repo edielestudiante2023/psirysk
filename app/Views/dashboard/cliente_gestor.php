@@ -120,19 +120,15 @@
                                         </small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="badge bg-<?= $service['status'] === 'cerrado' ? 'success' : ($service['status'] === 'en_curso' ? 'warning' : 'secondary') ?> mb-2">
-                                            <?= ucfirst(str_replace('_', ' ', $service['status'])) ?>
+                                        <?php $isClosed = in_array($service['status'], ['cerrado', 'finalizado']); ?>
+                                        <span class="badge bg-<?= $isClosed ? 'success' : ($service['status'] === 'en_curso' ? 'warning' : 'secondary') ?> mb-2">
+                                            <?= $isClosed ? 'Cerrado' : ucfirst(str_replace('_', ' ', $service['status'])) ?>
                                         </span>
                                         <br>
-                                        <?php if ($service['status'] === 'cerrado'): ?>
-                                            <a href="<?= base_url('battery-services/' . $service['id']) ?>" class="btn btn-sm btn-primary mt-2">
-                                                <i class="fas fa-chart-bar me-1"></i>Ver Informes
-                                            </a>
-                                        <?php else: ?>
-                                            <button class="btn btn-sm btn-outline-secondary mt-2" disabled>
-                                                <i class="fas fa-clock me-1"></i>En Proceso
-                                            </button>
-                                        <?php endif; ?>
+                                        <a href="<?= base_url('client/battery-services/' . $service['id']) ?>" class="btn btn-sm btn-<?= $isClosed ? 'primary' : 'outline-primary' ?> mt-2">
+                                            <i class="fas fa-<?= $isClosed ? 'chart-bar' : 'eye' ?> me-1"></i>
+                                            <?= $isClosed ? 'Ver Informes' : 'Ver Servicio' ?>
+                                        </a>
                                     </div>
                                 </div>
                             </div>

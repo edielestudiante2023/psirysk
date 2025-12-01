@@ -303,6 +303,76 @@ class PdfEjecutivoBaseController extends BaseController
     }
 
     /**
+     * Verificar acceso del usuario al servicio para PDFs
+     * Similar a ReportsController::checkAccess()
+     * @return mixed null si tiene acceso, RedirectResponse si no
+     */
+    protected function checkPdfAccess($batteryServiceId)
+    {
+        // Verificar autenticación
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to('/login');
+        }
+
+        $userRole = session()->get('role_name');
+
+        // Admin y vendedor NO tienen acceso a PDFs
+        if (in_array($userRole, ['admin', 'superadmin', 'comercial'])) {
+            return redirect()->to('/dashboard')->with('error', 'No tienes permisos para acceder a esta sección');
+        }
+
+        // Obtener información del servicio
+        $db = \Config\Database::connect();
+        $service = $db->query("
+            SELECT bs.*, c.parent_company_id
+            FROM battery_services bs
+            JOIN companies c ON bs.company_id = c.id
+            WHERE bs.id = ?
+        ", [$batteryServiceId])->getRowArray();
+
+        if (!$service) {
+            return redirect()->to('/dashboard')->with('error', 'Servicio no encontrado');
+        }
+
+        // Si es cliente, verificar acceso según rol
+        if (in_array($userRole, ['cliente_empresa', 'cliente_gestor'])) {
+            $userCompanyId = session()->get('company_id');
+            $hasAccess = false;
+
+            if ($userRole === 'cliente_empresa') {
+                // Solo puede ver servicios de su propia empresa
+                $hasAccess = ($service['company_id'] == $userCompanyId);
+            } elseif ($userRole === 'cliente_gestor') {
+                // Puede ver servicios de su empresa o de empresas hijas
+                if ($service['company_id'] == $userCompanyId) {
+                    $hasAccess = true;
+                } else {
+                    // Verificar si la empresa del servicio es hija de la empresa gestora
+                    $hasAccess = ($service['parent_company_id'] == $userCompanyId);
+                }
+            }
+
+            if (!$hasAccess) {
+                return redirect()->to('/dashboard')->with('error', 'No tienes permisos para ver este servicio');
+            }
+
+            // Cliente solo puede ver PDFs si el servicio está cerrado o finalizado
+            if (!in_array($service['status'], ['cerrado', 'finalizado'])) {
+                return redirect()->to('/dashboard')->with('error', 'Los informes PDF estarán disponibles cuando el servicio esté finalizado');
+            }
+
+            // IMPORTANTE: Cliente debe completar encuesta de satisfacción antes de descargar PDFs
+            if (!$service['satisfaction_survey_completed']) {
+                return redirect()->to('/satisfaction/survey/' . $batteryServiceId)
+                    ->with('info', 'Para descargar los informes PDF, por favor complete primero la encuesta de satisfacción.');
+            }
+        }
+
+        // Consultor puede ver todo
+        return null;
+    }
+
+    /**
      * Carga datos de la empresa desde battery_services + companies
      */
     protected function loadCompanyData($batteryServiceId)

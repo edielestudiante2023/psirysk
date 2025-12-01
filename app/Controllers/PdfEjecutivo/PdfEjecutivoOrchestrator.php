@@ -45,10 +45,16 @@ class PdfEjecutivoOrchestrator extends PdfEjecutivoBaseController
      */
     public function preview($batteryServiceId)
     {
+        // Verificar acceso
+        $accessCheck = $this->checkPdfAccess($batteryServiceId);
+        if ($accessCheck !== null) {
+            return $accessCheck;
+        }
+
         $this->initializeData($batteryServiceId);
         $html = $this->renderAllSections($batteryServiceId);
 
-        return $this->generatePreview($html, 'Informe Ejecutivo Completo - Preview');
+        return $this->generatePreview($html, 'Informe de Batería Completo - Preview');
     }
 
     /**
@@ -56,12 +62,18 @@ class PdfEjecutivoOrchestrator extends PdfEjecutivoBaseController
      */
     public function download($batteryServiceId)
     {
+        // Verificar acceso
+        $accessCheck = $this->checkPdfAccess($batteryServiceId);
+        if ($accessCheck !== null) {
+            return $accessCheck;
+        }
+
         $this->initializeData($batteryServiceId);
         $html = $this->renderAllSections($batteryServiceId);
 
         $companyName = preg_replace('/[^a-zA-Z0-9]/', '_', $this->companyData['company_name'] ?? 'Empresa');
         $fecha = date('Ymd');
-        $filename = "Informe_Ejecutivo_{$companyName}_{$fecha}.pdf";
+        $filename = "Informe_Bateria_Completo_{$companyName}_{$fecha}.pdf";
 
         return $this->generatePdf($html, $filename);
     }

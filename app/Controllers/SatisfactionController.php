@@ -22,24 +22,39 @@ class SatisfactionController extends BaseController
     public function index($serviceId)
     {
         // Verificar que el usuario sea cliente
-        $userRole = session()->get('role');
+        $userRole = session()->get('role_name');
         if (!in_array($userRole, ['cliente_empresa', 'cliente_gestor'])) {
-            return redirect()->back()->with('error', 'No tiene permisos para acceder a esta sección.');
+            return redirect()->to('/dashboard')->with('error', 'No tiene permisos para acceder a esta sección.');
         }
 
         // Verificar que el servicio exista y esté cerrado
-        $service = $this->serviceModel->find($serviceId);
+        $service = $this->serviceModel
+            ->select('battery_services.*, companies.parent_company_id')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->find($serviceId);
         if (!$service) {
-            return redirect()->back()->with('error', 'Servicio no encontrado.');
+            return redirect()->to('/dashboard')->with('error', 'Servicio no encontrado.');
         }
 
-        if ($service['status'] !== 'cerrado') {
-            return redirect()->back()->with('error', 'El servicio aún no está cerrado.');
+        // Acepta tanto 'cerrado' como 'finalizado' por compatibilidad
+        if (!in_array($service['status'], ['cerrado', 'finalizado'])) {
+            return redirect()->to('/dashboard')->with('error', 'El servicio aún no está cerrado.');
         }
 
-        // Verificar que el usuario pertenezca a la empresa del servicio
-        if ($service['company_id'] != session()->get('company_id')) {
-            return redirect()->back()->with('error', 'No tiene permisos para este servicio.');
+        // Verificar que el usuario tenga acceso al servicio
+        $userCompanyId = session()->get('company_id');
+        $hasAccess = false;
+
+        if ($userRole === 'cliente_empresa') {
+            $hasAccess = ($service['company_id'] == $userCompanyId);
+        } elseif ($userRole === 'cliente_gestor') {
+            // Puede ver servicios de su empresa o de empresas hijas
+            $hasAccess = ($service['company_id'] == $userCompanyId) ||
+                         ($service['parent_company_id'] == $userCompanyId);
+        }
+
+        if (!$hasAccess) {
+            return redirect()->to('/dashboard')->with('error', 'No tiene permisos para este servicio.');
         }
 
         // Verificar si ya completó la encuesta
@@ -59,7 +74,7 @@ class SatisfactionController extends BaseController
     public function submit($serviceId)
     {
         // Validaciones de permisos (igual que index)
-        $userRole = session()->get('role');
+        $userRole = session()->get('role_name');
         if (!in_array($userRole, ['cliente_empresa', 'cliente_gestor'])) {
             return $this->response->setJSON([
                 'success' => false,
@@ -67,12 +82,34 @@ class SatisfactionController extends BaseController
             ]);
         }
 
-        $service = $this->serviceModel->find($serviceId);
-        if (!$service || $service['status'] !== 'cerrado' ||
-            $service['company_id'] != session()->get('company_id')) {
+        $service = $this->serviceModel
+            ->select('battery_services.*, companies.parent_company_id')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->find($serviceId);
+
+        // Acepta tanto 'cerrado' como 'finalizado' por compatibilidad
+        if (!$service || !in_array($service['status'], ['cerrado', 'finalizado'])) {
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Servicio no válido o no tiene permisos.'
+                'message' => 'Servicio no válido.'
+            ]);
+        }
+
+        // Verificar acceso
+        $userCompanyId = session()->get('company_id');
+        $hasAccess = false;
+
+        if ($userRole === 'cliente_empresa') {
+            $hasAccess = ($service['company_id'] == $userCompanyId);
+        } elseif ($userRole === 'cliente_gestor') {
+            $hasAccess = ($service['company_id'] == $userCompanyId) ||
+                         ($service['parent_company_id'] == $userCompanyId);
+        }
+
+        if (!$hasAccess) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No tiene permisos para este servicio.'
             ]);
         }
 
@@ -104,7 +141,7 @@ class SatisfactionController extends BaseController
         // Guardar encuesta
         $data = [
             'service_id' => $serviceId,
-            'user_id' => session()->get('user_id'),
+            'user_id' => session()->get('id'),
             'question_1' => $this->request->getPost('question_1'),
             'question_2' => $this->request->getPost('question_2'),
             'question_3' => $this->request->getPost('question_3'),
@@ -143,9 +180,9 @@ class SatisfactionController extends BaseController
      */
     public function view($serviceId)
     {
-        $userRole = session()->get('role');
+        $userRole = session()->get('role_name');
         if (!in_array($userRole, ['admin', 'superadmin', 'consultor', 'comercial'])) {
-            return redirect()->back()->with('error', 'No tiene permisos para ver esta información.');
+            return redirect()->to('/dashboard')->with('error', 'No tiene permisos para ver esta información.');
         }
 
         $service = $this->serviceModel->find($serviceId);
@@ -164,13 +201,13 @@ class SatisfactionController extends BaseController
     }
 
     /**
-     * Dashboard de análisis de satisfacción (admin/comercial)
+     * Dashboard de análisis de satisfacción (admin/consultor/comercial)
      */
     public function dashboard()
     {
-        $userRole = session()->get('role');
-        if (!in_array($userRole, ['admin', 'superadmin', 'comercial'])) {
-            return redirect()->back()->with('error', 'No tiene permisos para acceder a esta sección.');
+        $userRole = session()->get('role_name');
+        if (!in_array($userRole, ['admin', 'superadmin', 'consultor', 'comercial'])) {
+            return redirect()->to('/dashboard')->with('error', 'No tiene permisos para acceder a esta sección.');
         }
 
         // Obtener todas las encuestas con información del servicio y empresa
@@ -178,7 +215,7 @@ class SatisfactionController extends BaseController
             ->select('service_satisfaction_surveys.*,
                       battery_services.service_name,
                       battery_services.service_date,
-                      companies.company_name,
+                      companies.name as company_name,
                       companies.id as company_id,
                       users.name as respondent_name')
             ->join('battery_services', 'battery_services.id = service_satisfaction_surveys.service_id')
@@ -223,7 +260,7 @@ class SatisfactionController extends BaseController
             $stats = $this->surveyModel->getCompanyStats($company['id']);
             if ($stats && $stats['total_surveys'] > 0) {
                 $companyStats[] = [
-                    'company_name' => $company['company_name'],
+                    'company_name' => $company['name'],
                     'company_id' => $company['id'],
                     'total_surveys' => $stats['total_surveys'],
                     'average_score' => round($stats['average_score'], 2)

@@ -26,24 +26,65 @@ class WorkerController extends BaseController
 
     /**
      * Verificar permisos de acceso para operaciones de trabajadores
-     * Solo consultores y admin pueden gestionar trabajadores
+     * Consultores y admin pueden gestionar todos los trabajadores
      */
     private function checkWorkerPermissions($service)
     {
         $roleName = session()->get('role_name');
-        $userId = session()->get('id');
 
         // Directores comerciales NO pueden gestionar trabajadores
         if ($roleName === 'director_comercial') {
             return redirect()->to('/commercial')->with('error', 'No tienes permisos para gestionar trabajadores. Esta función es exclusiva del consultor asignado.');
         }
 
-        // Consultores solo pueden ver sus propios servicios
-        if ($roleName === 'consultor' && $service['consultant_id'] != $userId) {
+        // Consultores pueden ver todos los servicios (sin restricción por consultant_id)
+        if (!in_array($roleName, ['superadmin', 'consultor', 'admin'])) {
             return redirect()->to('/dashboard')->with('error', 'No tienes permisos para este servicio');
         }
 
         return null; // Sin errores
+    }
+
+    /**
+     * Lista global de todos los trabajadores (con filtro por empresa)
+     */
+    public function listAll()
+    {
+        // Verificar autenticación
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to('/login');
+        }
+
+        $roleName = session()->get('role_name');
+        $userId = session()->get('id');
+
+        // Directores comerciales NO pueden ver trabajadores
+        if ($roleName === 'director_comercial') {
+            return redirect()->to('/commercial')->with('error', 'No tienes permisos para ver trabajadores.');
+        }
+
+        $db = \Config\Database::connect();
+        $companyModel = new \App\Models\CompanyModel();
+
+        // Obtener todas las empresas (consultores ven todo)
+        $companies = $companyModel->findAll();
+
+        // Obtener todos los trabajadores con información del servicio y empresa
+        $workers = $db->table('workers')
+            ->select('workers.*, battery_services.service_name, battery_services.id as service_id, companies.name as company_name, companies.id as company_id')
+            ->join('battery_services', 'battery_services.id = workers.battery_service_id')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->orderBy('workers.created_at', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        $data = [
+            'title' => 'Gestión de Trabajadores',
+            'workers' => $workers,
+            'companies' => $companies,
+        ];
+
+        return view('workers/list_all', $data);
     }
 
     public function upload($serviceId)
@@ -234,6 +275,70 @@ class WorkerController extends BaseController
     }
 
     /**
+     * Vista de trabajadores para clientes (cliente_empresa y cliente_gestor)
+     * Solo permite ver resultados individuales, sin gestión
+     */
+    public function indexClient($serviceId)
+    {
+        // Verificar autenticación
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to('/login');
+        }
+
+        $roleName = session()->get('role_name');
+        $userCompanyId = session()->get('company_id');
+
+        // Solo para roles de cliente
+        if (!in_array($roleName, ['cliente_empresa', 'cliente_gestor'])) {
+            return redirect()->to('/dashboard')->with('error', 'Acceso no autorizado');
+        }
+
+        // Verificar que el usuario tenga empresa asignada
+        if (!$userCompanyId) {
+            return redirect()->to('/logout')->with('error', 'Tu usuario no tiene una empresa asignada.');
+        }
+
+        $service = $this->batteryServiceModel
+            ->select('battery_services.*, companies.name as company_name, companies.parent_company_id')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->find($serviceId);
+
+        if (!$service) {
+            return redirect()->to('/dashboard')->with('error', 'Servicio no encontrado');
+        }
+
+        // Verificar acceso según rol
+        $hasAccess = false;
+
+        if ($roleName === 'cliente_empresa') {
+            // Solo puede ver servicios de su propia empresa
+            $hasAccess = ($service['company_id'] == $userCompanyId);
+        } elseif ($roleName === 'cliente_gestor') {
+            // Puede ver servicios de su empresa o de empresas hijas
+            if ($service['company_id'] == $userCompanyId) {
+                $hasAccess = true;
+            } else {
+                // Verificar si la empresa del servicio es hija de la empresa gestora
+                $hasAccess = ($service['parent_company_id'] == $userCompanyId);
+            }
+        }
+
+        if (!$hasAccess) {
+            return redirect()->to('/dashboard')->with('error', 'No tienes acceso a este servicio');
+        }
+
+        $workers = $this->workerModel->where('battery_service_id', $serviceId)->findAll();
+
+        $data = [
+            'title' => 'Trabajadores del Servicio',
+            'service' => $service,
+            'workers' => $workers,
+        ];
+
+        return view('workers/index_client', $data);
+    }
+
+    /**
      * Send assessment email to a single worker
      */
     public function sendEmail($workerId)
@@ -301,11 +406,9 @@ class WorkerController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Trabajador no encontrado']);
         }
 
-        // Verificar permisos
-        $service = $this->batteryServiceModel->find($worker['battery_service_id']);
+        // Verificar permisos (consultores pueden editar todos los trabajadores)
         $roleName = session()->get('role_name');
-        $userId = session()->get('id');
-        if ($roleName === 'consultor' && $service['consultant_id'] != $userId) {
+        if (!in_array($roleName, ['superadmin', 'consultor', 'admin'])) {
             return $this->response->setJSON(['success' => false, 'message' => 'No tienes permisos']);
         }
 
@@ -319,6 +422,12 @@ class WorkerController extends BaseController
             'intralaboral_type' => $this->request->getPost('intralaboral_type'),
             'application_mode' => $this->request->getPost('application_mode')
         ];
+
+        // Agregar status si se envía
+        $status = $this->request->getPost('status');
+        if ($status && in_array($status, ['pendiente', 'en_progreso', 'completado', 'no_participo'])) {
+            $data['status'] = $status;
+        }
 
         // Validaciones básicas
         if (empty($data['document']) || empty($data['name']) || empty($data['email'])) {
@@ -345,6 +454,129 @@ class WorkerController extends BaseController
     }
 
     /**
+     * Marcar TODOS los trabajadores pendientes/en_progreso como "No Participó"
+     * Acción masiva para facilitar el cierre de servicios
+     */
+    public function markAllAsNoParticipo($serviceId)
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No autenticado']);
+        }
+
+        // Verificar permisos (solo consultores y admin)
+        $roleName = session()->get('role_name');
+        if (!in_array($roleName, ['superadmin', 'consultor', 'admin'])) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No tienes permisos']);
+        }
+
+        // Verificar que el servicio existe
+        $service = $this->batteryServiceModel->find($serviceId);
+        if (!$service) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Servicio no encontrado']);
+        }
+
+        // Obtener todos los trabajadores pendientes o en_progreso del servicio
+        $workersToUpdate = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->whereIn('status', ['pendiente', 'en_progreso'])
+            ->findAll();
+
+        if (empty($workersToUpdate)) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No hay trabajadores pendientes o en progreso para marcar'
+            ]);
+        }
+
+        $updatedCount = 0;
+        $errors = [];
+
+        foreach ($workersToUpdate as $worker) {
+            try {
+                $this->workerModel->update($worker['id'], [
+                    'status' => 'no_participo',
+                    'non_participation_reason' => 'no_participo',
+                    'non_participation_notes' => 'Marcado masivamente por consultor el ' . date('d/m/Y H:i')
+                ]);
+                $updatedCount++;
+            } catch (\Exception $e) {
+                $errors[] = $worker['name'];
+            }
+        }
+
+        if ($updatedCount > 0) {
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => $updatedCount . ' trabajador(es) marcado(s) como "No Participó" correctamente.',
+                'updated' => $updatedCount,
+                'errors' => $errors
+            ]);
+        } else {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al actualizar los trabajadores',
+                'errors' => $errors
+            ]);
+        }
+    }
+
+    /**
+     * Marcar trabajador como "No Participó"
+     * Este estado excluye al trabajador de todas las estadísticas e informes
+     */
+    public function markAsNoParticipo($workerId)
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No autenticado']);
+        }
+
+        $worker = $this->workerModel->find($workerId);
+        if (!$worker) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Trabajador no encontrado']);
+        }
+
+        // Verificar permisos (solo consultores y admin)
+        $roleName = session()->get('role_name');
+        if (!in_array($roleName, ['superadmin', 'consultor', 'admin'])) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No tienes permisos']);
+        }
+
+        // No se puede marcar como no_participo si ya completó
+        if ($worker['status'] === 'completado') {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No se puede marcar como "No Participó" a un trabajador que ya completó la batería'
+            ]);
+        }
+
+        // Ya está marcado como no_participo
+        if ($worker['status'] === 'no_participo') {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Este trabajador ya está marcado como "No Participó"'
+            ]);
+        }
+
+        try {
+            $this->workerModel->update($workerId, [
+                'status' => 'no_participo',
+                'non_participation_reason' => 'no_participo',
+                'non_participation_notes' => 'Marcado manualmente por consultor el ' . date('d/m/Y H:i')
+            ]);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Trabajador marcado como "No Participó" correctamente. No será incluido en estadísticas ni informes.'
+            ]);
+        } catch (\Exception $e) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al actualizar: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Delete worker
      */
     public function delete($workerId)
@@ -358,11 +590,9 @@ class WorkerController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Trabajador no encontrado']);
         }
 
-        // Verificar permisos
-        $service = $this->batteryServiceModel->find($worker['battery_service_id']);
+        // Verificar permisos (consultores pueden eliminar cualquier trabajador)
         $roleName = session()->get('role_name');
-        $userId = session()->get('id');
-        if ($roleName === 'consultor' && $service['consultant_id'] != $userId) {
+        if (!in_array($roleName, ['superadmin', 'consultor', 'admin'])) {
             return $this->response->setJSON(['success' => false, 'message' => 'No tienes permisos']);
         }
 
@@ -410,12 +640,14 @@ class WorkerController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Servicio no encontrado']);
         }
 
-        // Get ALL workers with virtual mode and email (sin restricción de email_sent)
-        // Esto permite reenviar a todos sin importar si ya recibieron el email antes
+        // Get workers with virtual mode, email, and NOT completed/no_participo
+        // Solo enviar a trabajadores pendientes o en_progreso
         $workers = $this->workerModel
             ->where('battery_service_id', $serviceId)
             ->where('application_mode', 'virtual')
-            ->whereNotIn('email', ['', null])
+            ->where('email IS NOT NULL')
+            ->where('email !=', '')
+            ->whereNotIn('status', ['completado', 'no_participo'])
             ->findAll();
 
         if (empty($workers)) {
@@ -508,7 +740,7 @@ class WorkerController extends BaseController
         // Verificar permisos
         log_message('error', '🔍 Verificando permisos - Obteniendo servicio ID: ' . $worker['battery_service_id']);
         $service = $this->batteryServiceModel
-            ->select('battery_services.*, companies.name as company_name')
+            ->select('battery_services.*, companies.name as company_name, companies.parent_company_id')
             ->join('companies', 'companies.id = battery_services.company_id')
             ->find($worker['battery_service_id']);
 
@@ -519,12 +751,40 @@ class WorkerController extends BaseController
 
         log_message('error', '✅ Servicio encontrado: ' . json_encode($service));
 
+        // Verificar permisos según rol
         $roleName = session()->get('role_name');
-        $userId = session()->get('id');
-        log_message('error', '🔍 Verificando permisos: Role=' . $roleName . ', UserID=' . $userId . ', ConsultantID=' . $service['consultant_id']);
 
-        if ($roleName === 'consultor' && $service['consultant_id'] != $userId) {
-            log_message('error', '❌ SIN PERMISOS - Consultor ' . $userId . ' no es propietario del servicio');
+        // Consultores y admins pueden ver todos los resultados
+        if (in_array($roleName, ['superadmin', 'consultor', 'admin'])) {
+            log_message('error', '✅ Permisos verificados - Rol admin/consultor');
+        }
+        // Clientes pueden ver resultados de su empresa (o empresas hijas para gestor)
+        elseif (in_array($roleName, ['cliente_empresa', 'cliente_gestor'])) {
+            $userCompanyId = session()->get('company_id');
+            $hasAccess = false;
+
+            if ($roleName === 'cliente_empresa') {
+                $hasAccess = ($service['company_id'] == $userCompanyId);
+            } elseif ($roleName === 'cliente_gestor') {
+                $hasAccess = ($service['company_id'] == $userCompanyId) ||
+                             ($service['parent_company_id'] == $userCompanyId);
+            }
+
+            if (!$hasAccess) {
+                log_message('error', '❌ SIN PERMISOS - Cliente sin acceso a esta empresa');
+                return redirect()->to('/dashboard')->with('error', 'No tienes permisos para ver estos resultados');
+            }
+
+            // Verificar que el servicio esté cerrado/finalizado para clientes
+            if (!in_array($service['status'], ['cerrado', 'finalizado'])) {
+                log_message('error', '❌ SERVICIO NO CERRADO - Cliente no puede ver resultados');
+                return redirect()->to('/dashboard')->with('error', 'Los resultados estarán disponibles cuando el servicio esté finalizado');
+            }
+
+            log_message('error', '✅ Permisos verificados - Cliente con acceso');
+        }
+        else {
+            log_message('error', '❌ SIN PERMISOS - Rol no autorizado: ' . $roleName);
             return redirect()->back()->with('error', 'No tienes permisos para ver estos resultados');
         }
 
@@ -628,10 +888,9 @@ class WorkerController extends BaseController
             ->join('companies', 'companies.id = battery_services.company_id')
             ->find($worker['battery_service_id']);
 
-        // Verificar permisos
+        // Verificar permisos (consultores pueden exportar todos los resultados)
         $roleName = session()->get('role_name');
-        $userId = session()->get('id');
-        if ($roleName === 'consultor' && $service['consultant_id'] != $userId) {
+        if (!in_array($roleName, ['superadmin', 'consultor', 'admin'])) {
             return redirect()->back()->with('error', 'No tienes permisos');
         }
 
@@ -956,10 +1215,9 @@ class WorkerController extends BaseController
             return redirect()->to('/battery-services')->with('error', 'Servicio no encontrado');
         }
 
-        // Verificar permisos
+        // Verificar permisos (consultores pueden crear trabajadores en cualquier servicio)
         $roleName = session()->get('role_name');
-        $userId = session()->get('id');
-        if ($roleName === 'consultor' && $service['consultant_id'] != $userId) {
+        if (!in_array($roleName, ['superadmin', 'consultor', 'admin'])) {
             return redirect()->to('/battery-services')->with('error', 'No tienes permisos');
         }
 
@@ -985,9 +1243,9 @@ class WorkerController extends BaseController
             return redirect()->to('/battery-services')->with('error', 'Servicio no encontrado');
         }
 
+        // Verificar permisos (consultores pueden guardar trabajadores en cualquier servicio)
         $roleName = session()->get('role_name');
-        $userId = session()->get('id');
-        if ($roleName === 'consultor' && $service['consultant_id'] != $userId) {
+        if (!in_array($roleName, ['superadmin', 'consultor', 'admin'])) {
             return redirect()->to('/battery-services')->with('error', 'No tienes permisos');
         }
 

@@ -71,13 +71,12 @@ class DashboardController extends BaseController
 
         $data = [
             'title' => 'Dashboard Consultor',
-            'totalCompanies' => $companyModel->countAll(), // Consultor puede ver todas las empresas para colaboración
-            'totalServices' => $batteryServiceModel->where('consultant_id', $userId)->countAllResults(),
+            'totalCompanies' => $companyModel->countAll(),
+            'totalServices' => $batteryServiceModel->countAllResults(),
             'recentServices' => $batteryServiceModel
                 ->select('battery_services.*, companies.name as company_name, COUNT(workers.id) as worker_count')
                 ->join('companies', 'companies.id = battery_services.company_id')
                 ->join('workers', 'workers.battery_service_id = battery_services.id', 'left')
-                ->where('battery_services.consultant_id', $userId)
                 ->groupBy('battery_services.id')
                 ->orderBy('battery_services.created_at', 'DESC')
                 ->limit(10)

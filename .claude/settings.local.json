@@ -11,7 +11,14 @@
       "Bash(php scripts/validate_baremos.php:*)",
       "Bash(php spark:*)",
       "Bash(findstr:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git merge:*)",
+      "Bash(git push:*)",
+      "Bash(git stash:*)",
+      "Bash(php:*)",
+      "Bash(del test_workers.php)"
     ],
     "deny": [],
     "ask": []

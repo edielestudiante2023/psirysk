@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-light">
     <div class="container mt-5">
@@ -28,8 +29,9 @@
                             </div>
                         <?php endif; ?>
 
-                        <form action="<?= base_url('battery-services/update/' . $service['id']) ?>" method="POST">
+                        <form id="editServiceForm" action="<?= base_url('battery-services/update/' . $service['id']) ?>" method="POST">
                             <?= csrf_field() ?>
+                            <input type="hidden" id="current_status" value="<?= $service['status'] ?>">
 
                             <div class="mb-3">
                                 <label for="company_id" class="form-label">Empresa Cliente *</label>
@@ -248,6 +250,107 @@
 
         // Calcular inicial
         updateTotalUnits();
+
+        // Validación al cambiar a "Finalizado"
+        const serviceId = <?= $service['id'] ?>;
+        const currentStatus = document.getElementById('current_status').value;
+
+        document.getElementById('editServiceForm').addEventListener('submit', async function(e) {
+            const newStatus = document.getElementById('status').value;
+
+            // Solo validar si se está cambiando a "finalizado" y no era finalizado antes
+            if (newStatus === 'finalizado' && currentStatus !== 'finalizado') {
+                e.preventDefault(); // Prevenir envío del formulario
+
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Verificando...',
+                    text: 'Comprobando estado de los trabajadores',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                try {
+                    const response = await fetch(`<?= base_url('battery-services/check-can-finalize/') ?>${serviceId}`);
+                    const result = await response.json();
+
+                    if (!result.success) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: result.message
+                        });
+                        return;
+                    }
+
+                    if (!result.canFinalize) {
+                        // Mostrar alerta con detalles
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'No es posible finalizar',
+                            html: `
+                                <div class="text-start">
+                                    <p><strong>Hay trabajadores sin resolver:</strong></p>
+                                    <ul>
+                                        <li><strong>${result.pendientes}</strong> trabajador(es) en estado <span class="badge bg-secondary">Pendiente</span></li>
+                                        <li><strong>${result.enProgreso}</strong> trabajador(es) en estado <span class="badge bg-warning text-dark">En Progreso</span></li>
+                                    </ul>
+                                    <hr>
+                                    <p class="mb-0">Antes de finalizar debe:</p>
+                                    <ol class="mb-0">
+                                        <li>Esperar que completen la evaluación, o</li>
+                                        <li>Marcarlos como <strong>"No Participó"</strong> desde la vista de trabajadores</li>
+                                    </ol>
+                                </div>
+                            `,
+                            confirmButtonText: 'Ir a Trabajadores',
+                            showCancelButton: true,
+                            cancelButtonText: 'Cerrar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                window.location.href = '<?= base_url('workers/service/' . $service['id']) ?>';
+                            }
+                        });
+                        return;
+                    }
+
+                    // Puede finalizar - confirmar acción
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Listo para finalizar',
+                        html: `
+                            <div class="text-start">
+                                <p><strong>Resumen de trabajadores:</strong></p>
+                                <ul>
+                                    <li><strong>${result.completados}</strong> completado(s)</li>
+                                    <li><strong>${result.noParticipo}</strong> marcado(s) como "No Participó"</li>
+                                </ul>
+                                <p class="mb-0">¿Desea finalizar el servicio?</p>
+                            </div>
+                        `,
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, Finalizar',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#28a745'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Enviar el formulario
+                            document.getElementById('editServiceForm').submit();
+                        }
+                    });
+
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de conexión',
+                        text: 'No se pudo verificar el estado de los trabajadores: ' + error.message
+                    });
+                }
+            }
+            // Si no es cambio a finalizado, el formulario se envía normalmente
+        });
     </script>
 </body>
 </html>

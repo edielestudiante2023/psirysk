@@ -542,44 +542,151 @@ function getRiskLabel($nivel) {
         <?php endforeach; ?>
     </div>
 
-    <!-- 7 Dimensiones Extralaborales -->
-    <h6 class="section-title">
-        <i class="fas fa-th-large me-2"></i>Dimensiones Extralaborales (7)
-    </h6>
+    <!-- 7 Dimensiones Extralaborales - Acordeón por Forma -->
+    <?php
+    // Función para calcular promedio y nivel de una dimensión extralaboral
+    function calcularDimensionExtra($results, $dbKey, $formType = null) {
+        $suma = 0;
+        $count = 0;
+        $nivelCounts = ['sin_riesgo' => 0, 'riesgo_bajo' => 0, 'riesgo_medio' => 0, 'riesgo_alto' => 0, 'riesgo_muy_alto' => 0];
 
-    <div class="row mb-4">
-        <?php
-        $dimensions = [
-            ['key' => 'dim_tiempo_fuera_trabajo', 'label' => 'Tiempo fuera del trabajo', 'icon' => 'clock'],
-            ['key' => 'dim_relaciones_familiares', 'label' => 'Relaciones familiares', 'icon' => 'users'],
-            ['key' => 'dim_comunicacion_relaciones_interpersonales', 'label' => 'Comunicación y relaciones', 'icon' => 'comments'],
-            ['key' => 'dim_situacion_economica_grupo_familiar', 'label' => 'Situación económica familiar', 'icon' => 'dollar-sign'],
-            ['key' => 'dim_caracteristicas_vivienda_entorno', 'label' => 'Vivienda y entorno', 'icon' => 'home'],
-            ['key' => 'dim_influencia_entorno_extralaboral', 'label' => 'Influencia entorno extralaboral', 'icon' => 'arrows-alt'],
-            ['key' => 'dim_desplazamiento_vivienda_trabajo', 'label' => 'Desplazamiento vivienda-trabajo', 'icon' => 'car']
-        ];
+        foreach ($results as $r) {
+            // Filtrar por tipo de forma si se especifica
+            if ($formType !== null && ($r['intralaboral_form_type'] ?? '') !== $formType) {
+                continue;
+            }
 
-        foreach ($dimensions as $dim):
-            $puntaje = $stats['dimensionAverages'][$dim['key']] ?? 0;
-            $nivel = $stats['dimensionLevels'][$dim['key']]['nivel'] ?? 'sin_riesgo';
-            $nivelLabel = $stats['dimensionLevels'][$dim['key']]['label'] ?? 'Sin Riesgo';
-        ?>
-        <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card dimension-card">
-                <div class="card-body">
-                    <div class="dimension-label">
-                        <i class="fas fa-<?= $dim['icon'] ?> me-2"></i><?= $dim['label'] ?>
+            $puntajeKey = $dbKey . '_puntaje';
+            $nivelKey = $dbKey . '_nivel';
+
+            if (isset($r[$puntajeKey]) && $r[$puntajeKey] !== null && $r[$puntajeKey] !== '') {
+                $suma += floatval($r[$puntajeKey]);
+                $count++;
+            }
+
+            if (isset($r[$nivelKey]) && isset($nivelCounts[$r[$nivelKey]])) {
+                $nivelCounts[$r[$nivelKey]]++;
+            }
+        }
+
+        $promedio = $count > 0 ? $suma / $count : 0;
+
+        // Determinar nivel predominante
+        arsort($nivelCounts);
+        $nivelPredominante = key($nivelCounts);
+        if (array_sum($nivelCounts) === 0) {
+            $nivelPredominante = 'sin_riesgo';
+        }
+
+        return ['promedio' => $promedio, 'nivel' => $nivelPredominante, 'count' => $count];
+    }
+
+    // Las 7 dimensiones extralaborales con nombres de columnas BD correctos
+    $dimensionesExtra = [
+        ['db_key' => 'extralaboral_tiempo_fuera', 'label' => 'Tiempo fuera del trabajo', 'icon' => 'clock'],
+        ['db_key' => 'extralaboral_relaciones_familiares', 'label' => 'Relaciones familiares', 'icon' => 'users'],
+        ['db_key' => 'extralaboral_comunicacion_relaciones', 'label' => 'Comunicación y relaciones interpersonales', 'icon' => 'comments'],
+        ['db_key' => 'extralaboral_situacion_economica', 'label' => 'Situación económica del grupo familiar', 'icon' => 'dollar-sign'],
+        ['db_key' => 'extralaboral_vivienda_entorno', 'label' => 'Características de la vivienda y su entorno', 'icon' => 'home'],
+        ['db_key' => 'extralaboral_influencia_entorno', 'label' => 'Influencia del entorno extralaboral sobre el trabajo', 'icon' => 'arrows-alt'],
+        ['db_key' => 'extralaboral_desplazamiento', 'label' => 'Desplazamiento vivienda-trabajo-vivienda', 'icon' => 'car']
+    ];
+
+    // Contar trabajadores por forma
+    $countExtraFormaA = 0;
+    $countExtraFormaB = 0;
+    foreach ($results as $r) {
+        if (($r['intralaboral_form_type'] ?? '') === 'A') $countExtraFormaA++;
+        if (($r['intralaboral_form_type'] ?? '') === 'B') $countExtraFormaB++;
+    }
+    ?>
+
+    <div class="accordion mb-4" id="accordionDimensionesExtra">
+        <!-- Forma A -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingExtraFormaA">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExtraFormaA" aria-expanded="true" aria-controls="collapseExtraFormaA">
+                    <i class="fas fa-th-large me-2 text-primary"></i>
+                    <strong>Dimensiones Extralaborales - Forma A</strong>
+                    <span class="badge bg-primary ms-2">7 dimensiones</span>
+                    <span class="badge bg-secondary ms-2"><?= $countExtraFormaA ?> trabajadores</span>
+                </button>
+            </h2>
+            <div id="collapseExtraFormaA" class="accordion-collapse collapse show" aria-labelledby="headingExtraFormaA" data-bs-parent="#accordionDimensionesExtra">
+                <div class="accordion-body">
+                    <?php if ($countExtraFormaA > 0): ?>
+                    <div class="row">
+                        <?php foreach ($dimensionesExtra as $dim):
+                            $calc = calcularDimensionExtra($results, $dim['db_key'], 'A');
+                        ?>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card dimension-card">
+                                <div class="card-body">
+                                    <div class="dimension-label">
+                                        <i class="fas fa-<?= $dim['icon'] ?> me-2"></i><?= $dim['label'] ?>
+                                    </div>
+                                    <div class="dimension-value text-primary">
+                                        <?= number_format($calc['promedio'], 1) ?>%
+                                    </div>
+                                    <span class="risk-badge" style="<?= getBadgeClass($calc['nivel']) ?>">
+                                        <?= getRiskLabel($calc['nivel']) ?>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
                     </div>
-                    <div class="dimension-value text-primary" data-dimension="<?= $dim['key'] ?>">
-                        <?= number_format($puntaje, 1) ?>%
+                    <?php else: ?>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>No hay trabajadores evaluados con Forma A
                     </div>
-                    <span class="risk-badge" style="<?= getBadgeClass($nivel) ?>" data-dimension-nivel="<?= $dim['key'] ?>">
-                        <?= $nivelLabel ?>
-                    </span>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
-        <?php endforeach; ?>
+
+        <!-- Forma B -->
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingExtraFormaB">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExtraFormaB" aria-expanded="false" aria-controls="collapseExtraFormaB">
+                    <i class="fas fa-th-large me-2 text-warning"></i>
+                    <strong>Dimensiones Extralaborales - Forma B</strong>
+                    <span class="badge bg-warning text-dark ms-2">7 dimensiones</span>
+                    <span class="badge bg-secondary ms-2"><?= $countExtraFormaB ?> trabajadores</span>
+                </button>
+            </h2>
+            <div id="collapseExtraFormaB" class="accordion-collapse collapse" aria-labelledby="headingExtraFormaB" data-bs-parent="#accordionDimensionesExtra">
+                <div class="accordion-body">
+                    <?php if ($countExtraFormaB > 0): ?>
+                    <div class="row">
+                        <?php foreach ($dimensionesExtra as $dim):
+                            $calc = calcularDimensionExtra($results, $dim['db_key'], 'B');
+                        ?>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="card dimension-card">
+                                <div class="card-body">
+                                    <div class="dimension-label">
+                                        <i class="fas fa-<?= $dim['icon'] ?> me-2"></i><?= $dim['label'] ?>
+                                    </div>
+                                    <div class="dimension-value text-warning">
+                                        <?= number_format($calc['promedio'], 1) ?>%
+                                    </div>
+                                    <span class="risk-badge" style="<?= getBadgeClass($calc['nivel']) ?>">
+                                        <?= getRiskLabel($calc['nivel']) ?>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <?php else: ?>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>No hay trabajadores evaluados con Forma B
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Gráficas -->

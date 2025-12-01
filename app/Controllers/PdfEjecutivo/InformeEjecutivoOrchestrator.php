@@ -29,6 +29,12 @@ class InformeEjecutivoOrchestrator extends PdfEjecutivoBaseController
      */
     public function preview($batteryServiceId)
     {
+        // Verificar acceso
+        $accessCheck = $this->checkPdfAccess($batteryServiceId);
+        if ($accessCheck !== null) {
+            return $accessCheck;
+        }
+
         $this->initializeData($batteryServiceId);
         $html = $this->renderAllSections($batteryServiceId);
 
@@ -40,6 +46,12 @@ class InformeEjecutivoOrchestrator extends PdfEjecutivoBaseController
      */
     public function download($batteryServiceId)
     {
+        // Verificar acceso
+        $accessCheck = $this->checkPdfAccess($batteryServiceId);
+        if ($accessCheck !== null) {
+            return $accessCheck;
+        }
+
         $this->initializeData($batteryServiceId);
         $html = $this->renderAllSections($batteryServiceId);
 

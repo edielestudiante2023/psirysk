@@ -71,6 +71,7 @@ $routes->group('battery-services', function($routes) {
     $routes->get('edit/(:num)', 'BatteryServiceController::edit/$1');
     $routes->post('update/(:num)', 'BatteryServiceController::update/$1');
     $routes->post('delete/(:num)', 'BatteryServiceController::delete/$1');
+    $routes->get('check-can-finalize/(:num)', 'BatteryServiceController::checkCanFinalize/$1'); // Verificar si puede finalizar
     $routes->get('global-gauges/(:num)', 'BatteryServiceController::globalGauges/$1'); // Gráficos globales
     $routes->get('(:num)', 'BatteryServiceController::view/$1');
 });
@@ -87,6 +88,7 @@ $routes->group('battery-schedules', function($routes) {
 });
 
 // Rutas de Trabajadores (Workers)
+$routes->get('workers', 'WorkerController::listAll'); // Lista global de trabajadores
 $routes->group('workers', function($routes) {
     $routes->get('service/(:num)', 'WorkerController::index/$1');
     $routes->get('upload/(:num)', 'WorkerController::upload/$1');
@@ -97,6 +99,8 @@ $routes->group('workers', function($routes) {
     $routes->post('send-bulk-emails/(:num)', 'WorkerController::sendBulkEmails/$1'); // Envío masivo
     $routes->post('update/(:num)', 'WorkerController::update/$1'); // Actualizar trabajador
     $routes->post('delete/(:num)', 'WorkerController::delete/$1'); // Eliminar trabajador
+    $routes->post('mark-no-participo/(:num)', 'WorkerController::markAsNoParticipo/$1'); // Marcar como No Participó (individual)
+    $routes->post('mark-all-no-participo/(:num)', 'WorkerController::markAllAsNoParticipo/$1'); // Marcar TODOS como No Participó (masivo)
     $routes->get('results/(:num)', 'WorkerController::results/$1'); // Ver resultados individuales
     $routes->get('export-responses/(:num)', 'WorkerController::exportResponses/$1'); // Exportar respuestas a Excel
 
@@ -198,6 +202,18 @@ $routes->group('satisfaction', function($routes) {
     $routes->get('survey/(:num)', 'SatisfactionController::index/$1'); // Formulario para cliente
     $routes->post('submit/(:num)', 'SatisfactionController::submit/$1'); // Envío de encuesta
     $routes->get('view/(:num)', 'SatisfactionController::view/$1'); // Ver detalle (admin/consultor/comercial)
+});
+
+// ============================================
+// RUTAS PARA CLIENTES (cliente_empresa y cliente_gestor)
+// Vista restringida de servicios y trabajadores
+// ============================================
+$routes->group('client', function($routes) {
+    // Vista de detalle del servicio para clientes
+    $routes->get('battery-services/(:num)', 'BatteryServiceController::viewClient/$1');
+
+    // Vista de trabajadores para clientes (solo ver resultados)
+    $routes->get('workers/service/(:num)', 'WorkerController::indexClient/$1');
 });
 
 // Rutas de Secciones de Informe con IA

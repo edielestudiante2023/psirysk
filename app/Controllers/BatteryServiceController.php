@@ -149,9 +149,9 @@ class BatteryServiceController extends BaseController
             return redirect()->to('/battery-services')->with('error', 'Servicio no encontrado');
         }
 
-        // Verificar permisos (consultores pueden ver/editar todos los servicios)
+        // Verificar permisos (consultores y director comercial pueden ver/editar todos los servicios)
         $roleName = session()->get('role_name');
-        if (!in_array($roleName, ['superadmin', 'consultor'])) {
+        if (!in_array($roleName, ['superadmin', 'consultor', 'director_comercial'])) {
             return redirect()->to('/dashboard')->with('error', 'No tienes permisos');
         }
 
@@ -186,6 +186,12 @@ class BatteryServiceController extends BaseController
         // Verificar autenticación
         if (!session()->get('isLoggedIn')) {
             return redirect()->to('/login');
+        }
+
+        // Verificar permisos
+        $roleName = session()->get('role_name');
+        if (!in_array($roleName, ['superadmin', 'consultor', 'director_comercial'])) {
+            return redirect()->to('/dashboard')->with('error', 'No tienes permisos para actualizar servicios');
         }
 
         $service = $this->batteryServiceModel->find($id);

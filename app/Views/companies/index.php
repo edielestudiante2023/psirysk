@@ -41,26 +41,20 @@
                     <small class="text-white-50"><?= ucfirst(session()->get('role_name')) ?></small>
                 </div>
                 <nav class="nav flex-column mt-4">
-                    <a class="nav-link" href="<?= base_url('dashboard') ?>">
+                    <a class="nav-link" href="<?= base_url('dashboard') ?>" target="_blank">
                         <i class="fas fa-home me-2"></i> Dashboard
                     </a>
                     <?php if (in_array(session()->get('role_name'), ['superadmin'])): ?>
-                    <a class="nav-link" href="<?= base_url('users') ?>">
+                    <a class="nav-link" href="<?= base_url('users') ?>" target="_blank">
                         <i class="fas fa-users me-2"></i> Usuarios
                     </a>
                     <?php endif; ?>
                     <a class="nav-link active" href="<?= base_url('companies') ?>">
                         <i class="fas fa-building me-2"></i> Empresas
                     </a>
-                    <a class="nav-link" href="<?= base_url('battery-services') ?>">
-                        <i class="fas fa-clipboard-check me-2"></i> Servicios
-                    </a>
-                    <a class="nav-link" href="<?= base_url('reports') ?>">
-                        <i class="fas fa-chart-bar me-2"></i> Informes
-                    </a>
                     <hr class="text-white-50 mx-3">
                     <a class="nav-link" href="<?= base_url('logout') ?>">
-                        <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesión
+                        <i class="fas fa-sign-out-alt me-2"></i> Cerrar Sesion
                     </a>
                 </nav>
             </div>
@@ -70,9 +64,9 @@
                 <nav class="navbar navbar-custom navbar-expand-lg p-3">
                     <div class="container-fluid">
                         <h4 class="mb-0"><?= $title ?></h4>
-                        <button class="btn btn-success" onclick="location.href='<?= base_url('companies/create') ?>'">
+                        <a href="<?= base_url('companies/create') ?>" class="btn btn-success" target="_blank">
                             <i class="fas fa-plus me-2"></i>Nueva Empresa
-                        </button>
+                        </a>
                     </div>
                 </nav>
 
@@ -143,7 +137,8 @@
                                                         <div class="btn-group btn-group-sm">
                                                             <a href="<?= base_url('companies/edit/' . $company['id']) ?>"
                                                                class="btn btn-outline-primary"
-                                                               title="Editar">
+                                                               title="Editar"
+                                                               target="_blank">
                                                                 <i class="fas fa-edit"></i>
                                                             </a>
                                                             <?php if (session()->get('role_name') === 'superadmin'): ?>

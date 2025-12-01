@@ -120,15 +120,28 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label for="password" class="form-label">Contraseña <span class="text-danger">*</span></label>
+                                            <label for="password" class="form-label">Contrasena <span class="text-danger">*</span></label>
                                             <div class="input-group">
                                                 <input type="password" class="form-control" id="password" name="password"
                                                        required minlength="8">
                                                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                                     <i class="fas fa-eye" id="eyeIcon"></i>
                                                 </button>
+                                                <button class="btn btn-outline-primary" type="button" id="generatePassword" title="Generar contrasena aleatoria">
+                                                    <i class="fas fa-random"></i>
+                                                </button>
                                             </div>
-                                            <small class="text-muted">Mínimo 8 caracteres</small>
+                                            <small class="text-muted">Minimo 8 caracteres</small>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="send_credentials_email" name="send_credentials_email" value="1" checked>
+                                                <label class="form-check-label" for="send_credentials_email">
+                                                    <i class="fas fa-envelope me-1"></i>Enviar credenciales por email al cliente
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Se enviara un correo con las credenciales de acceso al usuario.</small>
                                         </div>
 
                                         <div class="mb-3">
@@ -195,6 +208,19 @@
                 eyeIcon.classList.remove('fa-eye-slash');
                 eyeIcon.classList.add('fa-eye');
             }
+        });
+
+        // Generate random password
+        document.getElementById('generatePassword').addEventListener('click', function() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$%';
+            let password = '';
+            for (let i = 0; i < 12; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('password').value = password;
+            document.getElementById('password').type = 'text';
+            document.getElementById('eyeIcon').classList.remove('fa-eye');
+            document.getElementById('eyeIcon').classList.add('fa-eye-slash');
         });
 
         // Filtrar empresas según tipo de usuario seleccionado

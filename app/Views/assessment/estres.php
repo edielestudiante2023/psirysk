@@ -351,7 +351,7 @@ $likertScale = Estres::getLikertScale();
     </script>
 
     <!-- INLINE EDITING: Auto-guardado con verificación de integridad -->
-    <script src="<?= base_url('js/inline-editing.js') ?>"></script>
+    <script src="<?= base_url('js/inline-editing.js') ?>?v=<?= time() ?>"></script>
     <script>
         // Inicializar inline editing para Estrés
         InlineEditing.init({

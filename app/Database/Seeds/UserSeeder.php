@@ -74,6 +74,13 @@ class UserSeeder extends Seeder
             ],
         ];
 
-        $this->db->table('users')->insertBatch($data);
+        // Solo insertar si la tabla está vacía
+        $count = $this->db->table('users')->countAllResults();
+        if ($count == 0) {
+            $this->db->table('users')->insertBatch($data);
+            echo "UserSeeder: " . count($data) . " usuarios insertados.\n";
+        } else {
+            echo "UserSeeder: Tabla no vacía, omitiendo ($count registros existentes).\n";
+        }
     }
 }

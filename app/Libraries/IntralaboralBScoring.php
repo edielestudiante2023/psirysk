@@ -515,15 +515,20 @@ class IntralaboralBScoring
      * "Para calificar una dimensión se requiere que se haya respondido la totalidad
      * de los ítems que la conforman. Si uno o más ítems no fueron contestados,
      * no se podrá obtener el puntaje de esa dimensión"
+     *
+     * REGLA ESPECIAL (Cartilla Ministerio):
+     * Si el trabajador responde NO a la pregunta filtro:
+     * - "En mi trabajo debo brindar servicio a clientes" → Demandas emocionales = 0 puntos brutos
+     * Esta dimensión ENTRA al cálculo con valor 0, NO se excluye.
      */
     private static function calcularPuntajesBrutosDimensiones($puntajesItems, $atiendeClientes)
     {
         $puntajes = [];
 
         foreach (self::$dimensiones as $dimension => $items) {
-            // Omitir dimensiones condicionales si no aplican
+            // REGLA CARTILLA: Si NO atiende clientes, demandas_emocionales = 0 (no NULL)
             if ($dimension === 'demandas_emocionales' && !$atiendeClientes) {
-                $puntajes[$dimension] = null;
+                $puntajes[$dimension] = 0;
                 continue;
             }
 
@@ -613,6 +618,10 @@ class IntralaboralBScoring
     /**
      * Transforma puntajes brutos de dominios a escala 0-100
      * Fórmula: (Puntaje bruto / Factor de transformación) × 100
+     *
+     * REGLA CARTILLA: El factor de transformación NO se ajusta.
+     * La dimensión filtro (demandas_emocionales) entra al cálculo con puntaje bruto = 0,
+     * reduciendo el puntaje del dominio Demandas.
      */
     private static function transformarPuntajesDominios($puntajesBrutos, $atiendeClientes)
     {
@@ -620,6 +629,7 @@ class IntralaboralBScoring
 
         foreach ($puntajesBrutos as $dominio => $puntajeBruto) {
             $factor = self::$factoresTransformacionDominios[$dominio];
+            // NO se ajusta el factor - las dimensiones filtro entran como 0
             $transformados[$dominio] = round(($puntajeBruto / $factor) * 100, 1);
         }
 
@@ -652,10 +662,14 @@ class IntralaboralBScoring
     /**
      * Transforma puntaje total a escala 0-100
      * Fórmula: (Puntaje bruto / Factor de transformación) × 100
+     *
+     * REGLA CARTILLA: El factor de transformación NO se ajusta (siempre 388 para Forma B).
+     * La dimensión filtro entra con puntaje bruto = 0, reduciendo el total.
      */
     private static function transformarPuntajeTotal($puntajeBruto, $atiendeClientes)
     {
         $factor = self::$factorTransformacionTotal;
+        // NO se ajusta el factor - las dimensiones filtro entran como 0
         return round(($puntajeBruto / $factor) * 100, 1);
     }
 

@@ -72,7 +72,15 @@ class CompanySeeder extends Seeder
             ],
         ];
 
-        $this->db->table('companies')->insertBatch($companies);
+        // Solo insertar si la tabla está vacía
+        $countCompanies = $this->db->table('companies')->countAllResults();
+        if ($countCompanies == 0) {
+            $this->db->table('companies')->insertBatch($companies);
+            echo "CompanySeeder: " . count($companies) . " empresas insertadas.\n";
+        } else {
+            echo "CompanySeeder: Tabla companies no vacía, omitiendo ($countCompanies registros existentes).\n";
+            return; // No insertar relaciones si ya hay empresas
+        }
 
         // Insertar relaciones company_users
         $companyUsers = [
@@ -94,5 +102,6 @@ class CompanySeeder extends Seeder
         ];
 
         $this->db->table('company_users')->insertBatch($companyUsers);
+        echo "CompanySeeder: " . count($companyUsers) . " relaciones company_users insertadas.\n";
     }
 }

@@ -151,6 +151,7 @@ $routes->group('recommendations', function($routes) {
 $routes->group('commercial', function($routes) {
     $routes->get('/', 'CommercialController::index'); // Dashboard comercial
     $routes->get('orders', 'CommercialController::orders'); // Historial de órdenes
+    $routes->get('monthly-stats', 'CommercialController::getMonthlyStatsAjax'); // API estadísticas mensuales
     $routes->get('create', 'CommercialController::create'); // Formulario nueva orden
     $routes->post('store', 'CommercialController::store'); // Guardar orden
     $routes->get('download-pdf/(:num)', 'CommercialController::downloadPdf/$1'); // Descargar PDF

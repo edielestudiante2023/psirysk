@@ -68,6 +68,13 @@ class RoleSeeder extends Seeder
             ],
         ];
 
-        $this->db->table('roles')->insertBatch($data);
+        // Solo insertar si la tabla está vacía
+        $count = $this->db->table('roles')->countAllResults();
+        if ($count == 0) {
+            $this->db->table('roles')->insertBatch($data);
+            echo "RoleSeeder: " . count($data) . " roles insertados.\n";
+        } else {
+            echo "RoleSeeder: Tabla no vacía, omitiendo ($count registros existentes).\n";
+        }
     }
 }

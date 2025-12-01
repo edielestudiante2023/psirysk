@@ -112,8 +112,10 @@ const InlineEditing = {
             console.log('📦 Result:', result);
 
             if (result.success && this.config.debugMode && result.debug_enabled && result.debug_verification) {
-                console.log('✅ Showing verification...');
-                await this.showDebugVerification(result.debug_verification);
+                // Sweet Alert de verificación - COMENTADO para producción
+                // Descomentar la siguiente línea para activar el debug visual:
+                // await this.showDebugVerification(result.debug_verification);
+                console.log('✅ Debug verification disponible (Sweet Alert desactivado)');
             } else if (result.success) {
                 console.log('✅ Saved successfully (no debug)');
             } else {

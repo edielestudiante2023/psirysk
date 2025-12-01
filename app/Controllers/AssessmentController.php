@@ -527,19 +527,24 @@ class AssessmentController extends BaseController
         $updateData = [];
 
         // Verificar si se respondió la pregunta condicional de atención a clientes
-        $atiendeClientes = $this->request->getPost('atiende_clientes');
+        // El formulario envía 'attends_clients' con valor 'Sí' o 'No'
+        // Forma A: controla preguntas 106-114
+        // Forma B: controla preguntas 89-97
+        $atiendeClientes = $this->request->getPost('attends_clients');
         if ($atiendeClientes !== null && $atiendeClientes !== '') {
-            $updateData['atiende_clientes'] = ($atiendeClientes === 'si' || $atiendeClientes === '1' || $atiendeClientes === 1) ? 1 : 0;
-            log_message('debug', "atiende_clientes = {$atiendeClientes} para worker {$workerId}");
+            $updateData['atiende_clientes'] = ($atiendeClientes === 'Sí' || $atiendeClientes === 'si' || $atiendeClientes === '1' || $atiendeClientes === 1) ? 1 : 0;
+            log_message('error', "🔍 attends_clients recibido: '{$atiendeClientes}' => atiende_clientes = " . $updateData['atiende_clientes'] . " para worker {$workerId}");
         }
 
         // Verificar si se respondió la pregunta condicional de supervisión (es_jefe)
         // SOLO PARA FORMA A - Forma B no tiene esta pregunta
+        // El formulario envía 'is_supervisor' con valor 'Sí' o 'No'
+        // Forma A: controla preguntas 115-123
         if ($intralaboralType === 'A') {
-            $esJefe = $this->request->getPost('es_jefe');
+            $esJefe = $this->request->getPost('is_supervisor');
             if ($esJefe !== null && $esJefe !== '') {
-                $updateData['es_jefe'] = ($esJefe === 'si' || $esJefe === '1' || $esJefe === 1) ? 1 : 0;
-                log_message('debug', "es_jefe = {$esJefe} para worker {$workerId}");
+                $updateData['es_jefe'] = ($esJefe === 'Sí' || $esJefe === 'si' || $esJefe === '1' || $esJefe === 1) ? 1 : 0;
+                log_message('error', "🔍 is_supervisor recibido: '{$esJefe}' => es_jefe = " . $updateData['es_jefe'] . " para worker {$workerId}");
             }
         }
 
@@ -941,9 +946,19 @@ class AssessmentController extends BaseController
         if (!$allComplete) {
             log_message('error', '⚠️ NO SE MARCA COMO COMPLETADO - Faltan otros formularios');
 
+            // Obtener información detallada de qué formularios faltan
+            $incompleteInfo = $this->calculationService->getIncompleteFormsInfo($workerId, $intralaboralType);
+
+            // Construir mensaje detallado
+            $detailedMessage = "Faltan cuestionarios por completar:\n";
+            foreach ($incompleteInfo as $info) {
+                $detailedMessage .= "• " . $info['message'] . "\n";
+            }
+
             $responseData = [
                 'success' => false,
-                'message' => "Debes completar todos los cuestionarios de la batería antes de finalizar",
+                'message' => $detailedMessage,
+                'incomplete_forms' => $incompleteInfo,
                 'saved_count' => $savedCount
             ];
 

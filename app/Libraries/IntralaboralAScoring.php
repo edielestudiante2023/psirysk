@@ -572,19 +572,26 @@ class IntralaboralAScoring
      * "Para calificar una dimensión se requiere que se haya respondido la totalidad
      * de los ítems que la conforman. Si uno o más ítems no fueron contestados,
      * no se podrá obtener el puntaje de esa dimensión"
+     *
+     * REGLA ESPECIAL (Cartilla Ministerio):
+     * Si el trabajador responde NO a las preguntas filtro:
+     * - "En mi trabajo debo brindar servicio a clientes" → Demandas emocionales = 0 puntos brutos
+     * - "Soy jefe de otras personas" → Relación con colaboradores = 0 puntos brutos
+     * Estas dimensiones ENTRAN al cálculo con valor 0, NO se excluyen.
      */
     private static function calcularPuntajesBrutosDimensiones($puntajesItems, $atiendeClientes, $esJefe)
     {
         $puntajes = [];
 
         foreach (self::$dimensiones as $dimension => $items) {
-            // Omitir dimensiones condicionales si no aplican
+            // REGLA CARTILLA: Si NO atiende clientes, demandas_emocionales = 0 (no NULL)
             if ($dimension === 'demandas_emocionales' && !$atiendeClientes) {
-                $puntajes[$dimension] = null;
+                $puntajes[$dimension] = 0;
                 continue;
             }
+            // REGLA CARTILLA: Si NO es jefe, relacion_con_colaboradores = 0 (no NULL)
             if ($dimension === 'relacion_con_colaboradores' && !$esJefe) {
-                $puntajes[$dimension] = null;
+                $puntajes[$dimension] = 0;
                 continue;
             }
 
@@ -672,7 +679,12 @@ class IntralaboralAScoring
     }
 
     /**
-     * Transforma puntajes brutos de dominios considerando dimensiones condicionales
+     * Transforma puntajes brutos de dominios a escala 0-100
+     * Fórmula: (Puntaje bruto / Factor de transformación) × 100
+     *
+     * REGLA CARTILLA: El factor de transformación NO se ajusta.
+     * Las dimensiones filtro (demandas_emocionales, relacion_con_colaboradores)
+     * entran al cálculo con puntaje bruto = 0, reduciendo el puntaje del dominio.
      */
     private static function transformarPuntajesDominios($puntajesBrutos, $atiendeClientes, $esJefe)
     {
@@ -680,17 +692,7 @@ class IntralaboralAScoring
 
         foreach ($puntajesBrutos as $dominio => $puntajeBruto) {
             $factor = self::$factoresTransformacionDominios[$dominio];
-
-            // Ajustar factor si hay dimensiones condicionales que no aplican
-            if ($dominio === 'liderazgo_relaciones_sociales' && !$esJefe) {
-                // Restar factor de 'relacion_con_colaboradores' (36)
-                $factor = $factor - 36;
-            }
-            if ($dominio === 'demandas' && !$atiendeClientes) {
-                // Restar factor de 'demandas_emocionales' (36)
-                $factor = $factor - 36;
-            }
-
+            // NO se ajusta el factor - las dimensiones filtro entran como 0
             $transformados[$dominio] = round(($puntajeBruto / $factor) * 100, 1);
         }
 
@@ -721,20 +723,16 @@ class IntralaboralAScoring
     }
 
     /**
-     * Transforma puntaje total considerando dimensiones condicionales
+     * Transforma puntaje total a escala 0-100
+     * Fórmula: (Puntaje bruto / Factor de transformación) × 100
+     *
+     * REGLA CARTILLA: El factor de transformación NO se ajusta (siempre 492 para Forma A).
+     * Las dimensiones filtro entran con puntaje bruto = 0, reduciendo el total.
      */
     private static function transformarPuntajeTotal($puntajeBruto, $atiendeClientes, $esJefe)
     {
         $factor = self::$factorTransformacionTotal;
-
-        // Ajustar factor según dimensiones aplicables
-        if (!$esJefe) {
-            $factor -= 36; // Restar 'relacion_con_colaboradores'
-        }
-        if (!$atiendeClientes) {
-            $factor -= 36; // Restar 'demandas_emocionales'
-        }
-
+        // NO se ajusta el factor - las dimensiones filtro entran como 0
         return round(($puntajeBruto / $factor) * 100, 1);
     }
 

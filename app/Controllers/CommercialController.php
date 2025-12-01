@@ -97,9 +97,89 @@ class CommercialController extends BaseController
             ->orderBy('battery_services.created_at', 'DESC')
             ->findAll();
 
+        // Obtener años disponibles para el filtro (basado en service_date)
+        $yearsQuery = $this->batteryServiceModel
+            ->select('YEAR(service_date) as year')
+            ->groupBy('YEAR(service_date)')
+            ->orderBy('year', 'DESC')
+            ->findAll();
+        $availableYears = array_column($yearsQuery, 'year');
+
+        // Si no hay años, agregar el año actual
+        if (empty($availableYears)) {
+            $availableYears = [date('Y')];
+        }
+
+        // Obtener estadísticas mensuales para el año actual (por defecto)
+        $currentYear = date('Y');
+        $monthlyStats = $this->getMonthlyStats($currentYear);
+
         return view('commercial/orders', [
             'title' => 'Historial de Órdenes - Equipo Gladiator',
-            'services' => $services
+            'services' => $services,
+            'availableYears' => $availableYears,
+            'currentYear' => $currentYear,
+            'monthlyStats' => $monthlyStats
+        ]);
+    }
+
+    /**
+     * Obtener estadísticas mensuales por año
+     */
+    protected function getMonthlyStats($year, $startDate = null, $endDate = null)
+    {
+        $months = [];
+        $monthNames = [
+            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+            5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+            9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+        ];
+
+        for ($m = 1; $m <= 12; $m++) {
+            $builder = $this->batteryServiceModel
+                ->select('COUNT(*) as total_services,
+                          COALESCE(SUM(cantidad_forma_a), 0) + COALESCE(SUM(cantidad_forma_b), 0) as total_units')
+                ->where('YEAR(service_date)', $year)
+                ->where('MONTH(service_date)', $m);
+
+            // Aplicar filtro de fechas si se proporcionan
+            if ($startDate && $endDate) {
+                $builder->where('service_date >=', $startDate)
+                        ->where('service_date <=', $endDate);
+            }
+
+            $result = $builder->first();
+
+            $months[$m] = [
+                'month' => $m,
+                'name' => $monthNames[$m],
+                'services' => (int)($result['total_services'] ?? 0),
+                'units' => (int)($result['total_units'] ?? 0)
+            ];
+        }
+
+        return $months;
+    }
+
+    /**
+     * API para obtener estadísticas mensuales (AJAX)
+     */
+    public function getMonthlyStatsAjax()
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['error' => 'No autorizado'])->setStatusCode(401);
+        }
+
+        $year = $this->request->getGet('year') ?? date('Y');
+        $startDate = $this->request->getGet('start_date');
+        $endDate = $this->request->getGet('end_date');
+
+        $stats = $this->getMonthlyStats($year, $startDate, $endDate);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'year' => $year,
+            'stats' => $stats
         ]);
     }
 

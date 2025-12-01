@@ -470,48 +470,7 @@ $conditionalQuestion2 = IntralaboralA::getConditionalQuestion2();
         let attendsClients = null;
         let isSupervisor = null;
 
-        // Initialize with saved responses
-        <?php if (!empty($responses)): ?>
-            <?php foreach ($responses as $qNum => $value): ?>
-                <?php if ($qNum !== 'attends_clients' && $qNum !== 'is_supervisor'): ?>
-                    answeredQuestions.add(<?= $qNum ?>);
-                    {
-                        const questionCard = document.getElementById('question-<?= $qNum ?>');
-                        if (questionCard) questionCard.classList.add('answered');
-                    }
-                <?php endif; ?>
-            <?php endforeach; ?>
-
-            // Restore conditional questions state
-            <?php if (isset($responses['attends_clients'])): ?>
-                attendsClients = '<?= $responses['attends_clients'] ?>';
-                handleClientQuestionsVisibility(attendsClients);
-            <?php endif; ?>
-
-            <?php if (isset($responses['is_supervisor'])): ?>
-                isSupervisor = '<?= $responses['is_supervisor'] ?>';
-                handleSupervisorQuestionsVisibility(isSupervisor);
-            <?php endif; ?>
-        <?php endif; ?>
-
-        // Handle first conditional question (attends clients)
-        document.querySelectorAll('input[name="attends_clients"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                attendsClients = this.value;
-                handleClientQuestionsVisibility(this.value);
-                document.getElementById('conditional-question-1').classList.add('answered');
-            });
-        });
-
-        // Handle second conditional question (is supervisor)
-        document.querySelectorAll('input[name="is_supervisor"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                isSupervisor = this.value;
-                handleSupervisorQuestionsVisibility(this.value);
-                document.getElementById('conditional-question-2').classList.add('answered');
-            });
-        });
-
+        // DEFINIR FUNCIONES PRIMERO (antes de usarlas)
         function handleClientQuestionsVisibility(value) {
             const clientQuestionCards = document.querySelectorAll('.client-question');
 
@@ -587,6 +546,50 @@ $conditionalQuestion2 = IntralaboralA::getConditionalQuestion2();
             }
         }
 
+        // Handle first conditional question (attends clients)
+        document.querySelectorAll('input[name="attends_clients"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                attendsClients = this.value;
+                handleClientQuestionsVisibility(this.value);
+                document.getElementById('conditional-question-1').classList.add('answered');
+            });
+        });
+
+        // Handle second conditional question (is supervisor)
+        document.querySelectorAll('input[name="is_supervisor"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                isSupervisor = this.value;
+                handleSupervisorQuestionsVisibility(this.value);
+                document.getElementById('conditional-question-2').classList.add('answered');
+            });
+        });
+
+        // Initialize with saved responses (DESPUÉS de definir las funciones)
+        <?php if (!empty($responses)): ?>
+            <?php foreach ($responses as $qNum => $value): ?>
+                <?php if ($qNum !== 'attends_clients' && $qNum !== 'is_supervisor'): ?>
+                    answeredQuestions.add(<?= $qNum ?>);
+                    {
+                        const questionCard = document.getElementById('question-<?= $qNum ?>');
+                        if (questionCard) questionCard.classList.add('answered');
+                    }
+                <?php endif; ?>
+            <?php endforeach; ?>
+
+            // Restore conditional questions state
+            <?php if (isset($responses['attends_clients'])): ?>
+                attendsClients = '<?= $responses['attends_clients'] ?>';
+                handleClientQuestionsVisibility(attendsClients);
+                document.getElementById('conditional-question-1').classList.add('answered');
+            <?php endif; ?>
+
+            <?php if (isset($responses['is_supervisor'])): ?>
+                isSupervisor = '<?= $responses['is_supervisor'] ?>';
+                handleSupervisorQuestionsVisibility(isSupervisor);
+                document.getElementById('conditional-question-2').classList.add('answered');
+            <?php endif; ?>
+        <?php endif; ?>
+
         // Mark question as answered
         document.querySelectorAll('input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', function() {
@@ -622,10 +625,11 @@ $conditionalQuestion2 = IntralaboralA::getConditionalQuestion2();
                 if (result.success) {
                     showAutoSaveAlert();
 
-                    // Mostrar datos de verificación si DEBUG está activo
-                    if (result.debug_enabled && result.debug_verification) {
-                        showDebugVerification(result.debug_verification);
-                    }
+                    // Sweet Alert de verificación - COMENTADO para producción
+                    // Descomentar las siguientes líneas para activar el debug visual:
+                    // if (result.debug_enabled && result.debug_verification) {
+                    //     showDebugVerification(result.debug_verification);
+                    // }
                 }
             } catch (error) {
                 console.error('Error al guardar:', error);
@@ -761,7 +765,7 @@ $conditionalQuestion2 = IntralaboralA::getConditionalQuestion2();
     </script>
 
     <!-- INLINE EDITING: Auto-guardado con verificación de integridad -->
-    <script src="<?= base_url('js/inline-editing.js') ?>"></script>
+    <script src="<?= base_url('js/inline-editing.js') ?>?v=<?= time() ?>"></script>
     <script>
         // Inicializar inline editing para Intralaboral A
         InlineEditing.init({

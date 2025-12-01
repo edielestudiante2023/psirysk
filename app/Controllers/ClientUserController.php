@@ -127,10 +127,15 @@ class ClientUserController extends BaseController
         ];
 
         if ($this->userModel->save($data)) {
-            // Enviar email con credenciales
-            $this->sendCredentialsEmail($data['email'], $data['name'], $plainPassword, $role['name'], $company['name']);
+            $message = 'Usuario creado exitosamente.';
 
-            return redirect()->to('/client-users')->with('success', 'Usuario creado exitosamente. Se han enviado las credenciales por email.');
+            // Enviar email con credenciales si se marcó la opción
+            if ($this->request->getPost('send_credentials_email')) {
+                $this->sendCredentialsEmail($data['email'], $data['name'], $plainPassword, $role['name'], $company['name']);
+                $message .= ' Se han enviado las credenciales por email.';
+            }
+
+            return redirect()->to('/client-users')->with('success', $message);
         } else {
             return redirect()->back()->withInput()->with('error', 'Error al crear el usuario');
         }
@@ -218,6 +223,9 @@ class ClientUserController extends BaseController
             return redirect()->back()->withInput()->with('error', 'Solo puedes asignar roles de tipo cliente');
         }
 
+        // Obtener empresa para el email
+        $company = $this->companyModel->find($this->request->getPost('company_id'));
+
         $data = [
             'name' => $this->request->getPost('name'),
             'email' => $this->request->getPost('email'),
@@ -226,15 +234,45 @@ class ClientUserController extends BaseController
             'status' => $this->request->getPost('status'),
         ];
 
+        // Variables para el email
+        $plainPassword = null;
+        $sendEmail = $this->request->getPost('send_credentials_email');
+
         // Solo actualizar password si se proporcionó uno nuevo
         if ($this->request->getPost('password')) {
-            $data['password'] = $this->request->getPost('password');
+            $plainPassword = $this->request->getPost('password');
+            $data['password'] = $plainPassword;
         }
 
+        // Deshabilitar validación del modelo para updates (ya validamos en el controlador)
+        $this->userModel->skipValidation(true);
+
         if ($this->userModel->update($id, $data)) {
-            return redirect()->to('/client-users')->with('success', 'Usuario actualizado exitosamente');
+            $message = 'Usuario actualizado exitosamente.';
+
+            // Enviar email si se marcó la opción y hay contraseña nueva
+            if ($sendEmail && $plainPassword) {
+                try {
+                    $this->sendCredentialsEmail(
+                        $data['email'],
+                        $data['name'],
+                        $plainPassword,
+                        $role['name'],
+                        $company['name'],
+                        true // isUpdate
+                    );
+                    $message .= ' Se han enviado las nuevas credenciales por email.';
+                } catch (\Exception $e) {
+                    log_message('error', 'Error enviando email de credenciales: ' . $e->getMessage());
+                    $message .= ' (No se pudo enviar el email)';
+                }
+            }
+
+            return redirect()->to('/client-users')->with('success', $message);
         } else {
-            return redirect()->back()->withInput()->with('error', 'Error al actualizar el usuario');
+            $errors = $this->userModel->errors();
+            log_message('error', 'Error actualizando usuario: ' . print_r($errors, true));
+            return redirect()->back()->withInput()->with('error', 'Error al actualizar el usuario: ' . implode(', ', $errors ?: ['Error desconocido']));
         }
     }
 
@@ -272,11 +310,20 @@ class ClientUserController extends BaseController
         }
     }
 
-    private function sendCredentialsEmail($email, $name, $password, $roleName, $companyName)
+    private function sendCredentialsEmail($email, $name, $password, $roleName, $companyName, $isUpdate = false)
     {
         $emailService = \Config\Services::email();
 
         $tipoUsuario = $roleName === 'cliente_gestor' ? 'Gestor Multiempresa' : 'Cliente Individual';
+
+        // Personalizar mensaje según si es creación o actualización
+        $headerTitle = $isUpdate ? 'Nuevas Credenciales de Acceso' : 'Credenciales de Acceso';
+        $introText = $isUpdate
+            ? 'Tu contraseña ha sido actualizada en el sistema <strong>PsyRisk</strong>.'
+            : 'Se ha creado tu cuenta de acceso al sistema <strong>PsyRisk</strong>.';
+        $warningText = $isUpdate
+            ? '<strong>⚠️ Importante:</strong> Si no solicitaste este cambio de contraseña, por favor contacta inmediatamente a tu consultor asignado.'
+            : '<strong>⚠️ Importante:</strong> Por seguridad, te recomendamos cambiar tu contraseña después del primer inicio de sesión.';
 
         $message = '
         <!DOCTYPE html>
@@ -301,14 +348,14 @@ class ClientUserController extends BaseController
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>🔐 Credenciales de Acceso</h1>
-                    <p>Sistema PsyRisk - Evaluación de Riesgo Psicosocial</p>
+                    <h1>' . esc($headerTitle) . '</h1>
+                    <p>Sistema PsyRisk - Evaluacion de Riesgo Psicosocial</p>
                 </div>
 
                 <div class="content">
                     <h2>Hola ' . esc($name) . ',</h2>
 
-                    <p>Se ha creado tu cuenta de acceso al sistema <strong>PsyRisk</strong>.</p>
+                    <p>' . $introText . '</p>
 
                     <div class="credentials-box">
                         <h3 style="margin-top: 0; color: #667eea;">Tus credenciales de acceso:</h3>
@@ -335,18 +382,18 @@ class ClientUserController extends BaseController
                     </div>
 
                     <div class="warning">
-                        <strong>⚠️ Importante:</strong> Por seguridad, te recomendamos cambiar tu contraseña después del primer inicio de sesión.
+                        ' . $warningText . '
                     </div>
 
                     <div style="text-align: center;">
-                        <a href="' . base_url('login') . '" class="button">Iniciar Sesión</a>
+                        <a href="' . base_url('login') . '" class="button">Iniciar Sesion</a>
                     </div>
 
                     <p>Si tienes alguna duda o problema para acceder, por favor contacta a tu consultor asignado.</p>
                 </div>
 
                 <div class="footer">
-                    <p>Este es un correo automático, por favor no responder.</p>
+                    <p>Este es un correo automatico, por favor no responder.</p>
                     <p>&copy; ' . date('Y') . ' PsyRisk - Cycloid Talent</p>
                 </div>
             </div>
@@ -356,7 +403,7 @@ class ClientUserController extends BaseController
 
         $emailService->setFrom('noreply@cycloidtalent.com', 'PsyRisk - Cycloid Talent');
         $emailService->setTo($email);
-        $emailService->setSubject('🔐 Tus credenciales de acceso a PsyRisk');
+        $emailService->setSubject($isUpdate ? 'Nuevas credenciales de acceso a PsyRisk' : 'Tus credenciales de acceso a PsyRisk');
         $emailService->setMailType('html');
         $emailService->setMessage($message);
 

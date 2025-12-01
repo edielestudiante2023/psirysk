@@ -126,24 +126,33 @@ class CalculationService
         // Intralaboral (A o B según tipo)
         $formType = 'intralaboral_' . $intralaboralType;
 
-        // Obtener información del worker para verificar si atiende clientes
+        // Obtener información del worker para verificar preguntas condicionales
         $worker = $this->workerModel->find($workerId);
         $atiendeClientes = $worker['atiende_clientes'] ?? null;
+        $esJefe = $worker['es_jefe'] ?? null;
 
-        // Ajustar número esperado de preguntas según tipo y si atiende clientes
+        // Ajustar número esperado de preguntas según tipo y respuestas condicionales
         if ($intralaboralType === 'A') {
-            // Forma A: 123 preguntas siempre
+            // Forma A: Base 123 preguntas, menos condicionales si respondió "No"
             $expectedQuestions = 123;
+            // Si NO atiende clientes, restar 9 preguntas (106-114)
+            if ($atiendeClientes === 0 || $atiendeClientes === '0' || $atiendeClientes === false) {
+                $expectedQuestions -= 9;
+            }
+            // Si NO es jefe, restar 9 preguntas (115-123)
+            if ($esJefe === 0 || $esJefe === '0' || $esJefe === false) {
+                $expectedQuestions -= 9;
+            }
         } else {
             // Forma B: 97 preguntas si atiende clientes, 88 si no atiende
-            if ($atiendeClientes === 1 || $atiendeClientes === true) {
+            if ($atiendeClientes === 1 || $atiendeClientes === '1' || $atiendeClientes === true) {
                 $expectedQuestions = 97; // Incluye preguntas 89-97
             } else {
                 $expectedQuestions = 88; // No incluye preguntas 89-97
             }
         }
 
-        log_message('error', '🔍 Verificando Intralaboral Tipo ' . $intralaboralType . ' (' . $expectedQuestions . ' preguntas, atiende_clientes: ' . ($atiendeClientes ? 'SI' : 'NO') . ')...');
+        log_message('error', '🔍 Verificando Intralaboral Tipo ' . $intralaboralType . ' (' . $expectedQuestions . ' preguntas, atiende_clientes: ' . ($atiendeClientes ? 'SI' : 'NO') . ', es_jefe: ' . ($esJefe ? 'SI' : 'NO') . ')...');
 
         $intralaboralComplete = $this->responseModel->isFormCompleted($workerId, $formType, $expectedQuestions);
         log_message('error', $intralaboralComplete ? '✅ Intralaboral: COMPLETO' : '❌ Intralaboral: INCOMPLETO');
@@ -185,6 +194,95 @@ class CalculationService
 
         log_message('error', '✅ TODOS LOS FORMULARIOS ESTÁN COMPLETOS');
         return true;
+    }
+
+    /**
+     * Devuelve información detallada sobre qué formularios están incompletos
+     * PÚBLICO para permitir mensajes descriptivos en AssessmentController
+     */
+    public function getIncompleteFormsInfo($workerId, $intralaboralType)
+    {
+        $incomplete = [];
+
+        // Ficha de datos generales
+        $demographicsComplete = $this->demographicsModel->isCompleted($workerId);
+        if (!$demographicsComplete) {
+            $incomplete[] = [
+                'form' => 'Ficha de Datos Generales',
+                'type' => 'demographics',
+                'message' => 'Completa la ficha de datos generales'
+            ];
+        }
+
+        // Intralaboral (A o B según tipo)
+        $formType = 'intralaboral_' . $intralaboralType;
+        $worker = $this->workerModel->find($workerId);
+        $atiendeClientes = $worker['atiende_clientes'] ?? null;
+        $esJefe = $worker['es_jefe'] ?? null;
+
+        // Ajustar número esperado de preguntas según tipo y respuestas condicionales
+        if ($intralaboralType === 'A') {
+            $expectedQuestions = 123;
+            // Forma A: restar preguntas condicionales si respondió "No"
+            if ($atiendeClientes === 0 || $atiendeClientes === '0' || $atiendeClientes === false) {
+                $expectedQuestions -= 9; // Preguntas 106-114
+            }
+            if ($esJefe === 0 || $esJefe === '0' || $esJefe === false) {
+                $expectedQuestions -= 9; // Preguntas 115-123
+            }
+        } else {
+            // Forma B: 97 si atiende clientes, 88 si no
+            $expectedQuestions = ($atiendeClientes === 1 || $atiendeClientes === '1' || $atiendeClientes === true) ? 97 : 88;
+        }
+
+        $actualCount = $this->responseModel->where('worker_id', $workerId)
+            ->where('form_type', $formType)
+            ->countAllResults();
+
+        if ($actualCount < $expectedQuestions) {
+            $incomplete[] = [
+                'form' => 'Intralaboral Forma ' . $intralaboralType,
+                'type' => $formType,
+                'expected' => $expectedQuestions,
+                'actual' => $actualCount,
+                'missing' => $expectedQuestions - $actualCount,
+                'message' => "Faltan " . ($expectedQuestions - $actualCount) . " preguntas de " . $expectedQuestions . " en Intralaboral"
+            ];
+        }
+
+        // Extralaboral (31 preguntas)
+        $extralaboralCount = $this->responseModel->where('worker_id', $workerId)
+            ->where('form_type', 'extralaboral')
+            ->countAllResults();
+
+        if ($extralaboralCount < 31) {
+            $incomplete[] = [
+                'form' => 'Extralaboral',
+                'type' => 'extralaboral',
+                'expected' => 31,
+                'actual' => $extralaboralCount,
+                'missing' => 31 - $extralaboralCount,
+                'message' => "Faltan " . (31 - $extralaboralCount) . " preguntas de 31 en Extralaboral"
+            ];
+        }
+
+        // Estrés (31 preguntas)
+        $estresCount = $this->responseModel->where('worker_id', $workerId)
+            ->where('form_type', 'estres')
+            ->countAllResults();
+
+        if ($estresCount < 31) {
+            $incomplete[] = [
+                'form' => 'Estrés',
+                'type' => 'estres',
+                'expected' => 31,
+                'actual' => $estresCount,
+                'missing' => 31 - $estresCount,
+                'message' => "Faltan " . (31 - $estresCount) . " preguntas de 31 en Estrés"
+            ];
+        }
+
+        return $incomplete;
     }
 
     /**

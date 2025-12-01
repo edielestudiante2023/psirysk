@@ -114,15 +114,28 @@
                                         </div>
 
                                         <div class="mb-3">
-                                            <label for="password" class="form-label">Nueva Contraseña</label>
+                                            <label for="password" class="form-label">Nueva Contrasena</label>
                                             <div class="input-group">
                                                 <input type="password" class="form-control" id="password" name="password"
                                                        minlength="8">
                                                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                                     <i class="fas fa-eye" id="eyeIcon"></i>
                                                 </button>
+                                                <button class="btn btn-outline-primary" type="button" id="generatePassword" title="Generar contrasena aleatoria">
+                                                    <i class="fas fa-random"></i>
+                                                </button>
                                             </div>
-                                            <small class="text-muted">Dejar en blanco para mantener la contraseña actual. Mínimo 8 caracteres si se cambia.</small>
+                                            <small class="text-muted">Dejar en blanco para mantener la contrasena actual. Minimo 8 caracteres si se cambia.</small>
+                                        </div>
+
+                                        <div class="mb-3" id="sendEmailContainer" style="display: none;">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="send_credentials_email" name="send_credentials_email" value="1" checked>
+                                                <label class="form-check-label" for="send_credentials_email">
+                                                    <i class="fas fa-envelope me-1"></i>Enviar nuevas credenciales por email al cliente
+                                                </label>
+                                            </div>
+                                            <small class="text-muted">Se enviara un correo con la nueva contrasena al usuario.</small>
                                         </div>
 
                                         <div class="mb-3">
@@ -202,6 +215,34 @@
                 eyeIcon.classList.add('fa-eye');
             }
         });
+
+        // Generate random password
+        document.getElementById('generatePassword').addEventListener('click', function() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789@#$%';
+            let password = '';
+            for (let i = 0; i < 12; i++) {
+                password += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('password').value = password;
+            document.getElementById('password').type = 'text';
+            document.getElementById('eyeIcon').classList.remove('fa-eye');
+            document.getElementById('eyeIcon').classList.add('fa-eye-slash');
+            toggleSendEmailCheckbox();
+        });
+
+        // Show/hide send email checkbox based on password field
+        const passwordField = document.getElementById('password');
+        const sendEmailContainer = document.getElementById('sendEmailContainer');
+
+        function toggleSendEmailCheckbox() {
+            if (passwordField.value.length > 0) {
+                sendEmailContainer.style.display = 'block';
+            } else {
+                sendEmailContainer.style.display = 'none';
+            }
+        }
+
+        passwordField.addEventListener('input', toggleSendEmailCheckbox);
 
         // Filtrar empresas según tipo de usuario seleccionado
         const roleSelect = document.getElementById('role_id');

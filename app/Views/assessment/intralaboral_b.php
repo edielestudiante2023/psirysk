@@ -326,35 +326,7 @@ $conditionalQuestion = IntralaboralB::getConditionalQuestion();
         const clientQuestions = <?= json_encode($conditionalQuestion['controls_questions']) ?>;
         let attendsClients = null;
 
-        // Initialize with saved responses
-        <?php if (!empty($responses)): ?>
-            <?php foreach ($responses as $qNum => $value): ?>
-                <?php if ($qNum !== 'attends_clients'): ?>
-                    answeredQuestions.add(<?= $qNum ?>);
-                    {
-                        const questionCard = document.getElementById('question-<?= $qNum ?>');
-                        if (questionCard) questionCard.classList.add('answered');
-                    }
-                <?php endif; ?>
-            <?php endforeach; ?>
-
-            // Restore conditional question state
-            <?php if (isset($responses['attends_clients'])): ?>
-                attendsClients = '<?= $responses['attends_clients'] ?>';
-                handleClientQuestionsVisibility(attendsClients);
-            <?php endif; ?>
-        <?php endif; ?>
-
-        // Handle conditional question for client attendance
-        document.querySelectorAll('input[name="attends_clients"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                attendsClients = this.value;
-                console.log('Pregunta condicional respondida:', attendsClients);
-                handleClientQuestionsVisibility(this.value);
-                document.getElementById('conditional-question').classList.add('answered');
-            });
-        });
-
+        // DEFINIR FUNCIONES PRIMERO (antes de usarlas)
         function handleClientQuestionsVisibility(value) {
             const clientQuestionCards = document.querySelectorAll('.client-question');
 
@@ -404,6 +376,36 @@ $conditionalQuestion = IntralaboralB::getConditionalQuestion();
                 document.getElementById('floatingSaveBtn').style.display = 'block';
             }
         }
+
+        // Handle conditional question for client attendance
+        document.querySelectorAll('input[name="attends_clients"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                attendsClients = this.value;
+                console.log('Pregunta condicional respondida:', attendsClients);
+                handleClientQuestionsVisibility(this.value);
+                document.getElementById('conditional-question').classList.add('answered');
+            });
+        });
+
+        // Initialize with saved responses (DESPUÉS de definir las funciones)
+        <?php if (!empty($responses)): ?>
+            <?php foreach ($responses as $qNum => $value): ?>
+                <?php if ($qNum !== 'attends_clients'): ?>
+                    answeredQuestions.add(<?= $qNum ?>);
+                    {
+                        const questionCard = document.getElementById('question-<?= $qNum ?>');
+                        if (questionCard) questionCard.classList.add('answered');
+                    }
+                <?php endif; ?>
+            <?php endforeach; ?>
+
+            // Restore conditional question state
+            <?php if (isset($responses['attends_clients'])): ?>
+                attendsClients = '<?= $responses['attends_clients'] ?>';
+                handleClientQuestionsVisibility(attendsClients);
+                document.getElementById('conditional-question').classList.add('answered');
+            <?php endif; ?>
+        <?php endif; ?>
 
         // Mark question as answered
         document.querySelectorAll('input[type="radio"]').forEach(radio => {
@@ -544,7 +546,7 @@ $conditionalQuestion = IntralaboralB::getConditionalQuestion();
     </script>
 
     <!-- INLINE EDITING: Auto-guardado con verificación de integridad -->
-    <script src="<?= base_url('js/inline-editing.js') ?>"></script>
+    <script src="<?= base_url('js/inline-editing.js') ?>?v=<?= time() ?>"></script>
     <script>
         // Inicializar inline editing para Intralaboral B
         InlineEditing.init({

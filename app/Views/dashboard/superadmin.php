@@ -4,22 +4,16 @@
 <a class="nav-link active" href="<?= base_url('dashboard') ?>">
     <i class="fas fa-home me-2"></i> Dashboard
 </a>
-<a class="nav-link" href="<?= base_url('users') ?>">
+<a class="nav-link" href="<?= base_url('users') ?>" target="_blank">
     <i class="fas fa-users me-2"></i> Usuarios
 </a>
-<a class="nav-link" href="<?= base_url('companies') ?>">
+<a class="nav-link" href="<?= base_url('companies') ?>" target="_blank">
     <i class="fas fa-building me-2"></i> Empresas
 </a>
-<a class="nav-link" href="<?= base_url('battery-services') ?>">
-    <i class="fas fa-clipboard-check me-2"></i> Servicios
-</a>
-<a class="nav-link" href="<?= base_url('consultants') ?>">
+<a class="nav-link" href="<?= base_url('consultants') ?>" target="_blank">
     <i class="fas fa-user-tie me-2"></i> Consultores
 </a>
-<a class="nav-link" href="<?= base_url('reports') ?>">
-    <i class="fas fa-chart-bar me-2"></i> Informes
-</a>
-<a class="nav-link" href="<?= base_url('satisfaction/dashboard') ?>">
+<a class="nav-link" href="<?= base_url('satisfaction/dashboard') ?>" target="_blank">
     <i class="fas fa-star me-2"></i> Encuestas Satisfaccion
 </a>
 <?= $this->endSection() ?>

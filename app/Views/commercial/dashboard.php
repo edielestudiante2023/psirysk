@@ -69,13 +69,13 @@
                     <a class="nav-link active" href="<?= base_url('commercial') ?>">
                         <i class="fas fa-home me-2"></i> Dashboard
                     </a>
-                    <a class="nav-link" href="<?= base_url('commercial/orders') ?>">
+                    <a class="nav-link" href="<?= base_url('commercial/orders') ?>" target="_blank">
                         <i class="fas fa-file-contract me-2"></i> Órdenes de Servicio
                     </a>
-                    <a class="nav-link" href="<?= base_url('companies') ?>">
+                    <a class="nav-link" href="<?= base_url('companies') ?>" target="_blank">
                         <i class="fas fa-building me-2"></i> Clientes
                     </a>
-                    <a class="nav-link" href="<?= base_url('satisfaction/dashboard') ?>">
+                    <a class="nav-link" href="<?= base_url('satisfaction/dashboard') ?>" target="_blank">
                         <i class="fas fa-star me-2"></i> Encuestas Satisfaccion
                     </a>
                     <hr class="text-white-50 mx-3">
@@ -92,12 +92,12 @@
                     <div class="container-fluid">
                         <h4 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Dashboard Comercial - Equipo Gladiator</h4>
                         <div class="ms-auto">
-                            <button class="btn btn-primary me-2" onclick="location.href='<?= base_url('commercial/create') ?>'">
+                            <a href="<?= base_url('commercial/create') ?>" class="btn btn-primary me-2" target="_blank">
                                 <i class="fas fa-plus me-2"></i>Nueva Orden
-                            </button>
-                            <button class="btn btn-success" onclick="location.href='<?= base_url('companies/create') ?>'">
+                            </a>
+                            <a href="<?= base_url('companies/create') ?>" class="btn btn-success" target="_blank">
                                 <i class="fas fa-building me-2"></i>Nuevo Cliente
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </nav>
@@ -162,7 +162,7 @@
                                 <div class="card-header bg-white py-3">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <h5 class="mb-0"><i class="fas fa-history text-primary me-2"></i>Últimas Órdenes</h5>
-                                        <a href="<?= base_url('commercial/orders') ?>" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+                                        <a href="<?= base_url('commercial/orders') ?>" class="btn btn-sm btn-outline-primary" target="_blank">Ver Todas</a>
                                     </div>
                                 </div>
                                 <div class="card-body">
@@ -170,9 +170,9 @@
                                         <div class="text-center py-5">
                                             <i class="fas fa-file-contract fa-4x text-muted mb-3"></i>
                                             <p class="text-muted">No hay órdenes de servicio registradas aún.</p>
-                                            <button class="btn btn-primary" onclick="location.href='<?= base_url('commercial/create') ?>'">
+                                            <a href="<?= base_url('commercial/create') ?>" class="btn btn-primary" target="_blank">
                                                 <i class="fas fa-plus me-2"></i>Crear Primera Orden
-                                            </button>
+                                            </a>
                                         </div>
                                     <?php else: ?>
                                         <div class="list-group list-group-flush">

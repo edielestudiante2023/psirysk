@@ -268,7 +268,7 @@
                                 <option value="Separado(a)" <?= isset($demographics['marital_status']) && $demographics['marital_status'] === 'Separado(a)' ? 'selected' : '' ?>>Separado(a)</option>
                                 <option value="Divorciado(a)" <?= isset($demographics['marital_status']) && $demographics['marital_status'] === 'Divorciado(a)' ? 'selected' : '' ?>>Divorciado(a)</option>
                                 <option value="Viudo(a)" <?= isset($demographics['marital_status']) && $demographics['marital_status'] === 'Viudo(a)' ? 'selected' : '' ?>>Viudo(a)</option>
-                                <option value="Sacerdote/Monja" <?= isset($demographics['marital_status']) && $demographics['marital_status'] === 'Sacerdote/Monja' ? 'selected' : '' ?>>Sacerdote / Monja</option>
+                                <option value="Religioso(a)" <?= isset($demographics['marital_status']) && $demographics['marital_status'] === 'Religioso(a)' ? 'selected' : '' ?>>Sacerdote / Monja / Religioso(a)</option>
                             </select>
                         </div>
 
@@ -276,18 +276,19 @@
                             <label class="form-label">Último nivel de estudios que alcanzó (marque una sola opción) *</label>
                             <select class="form-select" name="education_level" required>
                                 <option value="">Seleccione...</option>
-                                <option value="Ninguno">Ninguno</option>
-                                <option value="Primaria_incompleta">Primaria incompleta</option>
-                                <option value="Primaria_completa">Primaria completa</option>
-                                <option value="Bachillerato_incompleto">Bachillerato incompleto</option>
-                                <option value="Bachillerato_completo">Bachillerato completo</option>
-                                <option value="Tecnico_tecnologico_incompleto">Técnico / tecnológico incompleto</option>
-                                <option value="Tecnico_tecnologico_completo">Técnico / tecnológico completo</option>
-                                <option value="Profesional_incompleto">Profesional incompleto</option>
-                                <option value="Profesional_completo">Profesional completo</option>
-                                <option value="Carrera_militar_policia">Carrera militar / policía</option>
-                                <option value="Post_grado_incompleto">Post-grado incompleto</option>
-                                <option value="Post_grado_completo">Post-grado completo</option>
+                                <option value="Ninguno" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Ninguno' ? 'selected' : '' ?>>Ninguno</option>
+                                <option value="Primaria_incompleta" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Primaria_incompleta' ? 'selected' : '' ?>>Primaria incompleta</option>
+                                <option value="Primaria_completa" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Primaria_completa' ? 'selected' : '' ?>>Primaria completa</option>
+                                <option value="Bachillerato_incompleto" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Bachillerato_incompleto' ? 'selected' : '' ?>>Bachillerato incompleto</option>
+                                <option value="Bachillerato_completo" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Bachillerato_completo' ? 'selected' : '' ?>>Bachillerato completo</option>
+                                <option value="Tecnico_incompleto" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Tecnico_incompleto' ? 'selected' : '' ?>>Técnico / tecnológico incompleto</option>
+                                <option value="Tecnico_completo" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Tecnico_completo' ? 'selected' : '' ?>>Técnico / tecnológico completo</option>
+                                <option value="Tecnologo_incompleto" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Tecnologo_incompleto' ? 'selected' : '' ?>>Tecnólogo incompleto</option>
+                                <option value="Tecnologo_completo" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Tecnologo_completo' ? 'selected' : '' ?>>Tecnólogo completo</option>
+                                <option value="Profesional_incompleto" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Profesional_incompleto' ? 'selected' : '' ?>>Profesional incompleto</option>
+                                <option value="Profesional_completo" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Profesional_completo' ? 'selected' : '' ?>>Profesional completo</option>
+                                <option value="Postgrado_incompleto" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Postgrado_incompleto' ? 'selected' : '' ?>>Postgrado incompleto</option>
+                                <option value="Postgrado_completo" <?= isset($demographics['education_level']) && $demographics['education_level'] === 'Postgrado_completo' ? 'selected' : '' ?>>Postgrado completo</option>
                             </select>
                         </div>
                     </div>
@@ -373,8 +374,8 @@
                             </div>
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="housing_type" value="En_arriendo" id="housingArriendo"
-                                           <?= isset($demographics['housing_type']) && $demographics['housing_type'] === 'En_arriendo' ? 'checked' : '' ?>>
+                                    <input class="form-check-input" type="radio" name="housing_type" value="Arrendada" id="housingArriendo"
+                                           <?= isset($demographics['housing_type']) && $demographics['housing_type'] === 'Arrendada' ? 'checked' : '' ?>>
                                     <label class="form-check-label" for="housingArriendo">En arriendo</label>
                                 </div>
                             </div>
@@ -822,9 +823,10 @@
                 console.log('  - result.debug_verification:', result.debug_verification);
 
                 if (result.success && DEBUG_MODE && result.debug_enabled && result.debug_verification) {
-                    // Mostrar Sweet Alert con verificación
-                    console.log('✅ Mostrando verificación...');
-                    await showDebugVerification(result.debug_verification);
+                    // Sweet Alert de verificación - COMENTADO para producción
+                    // Descomentar la siguiente línea para activar el debug visual:
+                    // await showDebugVerification(result.debug_verification);
+                    console.log('✅ Debug verification disponible (Sweet Alert desactivado)');
                 } else if (result.success) {
                     console.log('✅ Guardado exitoso (sin debug)');
                     if (!DEBUG_MODE) console.log('   Razón: DEBUG_MODE es false');
@@ -957,10 +959,11 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Mostrar datos de verificación si DEBUG está activo
-                    if (result.debug_enabled && result.debug_verification) {
-                        await showDebugVerification(result.debug_verification);
-                    }
+                    // Sweet Alert de verificación en submit - COMENTADO para producción
+                    // Descomentar las siguientes líneas para activar el debug visual:
+                    // if (result.debug_enabled && result.debug_verification) {
+                    //     await showDebugVerification(result.debug_verification);
+                    // }
 
                     window.location.href = '<?= base_url('assessment/intralaboral') ?>';
                 } else {

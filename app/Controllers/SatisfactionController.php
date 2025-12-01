@@ -181,7 +181,7 @@ class SatisfactionController extends BaseController
     public function view($serviceId)
     {
         $userRole = session()->get('role_name');
-        if (!in_array($userRole, ['admin', 'superadmin', 'consultor', 'comercial'])) {
+        if (!in_array($userRole, ['admin', 'superadmin', 'consultor', 'director_comercial'])) {
             return redirect()->to('/dashboard')->with('error', 'No tiene permisos para ver esta información.');
         }
 
@@ -206,7 +206,7 @@ class SatisfactionController extends BaseController
     public function dashboard()
     {
         $userRole = session()->get('role_name');
-        if (!in_array($userRole, ['admin', 'superadmin', 'consultor', 'comercial'])) {
+        if (!in_array($userRole, ['admin', 'superadmin', 'consultor', 'director_comercial'])) {
             return redirect()->to('/dashboard')->with('error', 'No tiene permisos para acceder a esta sección.');
         }
 

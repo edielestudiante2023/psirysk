@@ -18,7 +18,11 @@
       "Bash(git push:*)",
       "Bash(git stash:*)",
       "Bash(php:*)",
-      "Bash(del test_workers.php)"
+      "Bash(del test_workers.php)",
+      "Bash(php scripts/check_db.php:*)",
+      "Bash(more:*)",
+      "Bash(cmd /c \"del c:\\xampp\\htdocs\\psyrisk\\test_calculo.php\")",
+      "Bash(cmd /c \"del c:\\xampp\\htdocs\\psyrisk\\test_calculo_corregido.php c:\\xampp\\htdocs\\psyrisk\\test_calculo_formab.php c:\\xampp\\htdocs\\psyrisk\\recalcular_worker.php c:\\xampp\\htdocs\\psyrisk\\recalcular_directo.php\")"
     ],
     "deny": [],
     "ask": []

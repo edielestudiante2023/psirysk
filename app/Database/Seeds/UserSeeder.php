@@ -13,6 +13,7 @@ class UserSeeder extends Seeder
                 'email'      => 'edison.cuervo@cycloidtalent.com',
                 'password'   => password_hash('Admin123*', PASSWORD_DEFAULT),
                 'role_id'    => 1, // superadmin
+                'company_id' => null,
                 'name'       => 'Edison Cuervo',
                 'phone'      => null,
                 'status'     => 'active',
@@ -23,6 +24,7 @@ class UserSeeder extends Seeder
                 'email'      => 'eleyson.segura@cycloidtalent.com',
                 'password'   => password_hash('3227145322', PASSWORD_DEFAULT),
                 'role_id'    => 2, // consultor
+                'company_id' => null,
                 'name'       => 'Eleyson Segura',
                 'phone'      => null,
                 'status'     => 'active',
@@ -66,6 +68,7 @@ class UserSeeder extends Seeder
                 'email'      => 'comercial@cycloidtalent.com',
                 'password'   => password_hash('Gladiator2024*', PASSWORD_DEFAULT),
                 'role_id'    => 5, // director_comercial
+                'company_id' => null,
                 'name'       => 'Director Comercial',
                 'phone'      => null,
                 'status'     => 'active',

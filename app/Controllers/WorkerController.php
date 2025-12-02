@@ -130,8 +130,9 @@ class WorkerController extends BaseController
             return redirect()->to('/battery-services')->with('error', 'Servicio no encontrado');
         }
 
-        // Validar que se subió un archivo
-        $file = $this->request->getFile('csv_file');
+        try {
+            // Validar que se subió un archivo
+            $file = $this->request->getFile('csv_file');
         if (!$file || !$file->isValid()) {
             return redirect()->back()->with('error', 'Debe seleccionar un archivo CSV válido');
         }
@@ -236,6 +237,11 @@ class WorkerController extends BaseController
         }
 
         return redirect()->to('/battery-services/' . $serviceId)->with('success', $message);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error procesando CSV: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al procesar el archivo CSV. Verifique que el formato sea correcto y que todas las filas tengan el mismo número de columnas que el encabezado.');
+        }
     }
 
     private function parseDate($dateString)

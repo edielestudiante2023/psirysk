@@ -235,9 +235,112 @@ class BatteryServiceController extends BaseController
         ];
 
         if ($this->batteryServiceModel->update($id, $data)) {
+            // Enviar correo de notificación cuando el servicio se finaliza
+            if ($newStatus === 'finalizado' && $service['status'] !== 'finalizado') {
+                $this->sendServiceFinalizedEmail($id);
+            }
             return redirect()->to('/battery-services')->with('success', 'Servicio actualizado exitosamente');
         } else {
             return redirect()->back()->withInput()->with('error', 'Error al actualizar el servicio');
+        }
+    }
+
+    /**
+     * Enviar correo de notificación cuando el servicio es finalizado
+     */
+    private function sendServiceFinalizedEmail($serviceId)
+    {
+        $service = $this->batteryServiceModel
+            ->select('battery_services.*, companies.name as company_name, companies.contact_email, companies.contact_name')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->find($serviceId);
+
+        if (!$service || empty($service['contact_email'])) {
+            log_message('warning', "No se pudo enviar correo de finalización: servicio {$serviceId} sin email de contacto");
+            return;
+        }
+
+        // Contar solo trabajadores completados
+        $workerModel = new \App\Models\WorkerModel();
+        $completados = $workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('status', 'completado')
+            ->countAllResults();
+
+        $totalWorkers = $workerModel
+            ->where('battery_service_id', $serviceId)
+            ->countAllResults();
+
+        // Formatear fecha
+        $fechaServicio = date('d/m/Y', strtotime($service['service_date']));
+
+        // Construir el correo
+        $email = \Config\Services::email();
+
+        $subject = "✅ Evaluación de Riesgo Psicosocial Finalizada - {$service['company_name']}";
+
+        $body = "
+        <html>
+        <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+            <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                <div style='background-color: #198754; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0;'>
+                    <h1 style='margin: 0;'>✅ Evaluación Finalizada</h1>
+                </div>
+
+                <div style='background-color: #f8f9fa; padding: 20px; border: 1px solid #dee2e6;'>
+                    <p>Estimado(a) cliente,</p>
+
+                    <p>Nos complace informarle que la evaluación de riesgo psicosocial para su empresa ha sido <strong>finalizada exitosamente</strong>.</p>
+
+                    <div style='background-color: white; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                        <h3 style='color: #198754; margin-top: 0;'>📋 DETALLES DEL SERVICIO</h3>
+                        <table style='width: 100%;'>
+                            <tr><td><strong>Empresa:</strong></td><td>{$service['company_name']}</td></tr>
+                            <tr><td><strong>Servicio:</strong></td><td>{$service['service_name']}</td></tr>
+                            <tr><td><strong>Fecha de aplicación:</strong></td><td>{$fechaServicio}</td></tr>
+                            <tr><td><strong>Trabajadores evaluados:</strong></td><td>{$completados} de {$totalWorkers}</td></tr>
+                        </table>
+                    </div>
+
+                    <div style='background-color: white; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                        <h3 style='color: #0d6efd; margin-top: 0;'>📊 PRÓXIMOS PASOS</h3>
+                        <p>Los resultados de la evaluación ya se encuentran disponibles en la plataforma. Puede acceder a los informes ingresando a:</p>
+                        <p style='text-align: center;'>
+                            <a href='https://psirysk.cycloidtalent.com/' style='background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;'>🔗 Acceder a la Plataforma</a>
+                        </p>
+                        <p>Desde su panel podrá visualizar:</p>
+                        <ul>
+                            <li>Informe ejecutivo de resultados</li>
+                            <li>Análisis por dimensiones de riesgo</li>
+                            <li>Recomendaciones y planes de acción</li>
+                        </ul>
+                    </div>
+
+                    <p>Si tiene alguna pregunta o requiere asistencia con la interpretación de los resultados, no dude en contactarnos.</p>
+
+                    <p>Atentamente,</p>
+
+                    <div style='border-top: 2px solid #198754; padding-top: 15px; margin-top: 20px;'>
+                        <strong>CYCLOID TALENT</strong><br>
+                        Equipo de Riesgo Psicosocial<br>
+                        📧 notificacion.cycloidtalent@cycloidtalent.com<br>
+                        🌐 www.cycloidtalent.com
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>";
+
+        $email->setFrom(env('email.fromEmail'), env('email.fromName'));
+        $email->setTo($service['contact_email']);
+        $email->setCC(['comercial@cycloidtalent.com', 'edison.cuervo@cycloidtalent.com']);
+        $email->setSubject($subject);
+        $email->setMessage($body);
+
+        if ($email->send()) {
+            log_message('info', "Correo de finalización enviado para servicio {$serviceId} a {$service['contact_email']}");
+        } else {
+            log_message('error', "Error enviando correo de finalización: " . $email->printDebugger(['headers']));
         }
     }
 

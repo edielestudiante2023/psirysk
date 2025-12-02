@@ -100,15 +100,15 @@ class BatteryServiceController extends BaseController
             'consultant_id' => 'required|integer',
             'service_name' => 'required|min_length[3]',
             'service_date' => 'required|valid_date',
+            'expiration_date' => 'required|valid_date',
         ];
 
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        // Calcular fecha de expiración (7 días después de service_date)
         $serviceDate = $this->request->getPost('service_date');
-        $expirationDate = date('Y-m-d', strtotime($serviceDate . ' +15 days'));
+        $expirationDate = $this->request->getPost('expiration_date');
 
         $data = [
             'company_id' => $this->request->getPost('company_id'),

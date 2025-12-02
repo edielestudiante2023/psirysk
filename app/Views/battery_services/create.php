@@ -94,14 +94,15 @@
                                 </div>
 
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Fecha de Vencimiento</label>
-                                    <input type="text"
+                                    <label class="form-label">Fecha de Vencimiento *</label>
+                                    <input type="date"
                                            class="form-control"
-                                           value="7 días después de la fecha del servicio"
-                                           readonly
-                                           disabled>
+                                           id="expiration_date"
+                                           name="expiration_date"
+                                           value="<?= old('expiration_date') ?>"
+                                           required>
                                     <small class="text-muted">
-                                        Se calculará automáticamente
+                                        Fecha límite para completar la batería
                                     </small>
                                 </div>
                             </div>

@@ -171,6 +171,12 @@ class WorkerController extends BaseController
         foreach ($csvData as $index => $row) {
             $rowNumber = $index + 2; // +2 porque array empieza en 0 y hay header
 
+            // Validar que la fila tenga el mismo número de columnas que el header
+            if (count($row) !== count($header)) {
+                $errors[] = "Fila {$rowNumber}: Número incorrecto de columnas (esperado: " . count($header) . ", encontrado: " . count($row) . ")";
+                continue;
+            }
+
             // Crear array asociativo
             $data = array_combine($header, $row);
 

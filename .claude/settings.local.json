@@ -22,7 +22,9 @@
       "Bash(php scripts/check_db.php:*)",
       "Bash(more:*)",
       "Bash(cmd /c \"del c:\\xampp\\htdocs\\psyrisk\\test_calculo.php\")",
-      "Bash(cmd /c \"del c:\\xampp\\htdocs\\psyrisk\\test_calculo_corregido.php c:\\xampp\\htdocs\\psyrisk\\test_calculo_formab.php c:\\xampp\\htdocs\\psyrisk\\recalcular_worker.php c:\\xampp\\htdocs\\psyrisk\\recalcular_directo.php\")"
+      "Bash(cmd /c \"del c:\\xampp\\htdocs\\psyrisk\\test_calculo_corregido.php c:\\xampp\\htdocs\\psyrisk\\test_calculo_formab.php c:\\xampp\\htdocs\\psyrisk\\recalcular_worker.php c:\\xampp\\htdocs\\psyrisk\\recalcular_directo.php\")",
+      "Bash(del \"c:\\xampp\\htdocs\\psyrisk\\check_action_plans.php\")",
+      "Bash(cmd /c \"del c:\\xampp\\htdocs\\psyrisk\\check_action_plans.php\")"
     ],
     "deny": [],
     "ask": []

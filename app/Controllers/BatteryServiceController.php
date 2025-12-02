@@ -68,16 +68,8 @@ class BatteryServiceController extends BaseController
             return redirect()->to('/dashboard')->with('error', 'No tienes permisos');
         }
 
-        // Obtener empresas del consultor
-        $userId = session()->get('id');
-        if ($roleName === 'superadmin') {
-            $companies = $this->companyModel->where('status', 'active')->findAll();
-        } else {
-            $companies = $this->companyModel
-                ->where('created_by', $userId)
-                ->where('status', 'active')
-                ->findAll();
-        }
+        // Superadmin y Consultor ven todas las empresas activas
+        $companies = $this->companyModel->where('status', 'active')->findAll();
 
         // Obtener consultores activos desde tabla consultants
         $db = \Config\Database::connect();

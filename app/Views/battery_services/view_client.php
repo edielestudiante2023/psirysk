@@ -155,9 +155,54 @@
             text-align: center;
             margin-bottom: 1.5rem;
         }
+        /* Loading overlay para descargas */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .loading-overlay.active {
+            display: flex;
+        }
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        .loading-subtext {
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
+    <!-- Loading Overlay para descargas PDF -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Generando PDF...</div>
+        <div class="loading-subtext">Este proceso puede tomar hasta 30 segundos</div>
+    </div>
     <!-- Header Banner -->
     <div class="header-banner">
         <div class="container-fluid px-4">
@@ -396,14 +441,194 @@
                 </div>
             </div>
 
-            <!-- PDF EJECUTIVO (Informes Completos) -->
+            <!-- PDF EJECUTIVO (Informes PDF) -->
             <div class="content-section">
                 <div class="section-title success">
                     <i class="fas fa-file-pdf fa-lg text-success me-3"></i>
-                    <h5>Informes PDF</h5>
+                    <h5>Secciones Individuales del Informe de Bateria</h5>
+                    <span class="badge bg-success ms-auto">12 secciones</span>
+                </div>
+                <div class="pdf-grid mb-4">
+                    <!-- Portada -->
+                    <div class="pdf-card card">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-image me-2"></i>Portada
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2">
+                                <a href="<?= base_url('pdfejecutivo/preview/portada/' . $service['id']) ?>" class="btn btn-outline-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= base_url('pdfejecutivo/download/portada/' . $service['id']) ?>" class="btn btn-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Contenido -->
+                    <div class="pdf-card card">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-list-ol me-2"></i>Contenido
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2">
+                                <a href="<?= base_url('pdfejecutivo/preview/contenido/' . $service['id']) ?>" class="btn btn-outline-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= base_url('pdfejecutivo/download/contenido/' . $service['id']) ?>" class="btn btn-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Introduccion -->
+                    <div class="pdf-card card">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-book-open me-2"></i>Introduccion
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2">
+                                <a href="<?= base_url('pdfejecutivo/preview/introduccion/' . $service['id']) ?>" class="btn btn-outline-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= base_url('pdfejecutivo/download/introduccion/' . $service['id']) ?>" class="btn btn-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Sociodemograficos -->
+                    <div class="pdf-card card">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-users me-2"></i>Sociodemograficos
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2">
+                                <a href="<?= base_url('pdfejecutivo/preview/sociodemograficos/' . $service['id']) ?>" class="btn btn-outline-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= base_url('pdfejecutivo/download/sociodemograficos/' . $service['id']) ?>" class="btn btn-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Mapas de Calor -->
+                    <div class="pdf-card card">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-th me-2"></i>Mapas de Calor
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2">
+                                <a href="<?= base_url('pdfejecutivo/preview/mapas-calor/' . $service['id']) ?>" class="btn btn-outline-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= base_url('pdfejecutivo/download/mapas-calor/' . $service['id']) ?>" class="btn btn-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Totales Intralaborales -->
+                    <div class="pdf-card card">
+                        <div class="card-header bg-success text-white">
+                            <i class="fas fa-chart-pie me-2"></i>Totales Intralaborales
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2">
+                                <a href="<?= base_url('pdfejecutivo/preview/totales-intralaborales/' . $service['id']) ?>" class="btn btn-outline-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= base_url('pdfejecutivo/download/totales-intralaborales/' . $service['id']) ?>" class="btn btn-success btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Dominios Intralaborales -->
+                    <div class="pdf-card card">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-layer-group me-2"></i>Dominios Intralaborales
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2">
+                                <a href="<?= base_url('pdfejecutivo/preview/dominios-intralaborales/' . $service['id']) ?>" class="btn btn-outline-primary btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= base_url('pdfejecutivo/download/dominios-intralaborales/' . $service['id']) ?>" class="btn btn-primary btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Dimensiones Intralaborales -->
+                    <div class="pdf-card card">
+                        <div class="card-header bg-info text-white">
+                            <i class="fas fa-cubes me-2"></i>Dim. Intralaborales
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2">
+                                <a href="<?= base_url('pdfejecutivo/preview/dimensiones-intralaborales/' . $service['id']) ?>" class="btn btn-outline-info btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= base_url('pdfejecutivo/download/dimensiones-intralaborales/' . $service['id']) ?>" class="btn btn-info btn-sm flex-fill" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Dimensiones Extralaborales -->
+                    <div class="pdf-card card">
+                        <div class="card-header text-white" style="background-color: #00A86B;">
+                            <i class="fas fa-home me-2"></i>Dim. Extralaborales
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2">
+                                <a href="<?= base_url('pdfejecutivo/preview/dimensiones-extralaborales/' . $service['id']) ?>" class="btn btn-sm flex-fill" style="border-color: #00A86B; color: #00A86B;" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= base_url('pdfejecutivo/download/dimensiones-extralaborales/' . $service['id']) ?>" class="btn btn-sm flex-fill text-white" style="background-color: #00A86B;" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Evaluacion del Estres -->
+                    <div class="pdf-card card">
+                        <div class="card-header text-white" style="background-color: #9B59B6;">
+                            <i class="fas fa-bolt me-2"></i>Estres
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2">
+                                <a href="<?= base_url('pdfejecutivo/preview/estres-ejecutivo/' . $service['id']) ?>" class="btn btn-sm flex-fill" style="border-color: #9B59B6; color: #9B59B6;" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= base_url('pdfejecutivo/download/estres-ejecutivo/' . $service['id']) ?>" class="btn btn-sm flex-fill text-white" style="background-color: #9B59B6;" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Recomendaciones y Planes -->
+                    <div class="pdf-card card">
+                        <div class="card-header text-white" style="background-color: #FF6B35;">
+                            <i class="fas fa-clipboard-check me-2"></i>Recomendaciones
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex gap-2">
+                                <a href="<?= base_url('pdfejecutivo/preview/recomendaciones-planes/' . $service['id']) ?>" class="btn btn-sm flex-fill" style="border-color: #FF6B35; color: #FF6B35;" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="<?= base_url('pdfejecutivo/download/recomendaciones-planes/' . $service['id']) ?>" class="btn btn-sm flex-fill text-white" style="background-color: #FF6B35;" target="_blank">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Informes Completos -->
+                <h6 class="text-muted mb-3"><i class="fas fa-file-pdf me-2"></i>Informes Completos</h6>
                 <div class="row g-3">
                     <div class="col-lg-6">
                         <div class="informe-destacado card" style="border: 3px solid #C41E3A;">
@@ -493,5 +718,21 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mostrar spinner al descargar PDFs grandes
+        document.querySelectorAll('a[href*="pdfejecutivo/download"]').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                // Solo para descargas (no previews)
+                if (this.href.includes('/download/')) {
+                    document.getElementById('loadingOverlay').classList.add('active');
+
+                    // Ocultar después de un tiempo (la descarga inicia automáticamente)
+                    setTimeout(function() {
+                        document.getElementById('loadingOverlay').classList.remove('active');
+                    }, 5000);
+                }
+            });
+        });
+    </script>
 </body>
 </html>

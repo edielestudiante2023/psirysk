@@ -146,9 +146,56 @@
             margin-bottom: 1.5rem;
             box-shadow: 0 2px 15px rgba(0,0,0,0.08);
         }
+
+        /* Loading overlay para descargas */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .loading-overlay.active {
+            display: flex;
+        }
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        .loading-subtext {
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
+    <!-- Loading Overlay para descargas PDF -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Generando PDF...</div>
+        <div class="loading-subtext">Este proceso puede tomar hasta 30 segundos</div>
+    </div>
+
     <!-- Header Banner -->
     <div class="header-banner">
         <div class="container-fluid px-4">
@@ -669,5 +716,26 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mostrar spinner al descargar PDFs grandes
+        document.querySelectorAll('a[href*="pdfejecutivo/download"]').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                // Solo para descargas del informe completo (no secciones individuales)
+                if (this.href.includes('/download/') && !this.href.includes('/download/portada')
+                    && !this.href.includes('/download/contenido') && !this.href.includes('/download/introduccion')
+                    && !this.href.includes('/download/sociodemograficos') && !this.href.includes('/download/mapas-calor')
+                    && !this.href.includes('/download/totales-intralaborales') && !this.href.includes('/download/dominios-intralaborales')
+                    && !this.href.includes('/download/dimensiones-intralaborales') && !this.href.includes('/download/dimensiones-extralaborales')
+                    && !this.href.includes('/download/estres-ejecutivo') && !this.href.includes('/download/recomendaciones-planes')) {
+                    document.getElementById('loadingOverlay').classList.add('active');
+
+                    // Ocultar después de un tiempo (la descarga inicia automáticamente)
+                    setTimeout(function() {
+                        document.getElementById('loadingOverlay').classList.remove('active');
+                    }, 5000);
+                }
+            });
+        });
+    </script>
 </body>
 </html>

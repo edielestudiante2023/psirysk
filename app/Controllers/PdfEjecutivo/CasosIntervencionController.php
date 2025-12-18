@@ -327,9 +327,9 @@ class CasosIntervencionController extends BaseController
 
                 $casos[] = [
                     'worker_id' => $result['worker_id'],
-                    'cedula' => $worker['identification_number'] ?? 'N/D',
-                    'area' => $result['area'] ?? 'Sin área',
-                    'cargo' => $result['position'] ?? 'Sin cargo',
+                    'documento' => $worker['document'] ?? 'N/D',
+                    'area' => $worker['area'] ?? 'Sin área',
+                    'cargo' => $worker['position'] ?? 'Sin cargo',
                     'forma' => $result['intralaboral_form_type'] ?? 'N/A',
                     'puntaje' => number_format($result[$campoPuntaje] ?? 0, 1),
                     'nivel' => $nivel,
@@ -360,7 +360,7 @@ class CasosIntervencionController extends BaseController
 <table>
     <thead>
         <tr>
-            <th style="width: 80pt;">Cédula</th>
+            <th style="width: 80pt;">Documento</th>
             <th>Área</th>
             <th>Cargo</th>
             <th style="width: 40pt;">Forma</th>
@@ -378,7 +378,7 @@ class CasosIntervencionController extends BaseController
 
             $html .= '
         <tr>
-            <td>' . esc($caso['cedula']) . '</td>
+            <td>' . esc($caso['documento']) . '</td>
             <td>' . esc($caso['area']) . '</td>
             <td>' . esc($caso['cargo']) . '</td>
             <td style="text-align: center;">' . esc($caso['forma']) . '</td>

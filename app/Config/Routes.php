@@ -287,6 +287,9 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
     // Preview Informe Ejecutivo (Portada + Mapas + Recomendaciones)
     $routes->get('preview/ejecutivo/(:num)', 'InformeEjecutivoOrchestrator::preview/$1');
 
+    // Casos Blanco de Intervención (SOLO CONSULTOR - Confidencial)
+    $routes->get('preview/casos-intervencion/(:num)', 'CasosIntervencionController::preview/$1');
+
     // Descargas PDF
     $routes->get('download/portada/(:num)', 'PortadaController::download/$1');
     $routes->get('download/contenido/(:num)', 'ContenidoController::download/$1');
@@ -305,4 +308,7 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
 
     // Descarga Informe Ejecutivo (Portada + Mapas + Recomendaciones)
     $routes->get('download/ejecutivo/(:num)', 'InformeEjecutivoOrchestrator::download/$1');
+
+    // Descarga Casos Blanco de Intervención (SOLO CONSULTOR - Confidencial)
+    $routes->get('download/casos-intervencion/(:num)', 'CasosIntervencionController::download/$1');
 });

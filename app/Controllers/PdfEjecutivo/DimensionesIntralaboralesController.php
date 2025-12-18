@@ -632,34 +632,10 @@ class DimensionesIntralaboralesController extends PdfEjecutivoBaseController
     </p>
 </div>';
 
-        // ELEMENTO 11: Tabla de áreas con riesgo alto y muy alto
-        $areasRiesgo = $this->getAreasEnRiesgoAlto($results, $dimension['campo_nivel']);
-        if (!empty($areasRiesgo)) {
-            $html .= '
-<p style="font-size: 8pt; font-weight: bold; color: #006699; margin: 8pt 0 3pt 0;">Áreas con Riesgo Alto y Muy Alto:</p>
-<table style="width: 100%; font-size: 7pt; border-collapse: collapse;">
-    <tr>
-        <th style="background: #006699; color: white; padding: 3pt; border: 1pt solid #333;">Área</th>
-        <th style="background: #006699; color: white; padding: 3pt; border: 1pt solid #333;">Cargo</th>
-        <th style="background: #006699; color: white; padding: 3pt; border: 1pt solid #333; width: 50pt;">Participantes</th>
-        <th style="background: #006699; color: white; padding: 3pt; border: 1pt solid #333; width: 60pt;">Nivel</th>
-    </tr>';
-
-            $maxRows = min(count($areasRiesgo), 5); // Máximo 5 filas para caber en la página
-            for ($i = 0; $i < $maxRows; $i++) {
-                $area = $areasRiesgo[$i];
-                $nivelAreaColor = $this->getRiskColor($area['nivel']);
-                $html .= '
-    <tr>
-        <td style="padding: 2pt; border: 1pt solid #ccc;">' . esc($area['area']) . '</td>
-        <td style="padding: 2pt; border: 1pt solid #ccc;">' . esc($area['cargo']) . '</td>
-        <td style="padding: 2pt; border: 1pt solid #ccc; text-align: center;">' . $area['count'] . '</td>
-        <td style="padding: 2pt; border: 1pt solid #ccc; text-align: center; background-color: ' . $nivelAreaColor . '; color: white;">' . $this->getRiskName($area['nivel']) . '</td>
-    </tr>';
-            }
-
-            $html .= '</table>';
-        }
+        // NOTA: La tabla de "Áreas con Riesgo Alto y Muy Alto" fue removida del PDF público
+        // por razones de confidencialidad (Resolución 2764/2022).
+        // Esta información ahora está disponible en el reporte "Casos Blanco de Intervención"
+        // exclusivo para el consultor SST.
 
         // ELEMENTO 12: Texto IA (si existe)
         $textoIA = $this->getTextoIA($dimensionCodigo, $forma);

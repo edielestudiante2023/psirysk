@@ -676,6 +676,39 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Casos Blanco de Intervención (CONFIDENCIAL - Solo Consultor) -->
+            <div class="mt-4">
+                <div class="informe-destacado card" style="border: 3px solid #dc3545;">
+                    <div class="card-header text-white" style="background: linear-gradient(135deg, #dc3545 0%, #8B0000 100%);">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user-shield fa-2x me-3"></i>
+                                <div>
+                                    <h6 class="mb-0">Casos Blanco de Intervención</h6>
+                                    <small>Uso exclusivo del profesional SST</small>
+                                </div>
+                            </div>
+                            <span class="badge bg-warning text-dark">CONFIDENCIAL</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning mb-3 py-2">
+                            <small><i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Reserva profesional:</strong> Este reporte contiene datos individualizables con reserva similar a historia clínica.
+                            <strong>NO incluir en informes a la empresa.</strong> Uso permitido: ARL, médico SST bajo requerimiento.</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="<?= base_url('pdfejecutivo/preview/casos-intervencion/' . $service['id']) ?>" class="btn btn-outline-danger flex-fill" target="_blank">
+                                <i class="fas fa-eye me-2"></i>Ver Casos
+                            </a>
+                            <a href="<?= base_url('pdfejecutivo/download/casos-intervencion/' . $service['id']) ?>" class="btn btn-danger flex-fill">
+                                <i class="fas fa-download me-2"></i>Descargar PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <?php endif; ?>
 

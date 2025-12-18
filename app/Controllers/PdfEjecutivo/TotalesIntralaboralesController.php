@@ -617,95 +617,102 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
         $stats34A = $this->getStatsTabla34('A');
         $stats34B = $this->getStatsTabla34('B');
 
-        // Calcular promedios generales para tabla 34
-        $totalGeneral = count($this->calculatedResults);
-        $sumaIntra = 0;
-        $sumaExtra = 0;
-        $sumaTotal = 0;
-
-        foreach ($this->calculatedResults as $r) {
-            $intra = floatval($r['intralaboral_total_puntaje']);
-            $extra = floatval($r['extralaboral_total_puntaje']);
-            $sumaIntra += $intra;
-            $sumaExtra += $extra;
-            $sumaTotal += ($intra + $extra) / 2;
-        }
-
-        $promedioIntraGeneral = $totalGeneral > 0 ? $sumaIntra / $totalGeneral : 0;
-        $promedioExtraGeneral = $totalGeneral > 0 ? $sumaExtra / $totalGeneral : 0;
-        $promedioTotalGeneral = $totalGeneral > 0 ? $sumaTotal / $totalGeneral : 0;
-
-        // Usar baremo A como referencia
-        $nivelTotal = $this->getNivelFromPuntaje($promedioTotalGeneral, $this->getBaremoTabla34('A'));
-        $nivelNombre = $this->getRiskName($nivelTotal);
-        $colorTotal = $this->getRiskColor($nivelTotal);
+        // Obtener niveles y colores por forma
+        $nivelA = $stats34A ? $stats34A['nivel_total'] : 'sin_riesgo';
+        $nivelB = $stats34B ? $stats34B['nivel_total'] : 'sin_riesgo';
+        $nivelNombreA = $this->getRiskName($nivelA);
+        $nivelNombreB = $this->getRiskName($nivelB);
+        $colorA = $this->getRiskColor($nivelA);
+        $colorB = $this->getRiskColor($nivelB);
 
         $html = '
 <h1 style="font-size: 13pt; color: #006699; margin: 0 0 5pt 0; padding-bottom: 5pt; border-bottom: 2pt solid #6a1b9a;">
     Puntaje Total General de Factores de Riesgo Psicosocial
 </h1>
 <p style="font-size: 10pt; color: #666; text-align: center; margin: 0 0 10pt 0;">
-    Intralaboral + Extralaboral (Tabla 34 - Resolución 2404/2019)
+    Intralaboral + Extralaboral (Tabla 34 - Resolución 2764/2022)
 </p>
 
-<!-- Descripción de cuestionarios por forma -->
-<table style="width: 100%; border-collapse: collapse; margin: 8pt 0;">
-    <tr>
-        <td style="width: 50%; text-align: center; padding: 8pt; background-color: #e3f2fd; border: 1pt solid #1976D2; vertical-align: middle;">
-            <span style="font-size: 9pt; color: #1976D2; line-height: 1.4;">
-                Cuestionario de factores de<br>
-                riesgo intralaboral <strong>forma A</strong><br>
-                y cuestionario de factores<br>
-                de riesgo extralaboral
-            </span>
-        </td>
-        <td style="width: 50%; text-align: center; padding: 8pt; background-color: #fff3e0; border: 1pt solid #FF9800; vertical-align: middle;">
-            <span style="font-size: 9pt; color: #e65100; line-height: 1.4;">
-                Cuestionario de factores de<br>
-                riesgo intralaboral <strong>forma B</strong><br>
-                y cuestionario de factores<br>
-                de riesgo extralaboral
-            </span>
-        </td>
-    </tr>
-</table>
-
 <!-- Fórmula -->
-<div style="background-color: #fff3e0; border: 1pt solid #FF9800; padding: 10pt; margin: 10pt 0; text-align: center;">
-    <span style="font-size: 10pt; color: #e65100;">
+<div style="background-color: #f3e5f5; border: 1pt solid #6a1b9a; padding: 10pt; margin: 10pt 0; text-align: center;">
+    <span style="font-size: 10pt; color: #6a1b9a;">
         <strong>Puntaje Total = (Puntaje Intralaboral + Puntaje Extralaboral) / 2</strong>
     </span>
 </div>
 
-<!-- Caja principal morada -->
+<!-- 2 cajas principales por forma -->
 <table style="width: 100%; border-collapse: separate; border-spacing: 8pt; margin: 10pt 0;">
     <tr>
-        <td style="background-color: #6a1b9a; color: white; text-align: center; padding: 15pt; vertical-align: middle; border: none;">
-            <div style="font-size: 10pt; font-weight: bold; margin-bottom: 5pt;">TOTAL GENERAL PSICOSOCIAL</div>
-            <div style="font-size: 26pt; font-weight: bold;">' . number_format($promedioTotalGeneral, 1) . '</div>
-            <div style="display: inline-block; background-color: ' . $colorTotal . '; color: ' . ($nivelTotal === 'riesgo_medio' ? '#333' : '#fff') . '; padding: 4pt 12pt; margin-top: 8pt; font-size: 9pt; font-weight: bold;">
-                ' . strtoupper($nivelNombre) . '
+        <!-- FORMA A -->
+        <td style="width: 50%; background-color: #0077B6; color: white; text-align: center; padding: 15pt; vertical-align: middle; border: none;">
+            <div style="font-size: 10pt; font-weight: bold; margin-bottom: 5pt;">FORMA A</div>
+            <div style="font-size: 8pt; margin-bottom: 8pt;">Jefes, Profesionales y Técnicos</div>
+            <div style="font-size: 28pt; font-weight: bold;">' . ($stats34A ? number_format($stats34A['promedio_total'], 1) : 'N/A') . '</div>
+            <div style="display: inline-block; background-color: ' . $colorA . '; color: ' . ($nivelA === 'riesgo_medio' ? '#333' : '#fff') . '; padding: 4pt 12pt; margin-top: 8pt; font-size: 9pt; font-weight: bold;">
+                ' . strtoupper($nivelNombreA) . '
             </div>
+            <div style="font-size: 8pt; margin-top: 10pt;">n = ' . ($stats34A ? $stats34A['total'] : 0) . ' trabajadores</div>
+        </td>
+        <!-- FORMA B -->
+        <td style="width: 50%; background-color: #FF9800; color: white; text-align: center; padding: 15pt; vertical-align: middle; border: none;">
+            <div style="font-size: 10pt; font-weight: bold; margin-bottom: 5pt;">FORMA B</div>
+            <div style="font-size: 8pt; margin-bottom: 8pt;">Auxiliares y Operarios</div>
+            <div style="font-size: 28pt; font-weight: bold;">' . ($stats34B ? number_format($stats34B['promedio_total'], 1) : 'N/A') . '</div>
+            <div style="display: inline-block; background-color: ' . $colorB . '; color: ' . ($nivelB === 'riesgo_medio' ? '#333' : '#fff') . '; padding: 4pt 12pt; margin-top: 8pt; font-size: 9pt; font-weight: bold;">
+                ' . strtoupper($nivelNombreB) . '
+            </div>
+            <div style="font-size: 8pt; margin-top: 10pt;">n = ' . ($stats34B ? $stats34B['total'] : 0) . ' trabajadores</div>
         </td>
     </tr>
 </table>
 
-<!-- 2 cajas desglose -->
+<!-- Desglose por componente -->
 <table style="width: 100%; border-collapse: separate; border-spacing: 8pt;">
     <tr>
-        <td style="width: 50%; background-color: #e3f2fd; text-align: center; padding: 12pt; vertical-align: middle; border: 2pt solid #1976D2;">
-            <div style="font-size: 9pt; font-weight: bold; color: #1976D2; margin-bottom: 5pt;">INTRALABORAL</div>
-            <div style="font-size: 20pt; font-weight: bold; color: #1976D2;">' . number_format($promedioIntraGeneral, 1) . '</div>
+        <!-- Desglose Forma A -->
+        <td style="width: 50%; background-color: #e3f2fd; text-align: center; padding: 10pt; vertical-align: middle; border: 2pt solid #0077B6;">
+            <div style="font-size: 8pt; color: #0077B6; margin-bottom: 8pt; font-weight: bold;">Componentes Forma A</div>
+            <table style="width: 100%; border: none;">
+                <tr>
+                    <td style="text-align: center; border: none; padding: 3pt;">
+                        <div style="font-size: 8pt; color: #666;">Intralaboral</div>
+                        <div style="font-size: 14pt; font-weight: bold; color: #0077B6;">' . ($stats34A ? number_format($stats34A['promedio_intra'], 1) : 'N/A') . '</div>
+                    </td>
+                    <td style="text-align: center; border: none; padding: 3pt; font-size: 14pt; color: #999;">+</td>
+                    <td style="text-align: center; border: none; padding: 3pt;">
+                        <div style="font-size: 8pt; color: #666;">Extralaboral</div>
+                        <div style="font-size: 14pt; font-weight: bold; color: #0077B6;">' . ($stats34A ? number_format($stats34A['promedio_extra'], 1) : 'N/A') . '</div>
+                    </td>
+                </tr>
+            </table>
         </td>
-        <td style="width: 50%; background-color: #f3e5f5; text-align: center; padding: 12pt; vertical-align: middle; border: 2pt solid #7B1FA2;">
-            <div style="font-size: 9pt; font-weight: bold; color: #7B1FA2; margin-bottom: 5pt;">EXTRALABORAL</div>
-            <div style="font-size: 20pt; font-weight: bold; color: #7B1FA2;">' . number_format($promedioExtraGeneral, 1) . '</div>
+        <!-- Desglose Forma B -->
+        <td style="width: 50%; background-color: #fff3e0; text-align: center; padding: 10pt; vertical-align: middle; border: 2pt solid #FF9800;">
+            <div style="font-size: 8pt; color: #e65100; margin-bottom: 8pt; font-weight: bold;">Componentes Forma B</div>
+            <table style="width: 100%; border: none;">
+                <tr>
+                    <td style="text-align: center; border: none; padding: 3pt;">
+                        <div style="font-size: 8pt; color: #666;">Intralaboral</div>
+                        <div style="font-size: 14pt; font-weight: bold; color: #e65100;">' . ($stats34B ? number_format($stats34B['promedio_intra'], 1) : 'N/A') . '</div>
+                    </td>
+                    <td style="text-align: center; border: none; padding: 3pt; font-size: 14pt; color: #999;">+</td>
+                    <td style="text-align: center; border: none; padding: 3pt;">
+                        <div style="font-size: 8pt; color: #666;">Extralaboral</div>
+                        <div style="font-size: 14pt; font-weight: bold; color: #e65100;">' . ($stats34B ? number_format($stats34B['promedio_extra'], 1) : 'N/A') . '</div>
+                    </td>
+                </tr>
+            </table>
         </td>
     </tr>
 </table>
 
-<!-- Comparativa por formas -->
-<h3 style="font-size: 11pt; color: #6a1b9a; margin: 15pt 0 8pt 0;">Comparativa por Forma de Aplicación</h3>
+<!-- Nota metodológica -->
+<div style="background-color: #fff3cd; border: 1pt solid #ffc107; padding: 8pt; margin: 12pt 0; font-size: 8pt; text-align: justify;">
+    <strong>Nota metodológica:</strong> Según la Resolución 2764/2022, los resultados de Forma A y Forma B utilizan baremos diferentes (Tabla 34) y no deben promediarse entre sí.
+</div>
+
+<!-- Tabla comparativa detallada -->
+<h3 style="font-size: 11pt; color: #6a1b9a; margin: 10pt 0 8pt 0;">Detalle por Forma de Aplicación</h3>
 <table style="width: 100%; border-collapse: collapse; font-size: 9pt;">
     <thead>
         <tr>

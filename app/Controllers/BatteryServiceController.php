@@ -982,8 +982,12 @@ class BatteryServiceController extends BaseController
             $extralPromedioA = $calcularPromedio(array_column($resultsFormaA, 'extralaboral_total_puntaje'));
             $estresPromedioA = $calcularPromedio(array_column($resultsFormaA, 'estres_total_puntaje'));
 
-            // Puntaje Total General (promedio de intralaboral y extralaboral)
-            $puntajeTotalGeneralA = ($intralaPromedioA + $extralPromedioA) / 2;
+            // Puntaje Total General según Tabla 28 - Resolución 2404/2019
+            // Fórmula: (Bruto_Intra + Bruto_Extra) / Factor × 100
+            // Factores Forma A: Intra=492, Extra=124, Total=616
+            $brutoIntraA = ($intralaPromedioA * 492) / 100;
+            $brutoExtraA = ($extralPromedioA * 124) / 100;
+            $puntajeTotalGeneralA = (($brutoIntraA + $brutoExtraA) / 616) * 100;
 
             // Dominios
             $domLiderazgoPromedioA = $calcularPromedio(array_column($resultsFormaA, 'dom_liderazgo_puntaje'));
@@ -1128,8 +1132,12 @@ class BatteryServiceController extends BaseController
             $extralPromedioB = $calcularPromedio(array_column($resultsFormaB, 'extralaboral_total_puntaje'));
             $estresPromedioB = $calcularPromedio(array_column($resultsFormaB, 'estres_total_puntaje'));
 
-            // Puntaje Total General (promedio de intralaboral y extralaboral)
-            $puntajeTotalGeneralB = ($intralaPromedioB + $extralPromedioB) / 2;
+            // Puntaje Total General según Tabla 28 - Resolución 2404/2019
+            // Fórmula: (Bruto_Intra + Bruto_Extra) / Factor × 100
+            // Factores Forma B: Intra=388, Extra=124, Total=512
+            $brutoIntraB = ($intralaPromedioB * 388) / 100;
+            $brutoExtraB = ($extralPromedioB * 124) / 100;
+            $puntajeTotalGeneralB = (($brutoIntraB + $brutoExtraB) / 512) * 100;
 
             // Dominios
             $domLiderazgoPromedioB = $calcularPromedio(array_column($resultsFormaB, 'dom_liderazgo_puntaje'));

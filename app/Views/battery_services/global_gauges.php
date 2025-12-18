@@ -544,14 +544,20 @@ $baremosDimDesplazamientoViviendaB = ExtralaboralScoring::getBaremoDimension('de
             <div class="row">
                 <!-- Puntaje Total General Forma A -->
                 <?php if ($formaACount > 0): ?>
+                <?php
+                    // Cálculo según Tabla 28 - Factores Forma A: Intra=492, Extra=124, Total=616
+                    $brutoIntraA = ($globalDataFormaA['intralaboral_promedio'] * 492) / 100;
+                    $brutoExtraA = ($globalDataFormaA['extralaboral_promedio'] * 124) / 100;
+                    $brutoTotalA = $brutoIntraA + $brutoExtraA;
+                ?>
                 <div class="col-md-6">
                     <div class="gauge-card">
                         <div class="forma-badge forma-a mb-2">
                             <i class="fas fa-users me-1"></i>FORMA A
                         </div>
                         <div class="gauge-title"><span class="gauge-number">0A</span>Puntaje Total General</div>
-                        <div class="gauge-subtitle" style="font-size: 11px; color: #666; text-align: center; margin-top: -5px; margin-bottom: 5px;">
-                            (Intralaboral + Extralaboral) / 2
+                        <div class="gauge-subtitle" style="font-size: 10px; color: #6a1b9a; text-align: center; margin-top: -5px; margin-bottom: 5px; font-weight: 600;">
+                            Tabla 28 - Factor 616
                         </div>
                         <div class="gauge-wrapper">
                             <canvas id="gaugePuntajeTotalGeneralA"></canvas>
@@ -561,19 +567,32 @@ $baremosDimDesplazamientoViviendaB = ExtralaboralScoring::getBaremoDimension('de
                             <div class="gauge-score-value"><?= number_format($globalDataFormaA['puntaje_total_general_promedio'], 1) ?></div>
                             <div class="gauge-label"><?= strtoupper(str_replace('_', ' ', $globalDataFormaA['puntaje_total_general_nivel'])) ?></div>
                         </div>
-                        <!-- Desglose de componentes -->
-                        <div class="gauge-components" style="background: #f8f9fa; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                <span style="color: #666;">Intralaboral:</span>
-                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaA['intralaboral_promedio'], 1) ?></span>
+                        <!-- Desglose de componentes con fórmula Tabla 28 -->
+                        <div class="gauge-components" style="background: #f3e5f5; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 11px; border: 1px solid #6a1b9a;">
+                            <div style="text-align: center; font-weight: 600; color: #6a1b9a; margin-bottom: 8px; font-size: 10px;">
+                                (Bruto Intra + Bruto Extra) ÷ 616 × 100
                             </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span style="color: #666;">Extralaboral:</span>
-                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaA['extralaboral_promedio'], 1) ?></span>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                <span style="color: #666;">Intra Transf:</span>
+                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaA['intralaboral_promedio'], 2) ?></span>
                             </div>
-                            <div style="border-top: 1px dashed #ccc; padding-top: 8px; text-align: center;">
-                                <span style="font-family: monospace; font-size: 11px; color: #555;">
-                                    (<?= number_format($globalDataFormaA['intralaboral_promedio'], 1) ?> + <?= number_format($globalDataFormaA['extralaboral_promedio'], 1) ?>) / 2 = <strong><?= number_format($globalDataFormaA['puntaje_total_general_promedio'], 1) ?></strong>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                <span style="color: #666;">Extra Transf:</span>
+                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaA['extralaboral_promedio'], 2) ?></span>
+                            </div>
+                            <div style="border-top: 1px dashed #6a1b9a; padding-top: 5px; margin-top: 5px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                    <span style="color: #666; font-size: 10px;">Bruto Intra (×492÷100):</span>
+                                    <span style="font-weight: 600; color: #6a1b9a;"><?= number_format($brutoIntraA, 2) ?></span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                    <span style="color: #666; font-size: 10px;">Bruto Extra (×124÷100):</span>
+                                    <span style="font-weight: 600; color: #6a1b9a;"><?= number_format($brutoExtraA, 2) ?></span>
+                                </div>
+                            </div>
+                            <div style="border-top: 1px solid #6a1b9a; padding-top: 5px; text-align: center; margin-top: 5px;">
+                                <span style="font-family: monospace; font-size: 10px; color: #4a148c;">
+                                    (<?= number_format($brutoTotalA, 2) ?> ÷ 616) × 100 = <strong style="font-size: 12px;"><?= number_format($globalDataFormaA['puntaje_total_general_promedio'], 1) ?></strong>
                                 </span>
                             </div>
                         </div>
@@ -584,14 +603,20 @@ $baremosDimDesplazamientoViviendaB = ExtralaboralScoring::getBaremoDimension('de
 
                 <!-- Puntaje Total General Forma B -->
                 <?php if ($formaBCount > 0): ?>
+                <?php
+                    // Cálculo según Tabla 28 - Factores Forma B: Intra=388, Extra=124, Total=512
+                    $brutoIntraB = ($globalDataFormaB['intralaboral_promedio'] * 388) / 100;
+                    $brutoExtraB = ($globalDataFormaB['extralaboral_promedio'] * 124) / 100;
+                    $brutoTotalB = $brutoIntraB + $brutoExtraB;
+                ?>
                 <div class="col-md-6">
                     <div class="gauge-card">
                         <div class="forma-badge forma-b mb-2">
                             <i class="fas fa-hard-hat me-1"></i>FORMA B
                         </div>
                         <div class="gauge-title"><span class="gauge-number">0B</span>Puntaje Total General</div>
-                        <div class="gauge-subtitle" style="font-size: 11px; color: #666; text-align: center; margin-top: -5px; margin-bottom: 5px;">
-                            (Intralaboral + Extralaboral) / 2
+                        <div class="gauge-subtitle" style="font-size: 10px; color: #e65100; text-align: center; margin-top: -5px; margin-bottom: 5px; font-weight: 600;">
+                            Tabla 28 - Factor 512
                         </div>
                         <div class="gauge-wrapper">
                             <canvas id="gaugePuntajeTotalGeneralB"></canvas>
@@ -601,19 +626,32 @@ $baremosDimDesplazamientoViviendaB = ExtralaboralScoring::getBaremoDimension('de
                             <div class="gauge-score-value"><?= number_format($globalDataFormaB['puntaje_total_general_promedio'], 1) ?></div>
                             <div class="gauge-label"><?= strtoupper(str_replace('_', ' ', $globalDataFormaB['puntaje_total_general_nivel'])) ?></div>
                         </div>
-                        <!-- Desglose de componentes -->
-                        <div class="gauge-components" style="background: #f8f9fa; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                <span style="color: #666;">Intralaboral:</span>
-                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaB['intralaboral_promedio'], 1) ?></span>
+                        <!-- Desglose de componentes con fórmula Tabla 28 -->
+                        <div class="gauge-components" style="background: #fff3e0; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 11px; border: 1px solid #e65100;">
+                            <div style="text-align: center; font-weight: 600; color: #e65100; margin-bottom: 8px; font-size: 10px;">
+                                (Bruto Intra + Bruto Extra) ÷ 512 × 100
                             </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span style="color: #666;">Extralaboral:</span>
-                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaB['extralaboral_promedio'], 1) ?></span>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                <span style="color: #666;">Intra Transf:</span>
+                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaB['intralaboral_promedio'], 2) ?></span>
                             </div>
-                            <div style="border-top: 1px dashed #ccc; padding-top: 8px; text-align: center;">
-                                <span style="font-family: monospace; font-size: 11px; color: #555;">
-                                    (<?= number_format($globalDataFormaB['intralaboral_promedio'], 1) ?> + <?= number_format($globalDataFormaB['extralaboral_promedio'], 1) ?>) / 2 = <strong><?= number_format($globalDataFormaB['puntaje_total_general_promedio'], 1) ?></strong>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                <span style="color: #666;">Extra Transf:</span>
+                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaB['extralaboral_promedio'], 2) ?></span>
+                            </div>
+                            <div style="border-top: 1px dashed #e65100; padding-top: 5px; margin-top: 5px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                    <span style="color: #666; font-size: 10px;">Bruto Intra (×388÷100):</span>
+                                    <span style="font-weight: 600; color: #e65100;"><?= number_format($brutoIntraB, 2) ?></span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                    <span style="color: #666; font-size: 10px;">Bruto Extra (×124÷100):</span>
+                                    <span style="font-weight: 600; color: #e65100;"><?= number_format($brutoExtraB, 2) ?></span>
+                                </div>
+                            </div>
+                            <div style="border-top: 1px solid #e65100; padding-top: 5px; text-align: center; margin-top: 5px;">
+                                <span style="font-family: monospace; font-size: 10px; color: #bf360c;">
+                                    (<?= number_format($brutoTotalB, 2) ?> ÷ 512) × 100 = <strong style="font-size: 12px;"><?= number_format($globalDataFormaB['puntaje_total_general_promedio'], 1) ?></strong>
                                 </span>
                             </div>
                         </div>

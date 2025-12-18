@@ -201,7 +201,28 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
     }
 
     /**
+     * Factores de transformación según Tabla 28 - Resolución 2404/2019
+     * Factor Total = Factor Intralaboral + Factor Extralaboral
+     */
+    protected const FACTORES_TABLA28 = [
+        'A' => [
+            'intralaboral' => 492,
+            'extralaboral' => 124,
+            'total'        => 616,  // 492 + 124
+        ],
+        'B' => [
+            'intralaboral' => 388,
+            'extralaboral' => 124,
+            'total'        => 512,  // 388 + 124
+        ],
+    ];
+
+    /**
      * Calcula estadísticas para Tabla 34 (Intralaboral + Extralaboral)
+     * FÓRMULA OFICIAL TABLA 28: Puntaje = (Bruto_Intra + Bruto_Extra) / Factor × 100
+     *
+     * @param string $forma 'A' o 'B'
+     * @return array|null Estadísticas con operaciones aritméticas detalladas
      */
     protected function getStatsTabla34($forma)
     {
@@ -214,29 +235,70 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
             return null;
         }
 
-        $sumaIntralaboral = 0;
-        $sumaExtralaboral = 0;
-        $sumaTotal = 0;
+        // Factores de transformación según Tabla 28
+        $factores = self::FACTORES_TABLA28[$forma];
+        $factorIntra = $factores['intralaboral'];
+        $factorExtra = $factores['extralaboral'];
+        $factorTotal = $factores['total'];
+
+        // Acumuladores para promedios de puntajes TRANSFORMADOS (para mostrar)
+        $sumaIntraTransformado = 0;
+        $sumaExtraTransformado = 0;
+
+        // Acumuladores para puntajes BRUTOS (para cálculo correcto)
+        $sumaBrutoIntra = 0;
+        $sumaBrutoExtra = 0;
 
         foreach ($results as $r) {
-            $intra = floatval($r['intralaboral_total_puntaje']);
-            $extra = floatval($r['extralaboral_total_puntaje']);
-            $sumaIntralaboral += $intra;
-            $sumaExtralaboral += $extra;
-            $sumaTotal += ($intra + $extra) / 2;
+            // Puntajes transformados (almacenados en BD)
+            $intraTransformado = floatval($r['intralaboral_total_puntaje']);
+            $extraTransformado = floatval($r['extralaboral_total_puntaje']);
+
+            // Convertir a BRUTOS: Bruto = (Transformado × Factor) / 100
+            $intraBruto = ($intraTransformado * $factorIntra) / 100;
+            $extraBruto = ($extraTransformado * $factorExtra) / 100;
+
+            // Acumular
+            $sumaIntraTransformado += $intraTransformado;
+            $sumaExtraTransformado += $extraTransformado;
+            $sumaBrutoIntra += $intraBruto;
+            $sumaBrutoExtra += $extraBruto;
         }
 
-        $promedioIntra = $sumaIntralaboral / $total;
-        $promedioExtra = $sumaExtralaboral / $total;
-        $promedioTotal = $sumaTotal / $total;
-        $nivelTotal = $this->getNivelFromPuntaje($promedioTotal, $this->getBaremoTabla34($forma));
+        // Promedios de puntajes transformados (para mostrar en PDF)
+        $promedioIntraTransformado = $sumaIntraTransformado / $total;
+        $promedioExtraTransformado = $sumaExtraTransformado / $total;
+
+        // Promedios de puntajes brutos
+        $promedioBrutoIntra = $sumaBrutoIntra / $total;
+        $promedioBrutoExtra = $sumaBrutoExtra / $total;
+        $promedioBrutoTotal = $promedioBrutoIntra + $promedioBrutoExtra;
+
+        // CÁLCULO FINAL según Tabla 28: (Bruto_Intra + Bruto_Extra) / Factor × 100
+        $promedioTotalTransformado = ($promedioBrutoTotal / $factorTotal) * 100;
+
+        // Determinar nivel de riesgo
+        $nivelTotal = $this->getNivelFromPuntaje($promedioTotalTransformado, $this->getBaremoTabla34($forma));
 
         return [
-            'total'              => $total,
-            'promedio_intra'     => $promedioIntra,
-            'promedio_extra'     => $promedioExtra,
-            'promedio_total'     => $promedioTotal,
-            'nivel_total'        => $nivelTotal,
+            'total'                     => $total,
+            'forma'                     => $forma,
+
+            // Puntajes transformados (para mostrar)
+            'promedio_intra'            => $promedioIntraTransformado,
+            'promedio_extra'            => $promedioExtraTransformado,
+            'promedio_total'            => $promedioTotalTransformado,
+            'nivel_total'               => $nivelTotal,
+
+            // Puntajes brutos (para auditoría y transparencia)
+            'promedio_bruto_intra'      => round($promedioBrutoIntra, 2),
+            'promedio_bruto_extra'      => round($promedioBrutoExtra, 2),
+            'promedio_bruto_total'      => round($promedioBrutoTotal, 2),
+
+            // Factores usados (para mostrar en PDF)
+            'factor_intra'              => $factorIntra,
+            'factor_extra'              => $factorExtra,
+            'factor_total'              => $factorTotal,
         ];
     }
 
@@ -630,178 +692,68 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
     Puntaje Total General de Factores de Riesgo Psicosocial
 </h1>
 <p style="font-size: 10pt; color: #666; text-align: center; margin: 0 0 10pt 0;">
-    Intralaboral + Extralaboral (Tabla 34 - Resolución 2764/2022)
+    Intralaboral + Extralaboral (Tabla 28 y 34 - Resolución 2404/2019)
 </p>
 
-<!-- Fórmula -->
+<!-- Fórmula Oficial Tabla 28 -->
 <div style="background-color: #f3e5f5; border: 1pt solid #6a1b9a; padding: 10pt; margin: 10pt 0; text-align: center;">
-    <span style="font-size: 10pt; color: #6a1b9a;">
-        <strong>Puntaje Total = (Puntaje Intralaboral + Puntaje Extralaboral) / 2</strong>
-    </span>
+    <div style="font-size: 10pt; color: #6a1b9a; font-weight: bold; margin-bottom: 5pt;">
+        Fórmula Oficial - Tabla 28 Resolución 2404/2019
+    </div>
+    <div style="font-size: 11pt; color: #4a148c; font-family: monospace;">
+        Puntaje Total = (Puntaje Bruto Intra + Puntaje Bruto Extra) ÷ Factor × 100
+    </div>
+    <div style="font-size: 8pt; color: #666; margin-top: 5pt;">
+        Factor Forma A = 616 (492 + 124) | Factor Forma B = 512 (388 + 124)
+    </div>
 </div>
-
-<!-- 2 cajas principales por forma -->
-<table style="width: 100%; border-collapse: separate; border-spacing: 8pt; margin: 10pt 0;">
-    <tr>
-        <!-- FORMA A -->
-        <td style="width: 50%; background-color: #1a1a1a; color: white; text-align: center; padding: 15pt; vertical-align: middle; border: none;">
-            <div style="font-size: 10pt; font-weight: bold; margin-bottom: 5pt;">FORMA A</div>
-            <div style="font-size: 8pt; margin-bottom: 8pt; color: #ccc;">Jefes, Profesionales y Técnicos</div>
-            <div style="font-size: 28pt; font-weight: bold;">' . ($stats34A ? number_format($stats34A['promedio_total'], 1) : 'N/A') . '</div>
-            <div style="display: inline-block; background-color: ' . $colorA . '; color: ' . ($nivelA === 'riesgo_medio' ? '#333' : '#fff') . '; padding: 4pt 12pt; margin-top: 8pt; font-size: 9pt; font-weight: bold;">
-                ' . strtoupper($nivelNombreA) . '
-            </div>
-            <div style="font-size: 8pt; margin-top: 10pt; color: #ccc;">n = ' . ($stats34A ? $stats34A['total'] : 0) . ' trabajadores</div>
-        </td>
-        <!-- FORMA B -->
-        <td style="width: 50%; background-color: #1a1a1a; color: white; text-align: center; padding: 15pt; vertical-align: middle; border: none;">
-            <div style="font-size: 10pt; font-weight: bold; margin-bottom: 5pt;">FORMA B</div>
-            <div style="font-size: 8pt; margin-bottom: 8pt; color: #ccc;">Auxiliares y Operarios</div>
-            <div style="font-size: 28pt; font-weight: bold;">' . ($stats34B ? number_format($stats34B['promedio_total'], 1) : 'N/A') . '</div>
-            <div style="display: inline-block; background-color: ' . $colorB . '; color: ' . ($nivelB === 'riesgo_medio' ? '#333' : '#fff') . '; padding: 4pt 12pt; margin-top: 8pt; font-size: 9pt; font-weight: bold;">
-                ' . strtoupper($nivelNombreB) . '
-            </div>
-            <div style="font-size: 8pt; margin-top: 10pt; color: #ccc;">n = ' . ($stats34B ? $stats34B['total'] : 0) . ' trabajadores</div>
-        </td>
-    </tr>
-</table>
-
-<!-- Desglose por componente -->
-<table style="width: 100%; border-collapse: separate; border-spacing: 8pt;">
-    <tr>
-        <!-- Desglose Forma A -->
-        <td style="width: 50%; background-color: #e3f2fd; text-align: center; padding: 10pt; vertical-align: middle; border: 2pt solid #0077B6;">
-            <div style="font-size: 8pt; color: #0077B6; margin-bottom: 8pt; font-weight: bold;">Componentes Forma A</div>
-            <table style="width: 100%; border: none;">
-                <tr>
-                    <td style="text-align: center; border: none; padding: 3pt;">
-                        <div style="font-size: 8pt; color: #666;">Intralaboral</div>
-                        <div style="font-size: 14pt; font-weight: bold; color: #0077B6;">' . ($stats34A ? number_format($stats34A['promedio_intra'], 1) : 'N/A') . '</div>
-                    </td>
-                    <td style="text-align: center; border: none; padding: 3pt; font-size: 14pt; color: #999;">+</td>
-                    <td style="text-align: center; border: none; padding: 3pt;">
-                        <div style="font-size: 8pt; color: #666;">Extralaboral</div>
-                        <div style="font-size: 14pt; font-weight: bold; color: #0077B6;">' . ($stats34A ? number_format($stats34A['promedio_extra'], 1) : 'N/A') . '</div>
-                    </td>
-                </tr>
-            </table>
-        </td>
-        <!-- Desglose Forma B -->
-        <td style="width: 50%; background-color: #fff3e0; text-align: center; padding: 10pt; vertical-align: middle; border: 2pt solid #FF9800;">
-            <div style="font-size: 8pt; color: #e65100; margin-bottom: 8pt; font-weight: bold;">Componentes Forma B</div>
-            <table style="width: 100%; border: none;">
-                <tr>
-                    <td style="text-align: center; border: none; padding: 3pt;">
-                        <div style="font-size: 8pt; color: #666;">Intralaboral</div>
-                        <div style="font-size: 14pt; font-weight: bold; color: #e65100;">' . ($stats34B ? number_format($stats34B['promedio_intra'], 1) : 'N/A') . '</div>
-                    </td>
-                    <td style="text-align: center; border: none; padding: 3pt; font-size: 14pt; color: #999;">+</td>
-                    <td style="text-align: center; border: none; padding: 3pt;">
-                        <div style="font-size: 8pt; color: #666;">Extralaboral</div>
-                        <div style="font-size: 14pt; font-weight: bold; color: #e65100;">' . ($stats34B ? number_format($stats34B['promedio_extra'], 1) : 'N/A') . '</div>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
-
-<!-- Nota metodológica -->
-<div style="background-color: #fff3cd; border: 1pt solid #ffc107; padding: 8pt; margin: 12pt 0; font-size: 8pt; text-align: justify;">
-    <strong>Nota metodológica:</strong> Según la Resolución 2764/2022, los resultados de Forma A y Forma B utilizan baremos diferentes (Tabla 34) y no deben promediarse entre sí.
-</div>
-
-<!-- Tabla comparativa detallada -->
-<h3 style="font-size: 11pt; color: #6a1b9a; margin: 10pt 0 8pt 0;">Detalle por Forma de Aplicación</h3>
-<table style="width: 100%; border-collapse: collapse; font-size: 9pt;">
-    <thead>
-        <tr>
-            <th style="background-color: #6a1b9a; color: white; padding: 6pt; border: 1pt solid #333;">Forma</th>
-            <th style="background-color: #6a1b9a; color: white; padding: 6pt; border: 1pt solid #333;">Intralaboral</th>
-            <th style="background-color: #6a1b9a; color: white; padding: 6pt; border: 1pt solid #333;">Extralaboral</th>
-            <th style="background-color: #6a1b9a; color: white; padding: 6pt; border: 1pt solid #333;">Total Psicosocial</th>
-            <th style="background-color: #6a1b9a; color: white; padding: 6pt; border: 1pt solid #333;">Nivel</th>
-            <th style="background-color: #6a1b9a; color: white; padding: 6pt; border: 1pt solid #333;">n</th>
-        </tr>
-    </thead>
-    <tbody>
 ';
 
+        // Sección Forma A con operaciones aritméticas visibles
         if ($stats34A) {
-            $colorNivelA = $this->getRiskColor($stats34A['nivel_total']);
-            $textColorA = $stats34A['nivel_total'] === 'riesgo_medio' ? '#333' : '#fff';
-            $html .= '
-        <tr>
-            <td style="padding: 5pt; border: 1pt solid #333; font-weight: bold; background-color: #e3f2fd;">Forma A</td>
-            <td style="padding: 5pt; border: 1pt solid #333; text-align: center;">' . number_format($stats34A['promedio_intra'], 1) . '</td>
-            <td style="padding: 5pt; border: 1pt solid #333; text-align: center;">' . number_format($stats34A['promedio_extra'], 1) . '</td>
-            <td style="padding: 5pt; border: 1pt solid #333; text-align: center; font-weight: bold;">' . number_format($stats34A['promedio_total'], 1) . '</td>
-            <td style="padding: 5pt; border: 1pt solid #333; text-align: center; background-color: ' . $colorNivelA . '; color: ' . $textColorA . '; font-weight: bold;">' . $this->getRiskName($stats34A['nivel_total']) . '</td>
-            <td style="padding: 5pt; border: 1pt solid #333; text-align: center;">' . $stats34A['total'] . '</td>
-        </tr>
-';
+            $html .= $this->renderSeccionFormaTabla34($stats34A, 'A', $colorA, $nivelNombreA);
         }
 
+        // Sección Forma B con operaciones aritméticas visibles
         if ($stats34B) {
-            $colorNivelB = $this->getRiskColor($stats34B['nivel_total']);
-            $textColorB = $stats34B['nivel_total'] === 'riesgo_medio' ? '#333' : '#fff';
-            $html .= '
-        <tr>
-            <td style="padding: 5pt; border: 1pt solid #333; font-weight: bold; background-color: #fff3e0;">Forma B</td>
-            <td style="padding: 5pt; border: 1pt solid #333; text-align: center;">' . number_format($stats34B['promedio_intra'], 1) . '</td>
-            <td style="padding: 5pt; border: 1pt solid #333; text-align: center;">' . number_format($stats34B['promedio_extra'], 1) . '</td>
-            <td style="padding: 5pt; border: 1pt solid #333; text-align: center; font-weight: bold;">' . number_format($stats34B['promedio_total'], 1) . '</td>
-            <td style="padding: 5pt; border: 1pt solid #333; text-align: center; background-color: ' . $colorNivelB . '; color: ' . $textColorB . '; font-weight: bold;">' . $this->getRiskName($stats34B['nivel_total']) . '</td>
-            <td style="padding: 5pt; border: 1pt solid #333; text-align: center;">' . $stats34B['total'] . '</td>
-        </tr>
-';
+            $html .= $this->renderSeccionFormaTabla34($stats34B, 'B', $colorB, $nivelNombreB);
         }
 
         $html .= '
-    </tbody>
-</table>
+<!-- Nota metodológica -->
+<div style="background-color: #e8f5e9; border: 1pt solid #4CAF50; padding: 8pt; margin: 10pt 0; font-size: 8pt; text-align: justify;">
+    <strong>✓ Cálculo verificable:</strong> Las operaciones aritméticas mostradas arriba siguen estrictamente la fórmula de la Tabla 28 de la Resolución 2404/2019 del Ministerio del Trabajo de Colombia. Los puntajes brutos se obtienen invirtiendo la transformación: Bruto = (Transformado × Factor) ÷ 100.
+</div>
 
 <!-- Tabla de Baremos Tabla 34 -->
-<h3 style="font-size: 11pt; color: #6a1b9a; margin: 15pt 0 8pt 0;">Baremos Tabla 34 - Resolución 2404/2019</h3>
-<table style="width: 100%; border-collapse: collapse; font-size: 8pt;">
+<h3 style="font-size: 10pt; color: #6a1b9a; margin: 10pt 0 5pt 0;">Baremos Tabla 34 - Resolución 2404/2019</h3>
+<table style="width: 100%; border-collapse: collapse; font-size: 7pt;">
     <tr>
         <td style="width: 50%; vertical-align: top; padding-right: 5pt; border: none;">
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr>
-                        <th colspan="2" style="background-color: #0077B6; color: white; padding: 5pt; border: 1pt solid #333;">FORMA A</th>
-                    </tr>
-                    <tr>
-                        <th style="background-color: #e3f2fd; padding: 4pt; border: 1pt solid #333;">Nivel</th>
-                        <th style="background-color: #e3f2fd; padding: 4pt; border: 1pt solid #333;">Rango</th>
-                    </tr>
+                    <tr><th colspan="2" style="background-color: #0077B6; color: white; padding: 4pt; border: 1pt solid #333;">FORMA A (Factor 616)</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td style="padding: 3pt; border: 1pt solid #333; background-color: #4CAF50; color: white;">Sin Riesgo</td><td style="padding: 3pt; border: 1pt solid #333; text-align: center;">0.0 - 18.8</td></tr>
-                    <tr><td style="padding: 3pt; border: 1pt solid #333; background-color: #8BC34A; color: white;">Riesgo Bajo</td><td style="padding: 3pt; border: 1pt solid #333; text-align: center;">18.9 - 24.4</td></tr>
-                    <tr><td style="padding: 3pt; border: 1pt solid #333; background-color: #FFEB3B; color: #333;">Riesgo Medio</td><td style="padding: 3pt; border: 1pt solid #333; text-align: center;">24.5 - 29.5</td></tr>
-                    <tr><td style="padding: 3pt; border: 1pt solid #333; background-color: #FF9800; color: white;">Riesgo Alto</td><td style="padding: 3pt; border: 1pt solid #333; text-align: center;">29.6 - 35.4</td></tr>
-                    <tr><td style="padding: 3pt; border: 1pt solid #333; background-color: #F44336; color: white;">Riesgo Muy Alto</td><td style="padding: 3pt; border: 1pt solid #333; text-align: center;">35.5 - 100.0</td></tr>
+                    <tr><td style="padding: 2pt; border: 1pt solid #333; background-color: #4CAF50; color: white;">Sin Riesgo</td><td style="padding: 2pt; border: 1pt solid #333; text-align: center;">0.0 - 18.8</td></tr>
+                    <tr><td style="padding: 2pt; border: 1pt solid #333; background-color: #8BC34A; color: white;">Riesgo Bajo</td><td style="padding: 2pt; border: 1pt solid #333; text-align: center;">18.9 - 24.4</td></tr>
+                    <tr><td style="padding: 2pt; border: 1pt solid #333; background-color: #FFEB3B; color: #333;">Riesgo Medio</td><td style="padding: 2pt; border: 1pt solid #333; text-align: center;">24.5 - 29.5</td></tr>
+                    <tr><td style="padding: 2pt; border: 1pt solid #333; background-color: #FF9800; color: white;">Riesgo Alto</td><td style="padding: 2pt; border: 1pt solid #333; text-align: center;">29.6 - 35.4</td></tr>
+                    <tr><td style="padding: 2pt; border: 1pt solid #333; background-color: #F44336; color: white;">Riesgo Muy Alto</td><td style="padding: 2pt; border: 1pt solid #333; text-align: center;">35.5 - 100.0</td></tr>
                 </tbody>
             </table>
         </td>
         <td style="width: 50%; vertical-align: top; padding-left: 5pt; border: none;">
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr>
-                        <th colspan="2" style="background-color: #FF9800; color: white; padding: 5pt; border: 1pt solid #333;">FORMA B</th>
-                    </tr>
-                    <tr>
-                        <th style="background-color: #fff3e0; padding: 4pt; border: 1pt solid #333;">Nivel</th>
-                        <th style="background-color: #fff3e0; padding: 4pt; border: 1pt solid #333;">Rango</th>
-                    </tr>
+                    <tr><th colspan="2" style="background-color: #FF9800; color: white; padding: 4pt; border: 1pt solid #333;">FORMA B (Factor 512)</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td style="padding: 3pt; border: 1pt solid #333; background-color: #4CAF50; color: white;">Sin Riesgo</td><td style="padding: 3pt; border: 1pt solid #333; text-align: center;">0.0 - 19.9</td></tr>
-                    <tr><td style="padding: 3pt; border: 1pt solid #333; background-color: #8BC34A; color: white;">Riesgo Bajo</td><td style="padding: 3pt; border: 1pt solid #333; text-align: center;">20.0 - 24.8</td></tr>
-                    <tr><td style="padding: 3pt; border: 1pt solid #333; background-color: #FFEB3B; color: #333;">Riesgo Medio</td><td style="padding: 3pt; border: 1pt solid #333; text-align: center;">24.9 - 29.5</td></tr>
-                    <tr><td style="padding: 3pt; border: 1pt solid #333; background-color: #FF9800; color: white;">Riesgo Alto</td><td style="padding: 3pt; border: 1pt solid #333; text-align: center;">29.6 - 35.4</td></tr>
-                    <tr><td style="padding: 3pt; border: 1pt solid #333; background-color: #F44336; color: white;">Riesgo Muy Alto</td><td style="padding: 3pt; border: 1pt solid #333; text-align: center;">35.5 - 100.0</td></tr>
+                    <tr><td style="padding: 2pt; border: 1pt solid #333; background-color: #4CAF50; color: white;">Sin Riesgo</td><td style="padding: 2pt; border: 1pt solid #333; text-align: center;">0.0 - 19.9</td></tr>
+                    <tr><td style="padding: 2pt; border: 1pt solid #333; background-color: #8BC34A; color: white;">Riesgo Bajo</td><td style="padding: 2pt; border: 1pt solid #333; text-align: center;">20.0 - 24.8</td></tr>
+                    <tr><td style="padding: 2pt; border: 1pt solid #333; background-color: #FFEB3B; color: #333;">Riesgo Medio</td><td style="padding: 2pt; border: 1pt solid #333; text-align: center;">24.9 - 29.5</td></tr>
+                    <tr><td style="padding: 2pt; border: 1pt solid #333; background-color: #FF9800; color: white;">Riesgo Alto</td><td style="padding: 2pt; border: 1pt solid #333; text-align: center;">29.6 - 35.4</td></tr>
+                    <tr><td style="padding: 2pt; border: 1pt solid #333; background-color: #F44336; color: white;">Riesgo Muy Alto</td><td style="padding: 2pt; border: 1pt solid #333; text-align: center;">35.5 - 100.0</td></tr>
                 </tbody>
             </table>
         </td>
@@ -810,5 +762,85 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
 ';
 
         return $html;
+    }
+
+    /**
+     * Renderiza una sección de forma con operaciones aritméticas visibles
+     */
+    protected function renderSeccionFormaTabla34($stats, $forma, $colorNivel, $nivelNombre)
+    {
+        $colorFondo = $forma === 'A' ? '#e3f2fd' : '#fff3e0';
+        $colorBorde = $forma === 'A' ? '#0077B6' : '#FF9800';
+        $colorTexto = $forma === 'A' ? '#0077B6' : '#e65100';
+        $titulo = $forma === 'A' ? 'Jefes, Profesionales y Técnicos' : 'Auxiliares y Operarios';
+        $textColorNivel = $stats['nivel_total'] === 'riesgo_medio' ? '#333' : '#fff';
+
+        return '
+<!-- FORMA ' . $forma . ' - Operaciones Aritméticas Visibles -->
+<div style="background-color: ' . $colorFondo . '; border: 2pt solid ' . $colorBorde . '; padding: 10pt; margin: 8pt 0;">
+    <div style="text-align: center; margin-bottom: 8pt;">
+        <span style="font-size: 11pt; font-weight: bold; color: ' . $colorTexto . ';">FORMA ' . $forma . '</span>
+        <span style="font-size: 9pt; color: #666;"> - ' . $titulo . ' (n=' . $stats['total'] . ')</span>
+    </div>
+
+    <!-- Paso 1: Puntajes Transformados (de la BD) -->
+    <div style="background-color: white; padding: 8pt; margin: 5pt 0; border: 1pt solid #ccc;">
+        <div style="font-size: 8pt; color: #666; margin-bottom: 5pt; font-weight: bold;">Paso 1: Puntajes Transformados (almacenados)</div>
+        <table style="width: 100%; border: none;">
+            <tr>
+                <td style="text-align: center; border: none; padding: 3pt; width: 45%;">
+                    <div style="font-size: 7pt; color: #666;">Intralaboral Transformado</div>
+                    <div style="font-size: 14pt; font-weight: bold; color: ' . $colorTexto . ';">' . number_format($stats['promedio_intra'], 2) . '</div>
+                </td>
+                <td style="text-align: center; border: none; padding: 3pt; width: 10%;"></td>
+                <td style="text-align: center; border: none; padding: 3pt; width: 45%;">
+                    <div style="font-size: 7pt; color: #666;">Extralaboral Transformado</div>
+                    <div style="font-size: 14pt; font-weight: bold; color: ' . $colorTexto . ';">' . number_format($stats['promedio_extra'], 2) . '</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Paso 2: Conversión a Brutos -->
+    <div style="background-color: white; padding: 8pt; margin: 5pt 0; border: 1pt solid #ccc;">
+        <div style="font-size: 8pt; color: #666; margin-bottom: 5pt; font-weight: bold;">Paso 2: Conversión a Puntajes Brutos</div>
+        <table style="width: 100%; border: none; font-size: 8pt;">
+            <tr>
+                <td style="text-align: center; border: none; padding: 3pt; width: 45%;">
+                    <div style="font-family: monospace; color: #333;">(' . number_format($stats['promedio_intra'], 2) . ' × ' . $stats['factor_intra'] . ') ÷ 100</div>
+                    <div style="font-size: 12pt; font-weight: bold; color: ' . $colorTexto . ';">= ' . number_format($stats['promedio_bruto_intra'], 2) . '</div>
+                </td>
+                <td style="text-align: center; border: none; padding: 3pt; width: 10%;"></td>
+                <td style="text-align: center; border: none; padding: 3pt; width: 45%;">
+                    <div style="font-family: monospace; color: #333;">(' . number_format($stats['promedio_extra'], 2) . ' × ' . $stats['factor_extra'] . ') ÷ 100</div>
+                    <div style="font-size: 12pt; font-weight: bold; color: ' . $colorTexto . ';">= ' . number_format($stats['promedio_bruto_extra'], 2) . '</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Paso 3: Suma de Brutos -->
+    <div style="background-color: white; padding: 8pt; margin: 5pt 0; border: 1pt solid #ccc;">
+        <div style="font-size: 8pt; color: #666; margin-bottom: 5pt; font-weight: bold;">Paso 3: Suma de Puntajes Brutos</div>
+        <div style="text-align: center; font-family: monospace; font-size: 10pt;">
+            ' . number_format($stats['promedio_bruto_intra'], 2) . ' + ' . number_format($stats['promedio_bruto_extra'], 2) . ' = <strong>' . number_format($stats['promedio_bruto_total'], 2) . '</strong>
+        </div>
+    </div>
+
+    <!-- Paso 4: Cálculo Final (Tabla 28) -->
+    <div style="background-color: #1a1a1a; color: white; padding: 10pt; margin: 5pt 0;">
+        <div style="font-size: 8pt; color: #ccc; margin-bottom: 5pt; font-weight: bold;">Paso 4: Aplicar Fórmula Tabla 28</div>
+        <div style="text-align: center;">
+            <div style="font-family: monospace; font-size: 10pt; margin-bottom: 5pt;">
+                (' . number_format($stats['promedio_bruto_total'], 2) . ' ÷ ' . $stats['factor_total'] . ') × 100
+            </div>
+            <div style="font-size: 24pt; font-weight: bold;">' . number_format($stats['promedio_total'], 1) . '</div>
+            <div style="display: inline-block; background-color: ' . $colorNivel . '; color: ' . $textColorNivel . '; padding: 4pt 15pt; margin-top: 5pt; font-size: 9pt; font-weight: bold;">
+                ' . strtoupper($nivelNombre) . '
+            </div>
+        </div>
+    </div>
+</div>
+';
     }
 }

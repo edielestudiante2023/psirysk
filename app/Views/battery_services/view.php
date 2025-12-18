@@ -439,7 +439,7 @@
             <div class="section-title success">
                 <i class="fas fa-file-pdf fa-lg text-success me-3"></i>
                 <h5>Secciones Individuales del Informe de Batería de Riesgo Psicosocial</h5>
-                <span class="badge bg-success ms-auto">12 secciones</span>
+                <span class="badge bg-success ms-auto">11 secciones</span>
             </div>
             <div class="pdf-grid mb-4">
                 <!-- Portada -->

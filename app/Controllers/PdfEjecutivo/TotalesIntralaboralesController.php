@@ -490,11 +490,6 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
     // =========================================================================
     protected function renderPaginaResumenGeneral($statsA, $statsB, $statsGeneral)
     {
-        $promedioGeneral = number_format($statsGeneral['promedio'], 1);
-        $nivelGeneral = $statsGeneral['nivel'];
-        $nivelNombreGeneral = $this->getRiskName($nivelGeneral);
-        $colorGeneral = $this->getRiskColor($nivelGeneral);
-
         $totalA = $statsA ? $statsA['total'] : 0;
         $totalB = $statsB ? $statsB['total'] : 0;
         $totalGeneral = $statsGeneral['total'];
@@ -504,6 +499,8 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
 
         $nivelA = $statsA ? $statsA['nivel'] : 'sin_riesgo';
         $nivelB = $statsB ? $statsB['nivel'] : 'sin_riesgo';
+        $nivelNombreA = $this->getRiskName($nivelA);
+        $nivelNombreB = $this->getRiskName($nivelB);
         $colorA = $this->getRiskColor($nivelA);
         $colorB = $this->getRiskColor($nivelB);
 
@@ -512,39 +509,43 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
     Resumen General - Factores de Riesgo Psicosocial Intralaboral
 </h1>
 <p style="font-size: 11pt; color: #666; text-align: center; margin: 0 0 15pt 0;">
-    Consolidado Total (Forma A + Forma B)
+    Resultados por Forma (Tabla 33 - Resolución 2764/2022)
 </p>
 
-<!-- 3 cajas comparativas usando tabla -->
+<!-- 2 cajas comparativas - Solo Forma A y Forma B -->
 <table style="width: 100%; border-collapse: separate; border-spacing: 8pt;">
     <tr>
-        <!-- TOTAL GENERAL -->
-        <td style="width: 34%; background-color: #0077B6; color: white; text-align: center; padding: 15pt 8pt; vertical-align: middle; border: none;">
-            <div style="font-size: 9pt; font-weight: bold; margin-bottom: 5pt;">TOTAL GENERAL</div>
-            <div style="font-size: 22pt; font-weight: bold;">' . $promedioGeneral . '</div>
-            <div style="font-size: 8pt; margin-top: 5pt;">' . strtoupper($nivelNombreGeneral) . '</div>
-            <div style="font-size: 8pt; margin-top: 3pt;">n = ' . $totalGeneral . '</div>
-        </td>
         <!-- FORMA A -->
-        <td style="width: 33%; background-color: #f5f5f5; text-align: center; padding: 12pt 8pt; vertical-align: middle; border: 2pt solid #0077B6;">
-            <div style="font-size: 9pt; font-weight: bold; color: #0077B6; margin-bottom: 5pt;">FORMA A</div>
-            <div style="font-size: 18pt; font-weight: bold; color: ' . $colorA . ';">' . $promedioA . '</div>
-            <div style="font-size: 8pt; color: #666; margin-top: 3pt;">Jefes/Profesionales</div>
-            <div style="font-size: 8pt; color: #666;">n = ' . $totalA . '</div>
+        <td style="width: 50%; background-color: #0077B6; color: white; text-align: center; padding: 20pt 15pt; vertical-align: middle; border: none;">
+            <div style="font-size: 10pt; font-weight: bold; margin-bottom: 8pt;">FORMA A</div>
+            <div style="font-size: 8pt; margin-bottom: 10pt;">Jefes, Profesionales y Técnicos</div>
+            <div style="font-size: 28pt; font-weight: bold;">' . $promedioA . '</div>
+            <div style="display: inline-block; background-color: ' . $colorA . '; color: ' . ($nivelA === 'riesgo_medio' ? '#333' : '#fff') . '; padding: 4pt 12pt; margin-top: 8pt; font-size: 9pt; font-weight: bold;">
+                ' . strtoupper($nivelNombreA) . '
+            </div>
+            <div style="font-size: 9pt; margin-top: 10pt;">n = ' . $totalA . ' trabajadores</div>
         </td>
         <!-- FORMA B -->
-        <td style="width: 33%; background-color: #f5f5f5; text-align: center; padding: 12pt 8pt; vertical-align: middle; border: 2pt solid #FF9800;">
-            <div style="font-size: 9pt; font-weight: bold; color: #FF9800; margin-bottom: 5pt;">FORMA B</div>
-            <div style="font-size: 18pt; font-weight: bold; color: ' . $colorB . ';">' . $promedioB . '</div>
-            <div style="font-size: 8pt; color: #666; margin-top: 3pt;">Auxiliares/Operarios</div>
-            <div style="font-size: 8pt; color: #666;">n = ' . $totalB . '</div>
+        <td style="width: 50%; background-color: #FF9800; color: white; text-align: center; padding: 20pt 15pt; vertical-align: middle; border: none;">
+            <div style="font-size: 10pt; font-weight: bold; margin-bottom: 8pt;">FORMA B</div>
+            <div style="font-size: 8pt; margin-bottom: 10pt;">Auxiliares y Operarios</div>
+            <div style="font-size: 28pt; font-weight: bold;">' . $promedioB . '</div>
+            <div style="display: inline-block; background-color: ' . $colorB . '; color: ' . ($nivelB === 'riesgo_medio' ? '#333' : '#fff') . '; padding: 4pt 12pt; margin-top: 8pt; font-size: 9pt; font-weight: bold;">
+                ' . strtoupper($nivelNombreB) . '
+            </div>
+            <div style="font-size: 9pt; margin-top: 10pt;">n = ' . $totalB . ' trabajadores</div>
         </td>
     </tr>
 </table>
 
+<!-- Nota metodológica -->
+<div style="background-color: #fff3cd; border: 1pt solid #ffc107; padding: 10pt; margin: 15pt 0; font-size: 8pt; text-align: justify;">
+    <strong>Nota metodológica:</strong> Según la Resolución 2764/2022, los resultados de Forma A y Forma B no deben promediarse entre sí, ya que corresponden a poblaciones con baremos diferentes (Tabla 33). Cada forma debe interpretarse de manera independiente.
+</div>
+
 <!-- Caja de interpretación -->
-<div style="background-color: #e8f5e9; border: 1pt solid #4CAF50; padding: 12pt; margin: 15pt 0; font-size: 9pt; text-align: justify;">
-    El análisis consolidado de los factores de riesgo psicosocial intralaboral para <strong>' . $totalGeneral . '</strong> trabajadores (' . $totalA . ' de Forma A y ' . $totalB . ' de Forma B) muestra un nivel de riesgo <strong>' . $nivelNombreGeneral . '</strong> con un puntaje promedio de <strong>' . $promedioGeneral . '</strong>.
+<div style="background-color: #e8f5e9; border: 1pt solid #4CAF50; padding: 12pt; margin: 10pt 0; font-size: 9pt; text-align: justify;">
+    Se evaluaron <strong>' . $totalGeneral . '</strong> trabajadores en total: <strong>' . $totalA . '</strong> mediante Forma A (Jefes/Profesionales) con nivel <strong>' . $nivelNombreA . '</strong>, y <strong>' . $totalB . '</strong> mediante Forma B (Auxiliares/Operarios) con nivel <strong>' . $nivelNombreB . '</strong>.
 </div>
 
 <!-- Tabla distribución consolidada -->

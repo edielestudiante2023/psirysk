@@ -2,8 +2,6 @@
 
 namespace App\Controllers\PdfEjecutivo;
 
-use ZipArchive;
-
 /**
  * Orquestador del Informe Ejecutivo PDF Completo
  *
@@ -21,7 +19,7 @@ use ZipArchive;
  *
  * Proporciona:
  * - Preview HTML completo en navegador
- * - Descarga ZIP con PDFs individuales (evita límite de memoria)
+ * - Descarga PDF único del informe completo
  */
 class PdfEjecutivoOrchestrator extends PdfEjecutivoBaseController
 {
@@ -60,11 +58,15 @@ class PdfEjecutivoOrchestrator extends PdfEjecutivoBaseController
     }
 
     /**
-     * Descarga ZIP con todas las secciones del informe como PDFs individuales
-     * Esto evita el límite de memoria al generar un PDF muy grande
+     * Descarga PDF único del informe completo
+     * Aumenta temporalmente el límite de memoria para documentos grandes
      */
     public function download($batteryServiceId)
     {
+        // Aumentar límite de memoria temporalmente para documentos grandes (~80 páginas)
+        ini_set('memory_limit', '512M');
+        ini_set('max_execution_time', '300'); // 5 minutos
+
         // Verificar acceso
         $accessCheck = $this->checkPdfAccess($batteryServiceId);
         if ($accessCheck !== null) {
@@ -72,99 +74,13 @@ class PdfEjecutivoOrchestrator extends PdfEjecutivoBaseController
         }
 
         $this->initializeData($batteryServiceId);
+        $html = $this->renderAllSections($batteryServiceId);
 
-        // Preparar nombres de archivo
         $companyName = preg_replace('/[^a-zA-Z0-9]/', '_', $this->companyData['company_name'] ?? 'Empresa');
         $fecha = date('Ymd');
+        $filename = "Informe_Bateria_Completo_{$companyName}_{$fecha}.pdf";
 
-        // Crear archivo ZIP temporal
-        $zipPath = WRITEPATH . "temp/Informe_Bateria_{$companyName}_{$fecha}.zip";
-
-        // Asegurar que existe el directorio temp
-        if (!is_dir(WRITEPATH . 'temp')) {
-            mkdir(WRITEPATH . 'temp', 0755, true);
-        }
-
-        $zip = new ZipArchive();
-        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            return $this->response->setStatusCode(500)->setBody('No se pudo crear el archivo ZIP');
-        }
-
-        // Generar cada sección como PDF individual y agregar al ZIP
-        $index = 1;
-        foreach ($this->secciones as $seccion) {
-            $className = $seccion[0];
-            $titulo = $seccion[1];
-
-            $controllerClass = "App\\Controllers\\PdfEjecutivo\\{$className}";
-
-            if (class_exists($controllerClass)) {
-                try {
-                    $controller = new $controllerClass();
-                    $sectionHtml = $controller->render($batteryServiceId);
-
-                    // Generar PDF de esta sección
-                    $pdfContent = $this->generateSectionPdf($sectionHtml);
-
-                    // Nombre del archivo: 01_Portada.pdf, 02_Contenido.pdf, etc.
-                    $safeTitle = preg_replace('/[^a-zA-Z0-9áéíóúñÁÉÍÓÚÑ\s]/', '', $titulo);
-                    $safeTitle = str_replace(' ', '_', $safeTitle);
-                    $pdfFilename = sprintf('%02d_%s.pdf', $index, $safeTitle);
-
-                    $zip->addFromString($pdfFilename, $pdfContent);
-                } catch (\Exception $e) {
-                    // Si falla una sección, continuar con las demás
-                    log_message('error', "Error generando PDF sección {$titulo}: " . $e->getMessage());
-                }
-            }
-
-            $index++;
-        }
-
-        $zip->close();
-
-        // Leer el archivo ZIP y enviarlo
-        $zipContent = file_get_contents($zipPath);
-
-        // Eliminar archivo temporal
-        @unlink($zipPath);
-
-        $zipFilename = "Informe_Bateria_Completo_{$companyName}_{$fecha}.zip";
-
-        return $this->response
-            ->setHeader('Content-Type', 'application/zip')
-            ->setHeader('Content-Disposition', 'attachment; filename="' . $zipFilename . '"')
-            ->setHeader('Content-Length', strlen($zipContent))
-            ->setBody($zipContent);
-    }
-
-    /**
-     * Genera PDF de una sección individual (retorna contenido binario)
-     */
-    protected function generateSectionPdf($html)
-    {
-        $fullHtml = '<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>' . $this->getCss() . '</style>
-</head>
-<body>' . $html . '</body>
-</html>';
-
-        $options = new \Dompdf\Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', true);
-        $options->set('defaultFont', 'DejaVu Sans');
-        $options->set('isFontSubsettingEnabled', true);
-        $options->set('chroot', FCPATH);
-
-        $dompdf = new \Dompdf\Dompdf($options);
-        $dompdf->loadHtml($fullHtml);
-        $dompdf->setPaper('Letter', 'portrait');
-        $dompdf->render();
-
-        return $dompdf->output();
+        return $this->generatePdf($html, $filename);
     }
 
     /**

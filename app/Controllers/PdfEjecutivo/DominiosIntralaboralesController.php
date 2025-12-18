@@ -333,9 +333,9 @@ class DominiosIntralaboralesController extends PdfEjecutivoBaseController
             <div style="font-size: 8pt; color: #666;">' . $totalB . ' trabajadores</div>
         </td>
         <td style="width: 33%; padding: 10pt; text-align: center; background: #f3e5f5; border: 1pt solid #ce93d8;">
-            <div style="font-size: 24pt; font-weight: bold; color: #7B1FA2;">8</div>
-            <div style="font-size: 9pt; color: #7B1FA2;">Páginas Total</div>
-            <div style="font-size: 8pt; color: #666;">de análisis</div>
+            <div style="font-size: 24pt; font-weight: bold; color: #7B1FA2;">' . ($totalA + $totalB) . '</div>
+            <div style="font-size: 9pt; color: #7B1FA2;">Total Evaluados</div>
+            <div style="font-size: 8pt; color: #666;">trabajadores</div>
         </td>
     </tr>
 </table>

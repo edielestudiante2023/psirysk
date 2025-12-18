@@ -222,7 +222,7 @@ class EstresEjecutivoController extends PdfEjecutivoBaseController
     <tr>
         <td style="width: 33%; text-align: center; background-color: ' . $this->themeColorDark . '; color: white; padding: 8pt; border: 1pt solid ' . $this->themeColor . ';">
             <span style="font-size: 16pt; font-weight: bold;">2</span><br>
-            <span style="font-size: 7pt;">Páginas de Análisis</span>
+            <span style="font-size: 7pt;">Formas Evaluadas</span>
         </td>
         <td style="width: 34%; text-align: center; background-color: ' . $this->themeColor . '; color: white; padding: 8pt; border: 1pt solid ' . $this->themeColorDark . ';">
             <span style="font-size: 16pt; font-weight: bold;">31</span><br>

@@ -405,7 +405,7 @@ class DimensionesIntralaboralesController extends PdfEjecutivoBaseController
         </td>
         <td style="width: 33%; text-align: center; background-color: #00aaee; color: white; padding: 10pt; border: 1pt solid #0088cc;">
             <span style="font-size: 20pt; font-weight: bold;">' . $totalPaginas . '</span><br>
-            <span style="font-size: 9pt;">Páginas Total</span>
+            <span style="font-size: 9pt;">Total Dimensiones</span>
         </td>
     </tr>
 </table>

@@ -516,24 +516,24 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
 <table style="width: 100%; border-collapse: separate; border-spacing: 8pt;">
     <tr>
         <!-- FORMA A -->
-        <td style="width: 50%; background-color: #0077B6; color: white; text-align: center; padding: 20pt 15pt; vertical-align: middle; border: none;">
+        <td style="width: 50%; background-color: #1a1a1a; color: white; text-align: center; padding: 20pt 15pt; vertical-align: middle; border: none;">
             <div style="font-size: 10pt; font-weight: bold; margin-bottom: 8pt;">FORMA A</div>
-            <div style="font-size: 8pt; margin-bottom: 10pt;">Jefes, Profesionales y Técnicos</div>
+            <div style="font-size: 8pt; margin-bottom: 10pt; color: #ccc;">Jefes, Profesionales y Técnicos</div>
             <div style="font-size: 28pt; font-weight: bold;">' . $promedioA . '</div>
             <div style="display: inline-block; background-color: ' . $colorA . '; color: ' . ($nivelA === 'riesgo_medio' ? '#333' : '#fff') . '; padding: 4pt 12pt; margin-top: 8pt; font-size: 9pt; font-weight: bold;">
                 ' . strtoupper($nivelNombreA) . '
             </div>
-            <div style="font-size: 9pt; margin-top: 10pt;">n = ' . $totalA . ' trabajadores</div>
+            <div style="font-size: 9pt; margin-top: 10pt; color: #ccc;">n = ' . $totalA . ' trabajadores</div>
         </td>
         <!-- FORMA B -->
-        <td style="width: 50%; background-color: #FF9800; color: white; text-align: center; padding: 20pt 15pt; vertical-align: middle; border: none;">
+        <td style="width: 50%; background-color: #1a1a1a; color: white; text-align: center; padding: 20pt 15pt; vertical-align: middle; border: none;">
             <div style="font-size: 10pt; font-weight: bold; margin-bottom: 8pt;">FORMA B</div>
-            <div style="font-size: 8pt; margin-bottom: 10pt;">Auxiliares y Operarios</div>
+            <div style="font-size: 8pt; margin-bottom: 10pt; color: #ccc;">Auxiliares y Operarios</div>
             <div style="font-size: 28pt; font-weight: bold;">' . $promedioB . '</div>
             <div style="display: inline-block; background-color: ' . $colorB . '; color: ' . ($nivelB === 'riesgo_medio' ? '#333' : '#fff') . '; padding: 4pt 12pt; margin-top: 8pt; font-size: 9pt; font-weight: bold;">
                 ' . strtoupper($nivelNombreB) . '
             </div>
-            <div style="font-size: 9pt; margin-top: 10pt;">n = ' . $totalB . ' trabajadores</div>
+            <div style="font-size: 9pt; margin-top: 10pt; color: #ccc;">n = ' . $totalB . ' trabajadores</div>
         </td>
     </tr>
 </table>
@@ -644,24 +644,24 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
 <table style="width: 100%; border-collapse: separate; border-spacing: 8pt; margin: 10pt 0;">
     <tr>
         <!-- FORMA A -->
-        <td style="width: 50%; background-color: #0077B6; color: white; text-align: center; padding: 15pt; vertical-align: middle; border: none;">
+        <td style="width: 50%; background-color: #1a1a1a; color: white; text-align: center; padding: 15pt; vertical-align: middle; border: none;">
             <div style="font-size: 10pt; font-weight: bold; margin-bottom: 5pt;">FORMA A</div>
-            <div style="font-size: 8pt; margin-bottom: 8pt;">Jefes, Profesionales y Técnicos</div>
+            <div style="font-size: 8pt; margin-bottom: 8pt; color: #ccc;">Jefes, Profesionales y Técnicos</div>
             <div style="font-size: 28pt; font-weight: bold;">' . ($stats34A ? number_format($stats34A['promedio_total'], 1) : 'N/A') . '</div>
             <div style="display: inline-block; background-color: ' . $colorA . '; color: ' . ($nivelA === 'riesgo_medio' ? '#333' : '#fff') . '; padding: 4pt 12pt; margin-top: 8pt; font-size: 9pt; font-weight: bold;">
                 ' . strtoupper($nivelNombreA) . '
             </div>
-            <div style="font-size: 8pt; margin-top: 10pt;">n = ' . ($stats34A ? $stats34A['total'] : 0) . ' trabajadores</div>
+            <div style="font-size: 8pt; margin-top: 10pt; color: #ccc;">n = ' . ($stats34A ? $stats34A['total'] : 0) . ' trabajadores</div>
         </td>
         <!-- FORMA B -->
-        <td style="width: 50%; background-color: #FF9800; color: white; text-align: center; padding: 15pt; vertical-align: middle; border: none;">
+        <td style="width: 50%; background-color: #1a1a1a; color: white; text-align: center; padding: 15pt; vertical-align: middle; border: none;">
             <div style="font-size: 10pt; font-weight: bold; margin-bottom: 5pt;">FORMA B</div>
-            <div style="font-size: 8pt; margin-bottom: 8pt;">Auxiliares y Operarios</div>
+            <div style="font-size: 8pt; margin-bottom: 8pt; color: #ccc;">Auxiliares y Operarios</div>
             <div style="font-size: 28pt; font-weight: bold;">' . ($stats34B ? number_format($stats34B['promedio_total'], 1) : 'N/A') . '</div>
             <div style="display: inline-block; background-color: ' . $colorB . '; color: ' . ($nivelB === 'riesgo_medio' ? '#333' : '#fff') . '; padding: 4pt 12pt; margin-top: 8pt; font-size: 9pt; font-weight: bold;">
                 ' . strtoupper($nivelNombreB) . '
             </div>
-            <div style="font-size: 8pt; margin-top: 10pt;">n = ' . ($stats34B ? $stats34B['total'] : 0) . ' trabajadores</div>
+            <div style="font-size: 8pt; margin-top: 10pt; color: #ccc;">n = ' . ($stats34B ? $stats34B['total'] : 0) . ' trabajadores</div>
         </td>
     </tr>
 </table>

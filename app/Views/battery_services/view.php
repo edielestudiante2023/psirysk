@@ -595,8 +595,8 @@
                                 <a href="<?= base_url('pdfejecutivo/preview/completo/' . $service['id']) ?>" class="btn btn-outline-danger flex-fill" style="border-color: #C41E3A; color: #C41E3A;" target="_blank">
                                     <i class="fas fa-eye me-2"></i>Ver HTML
                                 </a>
-                                <a href="<?= base_url('pdfejecutivo/download/' . $service['id']) ?>" class="btn text-white flex-fill" style="background-color: #C41E3A;" target="_blank">
-                                    <i class="fas fa-download me-2"></i>Descargar PDF
+                                <a href="<?= base_url('pdfejecutivo/download/' . $service['id']) ?>" class="btn text-white flex-fill" style="background-color: #C41E3A;">
+                                    <i class="fas fa-file-archive me-2"></i>Descargar ZIP
                                 </a>
                             </div>
                         </div>

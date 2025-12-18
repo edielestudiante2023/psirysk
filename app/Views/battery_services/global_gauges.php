@@ -550,6 +550,9 @@ $baremosDimDesplazamientoViviendaB = ExtralaboralScoring::getBaremoDimension('de
                             <i class="fas fa-users me-1"></i>FORMA A
                         </div>
                         <div class="gauge-title"><span class="gauge-number">0A</span>Puntaje Total General</div>
+                        <div class="gauge-subtitle" style="font-size: 11px; color: #666; text-align: center; margin-top: -5px; margin-bottom: 5px;">
+                            (Intralaboral + Extralaboral) / 2
+                        </div>
                         <div class="gauge-wrapper">
                             <canvas id="gaugePuntajeTotalGeneralA"></canvas>
                             <div class="needle" id="needlePuntajeTotalGeneralA"></div>
@@ -557,6 +560,22 @@ $baremosDimDesplazamientoViviendaB = ExtralaboralScoring::getBaremoDimension('de
                         <div class="gauge-score">
                             <div class="gauge-score-value"><?= number_format($globalDataFormaA['puntaje_total_general_promedio'], 1) ?></div>
                             <div class="gauge-label"><?= strtoupper(str_replace('_', ' ', $globalDataFormaA['puntaje_total_general_nivel'])) ?></div>
+                        </div>
+                        <!-- Desglose de componentes -->
+                        <div class="gauge-components" style="background: #f8f9fa; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <span style="color: #666;">Intralaboral:</span>
+                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaA['intralaboral_promedio'], 1) ?></span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="color: #666;">Extralaboral:</span>
+                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaA['extralaboral_promedio'], 1) ?></span>
+                            </div>
+                            <div style="border-top: 1px dashed #ccc; padding-top: 8px; text-align: center;">
+                                <span style="font-family: monospace; font-size: 11px; color: #555;">
+                                    (<?= number_format($globalDataFormaA['intralaboral_promedio'], 1) ?> + <?= number_format($globalDataFormaA['extralaboral_promedio'], 1) ?>) / 2 = <strong><?= number_format($globalDataFormaA['puntaje_total_general_promedio'], 1) ?></strong>
+                                </span>
+                            </div>
                         </div>
                         <?php renderBaremos($baremosPuntajeTotalGeneralA); ?>
                     </div>
@@ -571,6 +590,9 @@ $baremosDimDesplazamientoViviendaB = ExtralaboralScoring::getBaremoDimension('de
                             <i class="fas fa-hard-hat me-1"></i>FORMA B
                         </div>
                         <div class="gauge-title"><span class="gauge-number">0B</span>Puntaje Total General</div>
+                        <div class="gauge-subtitle" style="font-size: 11px; color: #666; text-align: center; margin-top: -5px; margin-bottom: 5px;">
+                            (Intralaboral + Extralaboral) / 2
+                        </div>
                         <div class="gauge-wrapper">
                             <canvas id="gaugePuntajeTotalGeneralB"></canvas>
                             <div class="needle" id="needlePuntajeTotalGeneralB"></div>
@@ -578,6 +600,22 @@ $baremosDimDesplazamientoViviendaB = ExtralaboralScoring::getBaremoDimension('de
                         <div class="gauge-score">
                             <div class="gauge-score-value"><?= number_format($globalDataFormaB['puntaje_total_general_promedio'], 1) ?></div>
                             <div class="gauge-label"><?= strtoupper(str_replace('_', ' ', $globalDataFormaB['puntaje_total_general_nivel'])) ?></div>
+                        </div>
+                        <!-- Desglose de componentes -->
+                        <div class="gauge-components" style="background: #f8f9fa; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <span style="color: #666;">Intralaboral:</span>
+                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaB['intralaboral_promedio'], 1) ?></span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="color: #666;">Extralaboral:</span>
+                                <span style="font-weight: 600; color: #333;"><?= number_format($globalDataFormaB['extralaboral_promedio'], 1) ?></span>
+                            </div>
+                            <div style="border-top: 1px dashed #ccc; padding-top: 8px; text-align: center;">
+                                <span style="font-family: monospace; font-size: 11px; color: #555;">
+                                    (<?= number_format($globalDataFormaB['intralaboral_promedio'], 1) ?> + <?= number_format($globalDataFormaB['extralaboral_promedio'], 1) ?>) / 2 = <strong><?= number_format($globalDataFormaB['puntaje_total_general_promedio'], 1) ?></strong>
+                                </span>
+                            </div>
                         </div>
                         <?php renderBaremos($baremosPuntajeTotalGeneralB); ?>
                     </div>

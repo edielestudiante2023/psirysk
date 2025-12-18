@@ -221,6 +221,21 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
      * Calcula estadísticas para Tabla 34 (Intralaboral + Extralaboral)
      * FÓRMULA OFICIAL TABLA 28: Puntaje = (Bruto_Intra + Bruto_Extra) / Factor × 100
      *
+     * JUSTIFICACIÓN METODOLÓGICA:
+     * Los puntajes brutos se obtienen aplicando la fórmula inversa de transformación:
+     *   Bruto = (Transformado × Factor) / 100
+     *
+     * Esto es matemáticamente equivalente a sumar las calificaciones originales de cada ítem,
+     * dado que la fórmula de transformación original (Tabla 24, Res. 2404/2019) es:
+     *   Transformado = (Bruto / Factor) × 100
+     *
+     * Por tanto: Bruto = (Transformado × Factor) / 100 = Σ(calificaciones ítems)
+     *
+     * Esta metodología garantiza:
+     * 1. Resultados idénticos a recalcular desde respuestas individuales
+     * 2. Trazabilidad completa del cálculo
+     * 3. Eficiencia computacional (evita re-leer todas las respuestas)
+     *
      * @param string $forma 'A' o 'B'
      * @return array|null Estadísticas con operaciones aritméticas detalladas
      */
@@ -722,7 +737,7 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
         $html .= '
 <!-- Nota metodológica -->
 <div style="background-color: #e8f5e9; border: 1pt solid #4CAF50; padding: 8pt; margin: 10pt 0; font-size: 8pt; text-align: justify;">
-    <strong>✓ Cálculo verificable:</strong> Las operaciones aritméticas mostradas arriba siguen estrictamente la fórmula de la Tabla 28 de la Resolución 2404/2019 del Ministerio del Trabajo de Colombia. Los puntajes brutos se obtienen invirtiendo la transformación: Bruto = (Transformado × Factor) ÷ 100.
+    <strong>Nota metodológica - Obtención de puntajes brutos:</strong> Los puntajes brutos se calculan aplicando la fórmula inversa de transformación: <em>Bruto = (Transformado × Factor) ÷ 100</em>. Este procedimiento es matemáticamente equivalente a sumar las calificaciones originales de cada ítem del cuestionario, dado que la fórmula de transformación original es <em>Transformado = (Bruto ÷ Factor) × 100</em> (Tabla 24, Resolución 2404/2019). Esta metodología garantiza trazabilidad completa y resultados idénticos a los obtenidos desde las respuestas individuales.
 </div>
 
 <!-- Tabla de Baremos Tabla 34 -->

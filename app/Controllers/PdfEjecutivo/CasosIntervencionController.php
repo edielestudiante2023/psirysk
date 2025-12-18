@@ -34,7 +34,7 @@ class CasosIntervencionController extends BaseController
     public function __construct()
     {
         $this->batteryServiceModel = new \App\Models\BatteryServiceModel();
-        $this->calculatedResultsModel = new \App\Models\CalculatedResultsModel();
+        $this->calculatedResultsModel = new \App\Models\CalculatedResultModel();
         $this->companyModel = new \App\Models\CompanyModel();
         $this->workerModel = new \App\Models\WorkerModel();
     }

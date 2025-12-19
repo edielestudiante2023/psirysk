@@ -323,10 +323,9 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
 $routes->group('max-risk', function($routes) {
     $routes->get('(:num)', 'MaxRiskController::index/$1');                    // Vista principal
     $routes->get('(:num)/recalculate', 'MaxRiskController::recalculate/$1');  // Recalcular resultados
-    $routes->post('save-prompt', 'MaxRiskController::savePrompt');            // Guardar contexto IA (AJAX)
-    $routes->post('save-comment', 'MaxRiskController::saveComment');          // Guardar comentario (AJAX)
-    $routes->post('generate-ai', 'MaxRiskController::generateAi');            // Generar análisis IA (AJAX)
-    $routes->get('element/(:num)', 'MaxRiskController::getElement/$1');       // Obtener elemento (AJAX)
+    $routes->post('save-prompt', 'MaxRiskController::savePrompt');            // Guardar contexto IA global (AJAX)
+    $routes->post('save-conclusion', 'MaxRiskController::saveConclusion');    // Guardar conclusión editada (AJAX)
+    $routes->post('generate-conclusion', 'MaxRiskController::generateGlobalConclusion'); // Generar conclusión IA (AJAX)
 });
 
 // Ruta temporal para calcular y almacenar máximos riesgos (legacy/dev)

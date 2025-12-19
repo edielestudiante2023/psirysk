@@ -29,7 +29,11 @@ class BatteryServiceModel extends Model
         'closed_by',
         'closure_notes',
         'min_participation_percent',
-        'satisfaction_survey_completed'
+        'satisfaction_survey_completed',
+        // Campos para Conclusión Total RPS (Máximo Riesgo)
+        'global_conclusion_prompt',
+        'global_conclusion_text',
+        'global_conclusion_generated_at',
     ];
 
     protected bool $allowEmptyInserts = false;

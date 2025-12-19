@@ -36,110 +36,98 @@
             margin-bottom: 1.5rem;
             box-shadow: 0 2px 15px rgba(0,0,0,0.08);
         }
-        .section-header {
+
+        .conclusion-box {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 2px solid #3182ce;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .conclusion-box h4 {
+            color: #2c5282;
+            margin-bottom: 1rem;
+        }
+        .conclusion-text {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            min-height: 200px;
+            font-size: 1rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        .conclusion-text.empty {
+            color: #a0aec0;
+            font-style: italic;
             display: flex;
             align-items: center;
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            font-weight: 600;
+            justify-content: center;
         }
-        .section-header.intralaboral { background: #ebf8ff; border-left: 4px solid #3182ce; }
-        .section-header.extralaboral { background: #f0fff4; border-left: 4px solid #38a169; }
-        .section-header.estres { background: #faf5ff; border-left: 4px solid #805ad5; }
 
-        .risk-table { width: 100%; }
+        .context-box {
+            background: #faf5ff;
+            border: 2px solid #805ad5;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .context-box h5 {
+            color: #553c9a;
+            margin-bottom: 0.5rem;
+        }
+
+        .risk-table { width: 100%; font-size: 0.9rem; }
         .risk-table th {
             background: #f8f9fa;
             font-weight: 600;
-            font-size: 0.85rem;
-            padding: 0.75rem;
+            padding: 0.5rem;
         }
         .risk-table td {
-            padding: 0.75rem;
+            padding: 0.5rem;
             vertical-align: middle;
             border-bottom: 1px solid #e2e8f0;
         }
         .risk-badge {
-            padding: 0.35rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
         }
-        .risk-badge.muy-alto { background: #fed7d7; color: #c53030; }
-        .risk-badge.alto { background: #feebc8; color: #c05621; }
-        .risk-badge.medio { background: #fefcbf; color: #975a16; }
-        .risk-badge.bajo { background: #c6f6d5; color: #276749; }
+        .risk-badge.muy-alto, .risk-badge.riesgo-muy-alto { background: #fed7d7; color: #c53030; }
+        .risk-badge.alto, .risk-badge.riesgo-alto { background: #feebc8; color: #c05621; }
+        .risk-badge.medio, .risk-badge.riesgo-medio { background: #fefcbf; color: #975a16; }
+        .risk-badge.bajo, .risk-badge.riesgo-bajo { background: #c6f6d5; color: #276749; }
         .risk-badge.sin-riesgo { background: #e2e8f0; color: #4a5568; }
 
-        .element-type {
-            font-size: 0.7rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-        .element-type.total { background: #1a365d; color: white; }
-        .element-type.domain { background: #2c5282; color: white; }
-        .element-type.dimension { background: #4299e1; color: white; }
-
-        .action-btn {
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            font-size: 0.85rem;
-        }
-        .action-btn.has-content { position: relative; }
-        .action-btn.has-content::after {
-            content: '';
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 8px;
-            height: 8px;
-            background: #38a169;
-            border-radius: 50%;
-        }
-
-        .ai-status { font-size: 0.75rem; }
-        .ai-status.generated { color: #38a169; }
-        .ai-status.pending { color: #718096; }
-
-        .form-indicator {
-            font-size: 0.7rem;
-            padding: 0.15rem 0.4rem;
-            border-radius: 3px;
-            font-weight: 600;
-        }
-        .form-indicator.a { background: #bee3f8; color: #2b6cb0; }
-        .form-indicator.b { background: #fbd38d; color: #c05621; }
-
-        .modal-header.context { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-        .modal-header.comment { background: linear-gradient(135deg, #38a169, #48bb78); color: white; }
-        .modal-header.ai { background: linear-gradient(135deg, #ed8936, #dd6b20); color: white; }
-
-        .ai-content {
-            background: #f7fafc;
-            border-radius: 10px;
+        .critical-alert {
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+            border-left: 4px solid #c53030;
             padding: 1rem;
-            max-height: 400px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            font-size: 0.9rem;
-            line-height: 1.6;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 1rem;
         }
 
-        .loading-spinner {
-            display: none;
-            text-align: center;
-            padding: 2rem;
+        .btn-generate {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(237, 137, 54, 0.4);
         }
-        .loading-spinner.active { display: block; }
+        .btn-generate:hover {
+            background: linear-gradient(135deg, #dd6b20, #c05621);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .accordion-button:not(.collapsed) {
+            background: #edf2f7;
+            color: #2d3748;
+        }
     </style>
 </head>
 <body>
@@ -180,7 +168,7 @@
         </div>
         <?php endif; ?>
 
-        <!-- Estadísticas -->
+        <!-- Estadisticas -->
         <div class="row mb-4">
             <div class="col-md-3 col-6 mb-3">
                 <div class="stats-card muy-alto">
@@ -208,352 +196,212 @@
             </div>
         </div>
 
-        <!-- Información -->
-        <div class="alert alert-info mb-4">
-            <i class="fas fa-info-circle me-2"></i>
-            <strong>Máximo Riesgo:</strong> Se muestra el peor resultado entre Forma A y Forma B para cada elemento.
-            Los elementos en riesgo <strong>Alto</strong> y <strong>Muy Alto</strong> requieren intervención prioritaria.
+        <!-- Alerta de elementos criticos -->
+        <?php if ($stats['critical_count'] > 0): ?>
+        <div class="critical-alert">
+            <strong><i class="fas fa-exclamation-triangle me-2"></i>Atencion:</strong>
+            Se identificaron <strong><?= $stats['critical_count'] ?></strong> elementos en riesgo alto o muy alto que requieren intervencion prioritaria.
+        </div>
+        <?php endif; ?>
+
+        <!-- SECCION PRINCIPAL: Conclusion Global -->
+        <div class="conclusion-box">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4><i class="fas fa-file-alt me-2"></i>Conclusion Total De Aplicacion Bateria De Riesgo Psicosocial</h4>
+                <?php if (!empty($batteryService['global_conclusion_generated_at'])): ?>
+                <small class="text-muted">
+                    Generada: <?= date('d/m/Y H:i', strtotime($batteryService['global_conclusion_generated_at'])) ?>
+                </small>
+                <?php endif; ?>
+            </div>
+
+            <!-- Contexto del Consultor -->
+            <div class="context-box mb-4">
+                <h5><i class="fas fa-comment-dots me-2"></i>Contexto Complementario para IA</h5>
+                <p class="text-muted small mb-2">
+                    Agrega informacion que la IA debe considerar (ej: "empresa textil", "mayoria mujeres cabeza de familia", "turnos nocturnos").
+                    Este texto NO aparece en el informe, solo guia a la IA.
+                </p>
+                <textarea id="contextPrompt" class="form-control" rows="3" placeholder="Ej: Es una empresa del sector textil con alta rotacion de personal. La mayoria son mujeres cabeza de familia..."><?= esc($batteryService['global_conclusion_prompt'] ?? '') ?></textarea>
+                <button class="btn btn-outline-secondary btn-sm mt-2" onclick="saveContext()">
+                    <i class="fas fa-save me-1"></i>Guardar Contexto
+                </button>
+            </div>
+
+            <!-- Boton Generar -->
+            <div class="text-center mb-4">
+                <button class="btn btn-generate" onclick="generateConclusion()" id="btnGenerate">
+                    <i class="fas fa-robot me-2"></i>Generar Conclusion con IA
+                </button>
+                <p class="text-muted small mt-2">La IA analizara todos los resultados y generara una conclusion ejecutiva integrada</p>
+            </div>
+
+            <!-- Texto de Conclusion -->
+            <div class="conclusion-text <?= empty($batteryService['global_conclusion_text']) ? 'empty' : '' ?>" id="conclusionText">
+                <?php if (!empty($batteryService['global_conclusion_text'])): ?>
+                    <?= nl2br(esc($batteryService['global_conclusion_text'])) ?>
+                <?php else: ?>
+                    <span>Aun no se ha generado la conclusion. Haz clic en "Generar Conclusion con IA".</span>
+                <?php endif; ?>
+            </div>
+
+            <?php if (!empty($batteryService['global_conclusion_text'])): ?>
+            <div class="mt-3 text-end">
+                <button class="btn btn-outline-secondary btn-sm" onclick="editConclusion()">
+                    <i class="fas fa-edit me-1"></i>Editar
+                </button>
+                <button class="btn btn-outline-primary btn-sm" onclick="copyConclusion()">
+                    <i class="fas fa-copy me-1"></i>Copiar
+                </button>
+            </div>
+            <?php endif; ?>
         </div>
 
-        <!-- INTRALABORAL -->
+        <!-- Tabla de Resultados (Colapsable) -->
         <div class="section-card">
-            <div class="section-header intralaboral">
-                <i class="fas fa-building me-2"></i>
-                Factores Intralaborales
-                <span class="badge bg-primary ms-auto"><?= count($grouped['intralaboral']['totals']) + count($grouped['intralaboral']['domains']) + count($grouped['intralaboral']['dimensions']) ?> elementos</span>
-            </div>
+            <div class="accordion" id="resultsAccordion">
+                <div class="accordion-item border-0">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResults">
+                            <i class="fas fa-table me-2"></i>Ver Detalle de Resultados de Maximo Riesgo
+                            <span class="badge bg-secondary ms-2"><?= count($allResults) ?> elementos</span>
+                        </button>
+                    </h2>
+                    <div id="collapseResults" class="accordion-collapse collapse" data-bs-parent="#resultsAccordion">
+                        <div class="accordion-body">
+                            <!-- Intralaboral -->
+                            <h6 class="text-primary mb-2"><i class="fas fa-building me-1"></i>Intralaboral</h6>
+                            <div class="table-responsive mb-4">
+                                <table class="risk-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Elemento</th>
+                                            <th>Tipo</th>
+                                            <th>Puntaje</th>
+                                            <th>Forma</th>
+                                            <th>Nivel</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $intraElements = array_merge(
+                                            $grouped['intralaboral']['totals'],
+                                            $grouped['intralaboral']['domains'],
+                                            $grouped['intralaboral']['dimensions']
+                                        );
+                                        foreach ($intraElements as $el):
+                                            $riskClass = str_replace('_', '-', $el['worst_risk_level']);
+                                        ?>
+                                        <tr>
+                                            <td><?= esc($el['element_name']) ?></td>
+                                            <td><small class="text-muted"><?= ucfirst($el['element_type']) ?></small></td>
+                                            <td><strong><?= $el['worst_score'] ?></strong></td>
+                                            <td><?= $el['worst_form'] ?></td>
+                                            <td><span class="risk-badge <?= $riskClass ?>"><?= ucfirst(str_replace('_', ' ', $el['worst_risk_level'])) ?></span></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
 
-            <div class="table-responsive">
-                <table class="risk-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 5%;">Tipo</th>
-                            <th style="width: 30%;">Elemento</th>
-                            <th style="width: 10%;">Puntaje</th>
-                            <th style="width: 10%;">Forma</th>
-                            <th style="width: 12%;">Nivel</th>
-                            <th style="width: 13%;">Estado IA</th>
-                            <th style="width: 20%;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $intraElements = array_merge(
-                            $grouped['intralaboral']['totals'],
-                            $grouped['intralaboral']['domains'],
-                            $grouped['intralaboral']['dimensions']
-                        );
-                        foreach ($intraElements as $element):
-                            $riskClass = str_replace('_', '-', str_replace('riesgo_', '', $element['worst_risk_level']));
-                        ?>
-                        <tr data-id="<?= $element['id'] ?>">
-                            <td>
-                                <span class="element-type <?= $element['element_type'] ?>"><?= ucfirst($element['element_type']) ?></span>
-                            </td>
-                            <td>
-                                <strong><?= esc($element['element_name']) ?></strong>
-                                <?php if ($element['has_both_forms']): ?>
-                                <br><small class="text-muted">
-                                    A: <?= $element['form_a_score'] ?> (n=<?= $element['form_a_count'] ?>) |
-                                    B: <?= $element['form_b_score'] ?> (n=<?= $element['form_b_count'] ?>)
-                                </small>
-                                <?php endif; ?>
-                            </td>
-                            <td><strong><?= $element['worst_score'] ?></strong></td>
-                            <td><span class="form-indicator <?= strtolower($element['worst_form']) ?>"><?= $element['worst_form'] ?></span></td>
-                            <td><span class="risk-badge <?= $riskClass ?>"><?= ucfirst(str_replace('_', ' ', $element['worst_risk_level'])) ?></span></td>
-                            <td>
-                                <?php if (!empty($element['ai_analysis'])): ?>
-                                <span class="ai-status generated"><i class="fas fa-check-circle me-1"></i>Generado</span>
-                                <?php else: ?>
-                                <span class="ai-status pending"><i class="fas fa-clock me-1"></i>Pendiente</span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <button class="btn btn-outline-primary action-btn <?= !empty($element['consultant_prompt']) ? 'has-content' : '' ?>"
-                                        onclick="openContextModal(<?= $element['id'] ?>)" title="Contexto IA">
-                                    <i class="fas fa-comment-dots"></i>
-                                </button>
-                                <button class="btn btn-outline-success action-btn <?= !empty($element['consultant_comment']) ? 'has-content' : '' ?>"
-                                        onclick="openCommentModal(<?= $element['id'] ?>)" title="Comentario">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                                <button class="btn btn-outline-warning action-btn"
-                                        onclick="generateAi(<?= $element['id'] ?>)" title="Generar IA">
-                                    <i class="fas fa-robot"></i>
-                                </button>
-                                <?php if (!empty($element['ai_analysis'])): ?>
-                                <button class="btn btn-outline-info action-btn"
-                                        onclick="viewAiAnalysis(<?= $element['id'] ?>)" title="Ver análisis">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                            <!-- Extralaboral -->
+                            <h6 class="text-success mb-2"><i class="fas fa-home me-1"></i>Extralaboral</h6>
+                            <div class="table-responsive mb-4">
+                                <table class="risk-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Elemento</th>
+                                            <th>Tipo</th>
+                                            <th>Puntaje</th>
+                                            <th>Forma</th>
+                                            <th>Nivel</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $extraElements = array_merge(
+                                            $grouped['extralaboral']['totals'],
+                                            $grouped['extralaboral']['dimensions']
+                                        );
+                                        foreach ($extraElements as $el):
+                                            $riskClass = str_replace('_', '-', $el['worst_risk_level']);
+                                        ?>
+                                        <tr>
+                                            <td><?= esc($el['element_name']) ?></td>
+                                            <td><small class="text-muted"><?= ucfirst($el['element_type']) ?></small></td>
+                                            <td><strong><?= $el['worst_score'] ?></strong></td>
+                                            <td><?= $el['worst_form'] ?></td>
+                                            <td><span class="risk-badge <?= $riskClass ?>"><?= ucfirst(str_replace('_', ' ', $el['worst_risk_level'])) ?></span></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
 
-        <!-- EXTRALABORAL -->
-        <div class="section-card">
-            <div class="section-header extralaboral">
-                <i class="fas fa-home me-2"></i>
-                Factores Extralaborales
-                <span class="badge bg-success ms-auto"><?= count($grouped['extralaboral']['totals']) + count($grouped['extralaboral']['dimensions']) ?> elementos</span>
-            </div>
-
-            <div class="table-responsive">
-                <table class="risk-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 5%;">Tipo</th>
-                            <th style="width: 30%;">Elemento</th>
-                            <th style="width: 10%;">Puntaje</th>
-                            <th style="width: 10%;">Forma</th>
-                            <th style="width: 12%;">Nivel</th>
-                            <th style="width: 13%;">Estado IA</th>
-                            <th style="width: 20%;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $extraElements = array_merge(
-                            $grouped['extralaboral']['totals'],
-                            $grouped['extralaboral']['dimensions']
-                        );
-                        foreach ($extraElements as $element):
-                            $riskClass = str_replace('_', '-', str_replace('riesgo_', '', $element['worst_risk_level']));
-                        ?>
-                        <tr data-id="<?= $element['id'] ?>">
-                            <td>
-                                <span class="element-type <?= $element['element_type'] ?>"><?= ucfirst($element['element_type']) ?></span>
-                            </td>
-                            <td><strong><?= esc($element['element_name']) ?></strong></td>
-                            <td><strong><?= $element['worst_score'] ?></strong></td>
-                            <td><span class="form-indicator <?= strtolower($element['worst_form']) ?>"><?= $element['worst_form'] ?></span></td>
-                            <td><span class="risk-badge <?= $riskClass ?>"><?= ucfirst(str_replace('_', ' ', $element['worst_risk_level'])) ?></span></td>
-                            <td>
-                                <?php if (!empty($element['ai_analysis'])): ?>
-                                <span class="ai-status generated"><i class="fas fa-check-circle me-1"></i>Generado</span>
-                                <?php else: ?>
-                                <span class="ai-status pending"><i class="fas fa-clock me-1"></i>Pendiente</span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <button class="btn btn-outline-primary action-btn <?= !empty($element['consultant_prompt']) ? 'has-content' : '' ?>"
-                                        onclick="openContextModal(<?= $element['id'] ?>)" title="Contexto IA">
-                                    <i class="fas fa-comment-dots"></i>
-                                </button>
-                                <button class="btn btn-outline-success action-btn <?= !empty($element['consultant_comment']) ? 'has-content' : '' ?>"
-                                        onclick="openCommentModal(<?= $element['id'] ?>)" title="Comentario">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                                <button class="btn btn-outline-warning action-btn"
-                                        onclick="generateAi(<?= $element['id'] ?>)" title="Generar IA">
-                                    <i class="fas fa-robot"></i>
-                                </button>
-                                <?php if (!empty($element['ai_analysis'])): ?>
-                                <button class="btn btn-outline-info action-btn"
-                                        onclick="viewAiAnalysis(<?= $element['id'] ?>)" title="Ver análisis">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- ESTRÉS -->
-        <div class="section-card">
-            <div class="section-header estres">
-                <i class="fas fa-brain me-2"></i>
-                Estrés
-                <span class="badge bg-purple ms-auto"><?= count($grouped['estres']['totals']) ?> elementos</span>
-            </div>
-
-            <div class="table-responsive">
-                <table class="risk-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 5%;">Tipo</th>
-                            <th style="width: 30%;">Elemento</th>
-                            <th style="width: 10%;">Puntaje</th>
-                            <th style="width: 10%;">Forma</th>
-                            <th style="width: 12%;">Nivel</th>
-                            <th style="width: 13%;">Estado IA</th>
-                            <th style="width: 20%;">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        foreach ($grouped['estres']['totals'] as $element):
-                            $riskClass = str_replace('_', '-', str_replace('riesgo_', '', $element['worst_risk_level']));
-                        ?>
-                        <tr data-id="<?= $element['id'] ?>">
-                            <td>
-                                <span class="element-type <?= $element['element_type'] ?>"><?= ucfirst($element['element_type']) ?></span>
-                            </td>
-                            <td>
-                                <strong><?= esc($element['element_name']) ?></strong>
-                                <?php if ($element['has_both_forms']): ?>
-                                <br><small class="text-muted">
-                                    A: <?= $element['form_a_score'] ?> (n=<?= $element['form_a_count'] ?>) |
-                                    B: <?= $element['form_b_score'] ?> (n=<?= $element['form_b_count'] ?>)
-                                </small>
-                                <?php endif; ?>
-                            </td>
-                            <td><strong><?= $element['worst_score'] ?></strong></td>
-                            <td><span class="form-indicator <?= strtolower($element['worst_form']) ?>"><?= $element['worst_form'] ?></span></td>
-                            <td><span class="risk-badge <?= $riskClass ?>"><?= ucfirst(str_replace('_', ' ', $element['worst_risk_level'])) ?></span></td>
-                            <td>
-                                <?php if (!empty($element['ai_analysis'])): ?>
-                                <span class="ai-status generated"><i class="fas fa-check-circle me-1"></i>Generado</span>
-                                <?php else: ?>
-                                <span class="ai-status pending"><i class="fas fa-clock me-1"></i>Pendiente</span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <button class="btn btn-outline-primary action-btn <?= !empty($element['consultant_prompt']) ? 'has-content' : '' ?>"
-                                        onclick="openContextModal(<?= $element['id'] ?>)" title="Contexto IA">
-                                    <i class="fas fa-comment-dots"></i>
-                                </button>
-                                <button class="btn btn-outline-success action-btn <?= !empty($element['consultant_comment']) ? 'has-content' : '' ?>"
-                                        onclick="openCommentModal(<?= $element['id'] ?>)" title="Comentario">
-                                    <i class="fas fa-pen"></i>
-                                </button>
-                                <button class="btn btn-outline-warning action-btn"
-                                        onclick="generateAi(<?= $element['id'] ?>)" title="Generar IA">
-                                    <i class="fas fa-robot"></i>
-                                </button>
-                                <?php if (!empty($element['ai_analysis'])): ?>
-                                <button class="btn btn-outline-info action-btn"
-                                        onclick="viewAiAnalysis(<?= $element['id'] ?>)" title="Ver análisis">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Contexto IA -->
-    <div class="modal fade" id="contextModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header context">
-                    <h5 class="modal-title"><i class="fas fa-comment-dots me-2"></i>Contexto Complementario para IA</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted small mb-3">
-                        Este texto se inyecta en el prompt de IA para dar contexto adicional.
-                        <strong>No aparece en el informe final.</strong>
-                    </p>
-                    <div class="mb-3">
-                        <label class="form-label">Elemento:</label>
-                        <div id="contextElementName" class="fw-bold"></div>
+                            <!-- Estres -->
+                            <h6 class="text-purple mb-2"><i class="fas fa-brain me-1"></i>Estres</h6>
+                            <div class="table-responsive">
+                                <table class="risk-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Elemento</th>
+                                            <th>Tipo</th>
+                                            <th>Puntaje</th>
+                                            <th>Forma</th>
+                                            <th>Nivel</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($grouped['estres']['totals'] as $el):
+                                            $riskClass = str_replace('_', '-', $el['worst_risk_level']);
+                                        ?>
+                                        <tr>
+                                            <td><?= esc($el['element_name']) ?></td>
+                                            <td><small class="text-muted"><?= ucfirst($el['element_type']) ?></small></td>
+                                            <td><strong><?= $el['worst_score'] ?></strong></td>
+                                            <td><?= $el['worst_form'] ?></td>
+                                            <td><span class="risk-badge <?= $riskClass ?>"><?= ucfirst(str_replace('_', ' ', $el['worst_risk_level'])) ?></span></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Instrucciones para IA:</label>
-                        <textarea id="contextPrompt" class="form-control" rows="5"
-                            placeholder="Ej: Enfoca tu respuesta a una población en mayor medida madres cabeza de familia..."></textarea>
-                    </div>
-                    <div class="small text-muted">
-                        <strong>Ejemplos:</strong><br>
-                        - "Es industria textil con ruido de máquinas planas"<br>
-                        - "El área administrativa trabaja en turnos nocturnos"<br>
-                        - "Hay alto índice de rotación en el último año"
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" onclick="saveContext()">
-                        <i class="fas fa-save me-1"></i>Guardar
-                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Comentario del Consultor -->
-    <div class="modal fade" id="commentModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header comment">
-                    <h5 class="modal-title"><i class="fas fa-pen me-2"></i>Comentario del Consultor</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted small mb-3">
-                        Este comentario <strong>SÍ aparece en el informe final</strong> junto al análisis de IA.
-                    </p>
-                    <div class="mb-3">
-                        <label class="form-label">Elemento:</label>
-                        <div id="commentElementName" class="fw-bold"></div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tu comentario profesional:</label>
-                        <textarea id="consultantComment" class="form-control" rows="5"
-                            placeholder="Escribe observaciones adicionales que complementen el análisis..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-success" onclick="saveComment()">
-                        <i class="fas fa-save me-1"></i>Guardar
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Ver Análisis IA -->
-    <div class="modal fade" id="viewAiModal" tabindex="-1">
+    <!-- Modal: Editar Conclusion -->
+    <div class="modal fade" id="editModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header ai">
-                    <h5 class="modal-title"><i class="fas fa-robot me-2"></i>Análisis Generado por IA</h5>
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Editar Conclusion</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Elemento:</label>
-                        <div id="aiElementName" class="fw-bold"></div>
-                    </div>
-                    <div class="loading-spinner" id="aiLoadingSpinner">
-                        <div class="spinner-border text-primary" role="status"></div>
-                        <p class="mt-2">Cargando análisis...</p>
-                    </div>
-                    <div id="aiAnalysisContent" class="ai-content"></div>
-                    <div class="mt-3 small text-muted" id="aiMeta"></div>
+                    <textarea id="editConclusionText" class="form-control" rows="15"><?= esc($batteryService['global_conclusion_text'] ?? '') ?></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                    <button type="button" class="btn btn-warning" onclick="regenerateCurrentAi()">
-                        <i class="fas fa-sync-alt me-1"></i>Regenerar
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEditedConclusion()">
+                        <i class="fas fa-save me-1"></i>Guardar
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Generando IA -->
+    <!-- Modal: Generando -->
     <div class="modal fade" id="generatingModal" tabindex="-1" data-bs-backdrop="static">
         <div class="modal-dialog modal-sm modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-body text-center py-4">
                     <div class="spinner-border text-warning mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
-                    <h5>Generando análisis con IA...</h5>
-                    <p class="text-muted small mb-0">Esto puede tomar unos segundos</p>
+                    <h5>Generando conclusion...</h5>
+                    <p class="text-muted small mb-0">La IA esta analizando todos los resultados</p>
                 </div>
             </div>
         </div>
@@ -561,42 +409,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Cache de datos de elementos
-        const elementsCache = <?= json_encode(array_column($allResults, null, 'id')) ?>;
-        let currentElementId = null;
-
-        // Modales
-        const contextModal = new bootstrap.Modal(document.getElementById('contextModal'));
-        const commentModal = new bootstrap.Modal(document.getElementById('commentModal'));
-        const viewAiModal = new bootstrap.Modal(document.getElementById('viewAiModal'));
+        const batteryServiceId = <?= $batteryService['id'] ?>;
+        const editModal = new bootstrap.Modal(document.getElementById('editModal'));
         const generatingModal = new bootstrap.Modal(document.getElementById('generatingModal'));
-
-        function openContextModal(id) {
-            currentElementId = id;
-            const element = elementsCache[id];
-            document.getElementById('contextElementName').textContent = element.element_name;
-            document.getElementById('contextPrompt').value = element.consultant_prompt || '';
-            contextModal.show();
-        }
-
-        function openCommentModal(id) {
-            currentElementId = id;
-            const element = elementsCache[id];
-            document.getElementById('commentElementName').textContent = element.element_name;
-            document.getElementById('consultantComment').value = element.consultant_comment || '';
-            commentModal.show();
-        }
-
-        function viewAiAnalysis(id) {
-            currentElementId = id;
-            const element = elementsCache[id];
-            document.getElementById('aiElementName').textContent = element.element_name;
-            document.getElementById('aiAnalysisContent').innerHTML = element.ai_analysis || 'Sin análisis generado';
-            document.getElementById('aiMeta').innerHTML = element.ai_generated_at
-                ? `Generado: ${element.ai_generated_at} | Modelo: ${element.ai_model_version || 'N/A'}`
-                : '';
-            viewAiModal.show();
-        }
 
         async function saveContext() {
             const prompt = document.getElementById('contextPrompt').value;
@@ -608,130 +423,88 @@
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'X-Requested-With': 'XMLHttpRequest'
                     },
-                    body: `id=${currentElementId}&prompt=${encodeURIComponent(prompt)}`
+                    body: `battery_service_id=${batteryServiceId}&prompt=${encodeURIComponent(prompt)}`
                 });
 
                 const data = await response.json();
-                if (data.success) {
-                    elementsCache[currentElementId].consultant_prompt = prompt;
-                    updateButtonIndicator(currentElementId, 'context', !!prompt);
-                    contextModal.hide();
-                    showToast('Contexto guardado', 'success');
-                } else {
-                    showToast(data.message || 'Error al guardar', 'error');
-                }
+                showToast(data.message, data.success ? 'success' : 'error');
             } catch (error) {
-                showToast('Error de conexión', 'error');
+                showToast('Error de conexion', 'error');
             }
         }
 
-        async function saveComment() {
-            const comment = document.getElementById('consultantComment').value;
-
-            try {
-                const response = await fetch('/max-risk/save-comment', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: `id=${currentElementId}&comment=${encodeURIComponent(comment)}`
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    elementsCache[currentElementId].consultant_comment = comment;
-                    updateButtonIndicator(currentElementId, 'comment', !!comment);
-                    commentModal.hide();
-                    showToast('Comentario guardado', 'success');
-                } else {
-                    showToast(data.message || 'Error al guardar', 'error');
-                }
-            } catch (error) {
-                showToast('Error de conexión', 'error');
-            }
-        }
-
-        async function generateAi(id) {
-            currentElementId = id;
+        async function generateConclusion() {
             generatingModal.show();
 
             try {
-                const response = await fetch('/max-risk/generate-ai', {
+                const response = await fetch('/max-risk/generate-conclusion', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                         'X-Requested-With': 'XMLHttpRequest'
                     },
-                    body: `id=${id}`
+                    body: `battery_service_id=${batteryServiceId}`
                 });
 
                 const data = await response.json();
                 generatingModal.hide();
 
                 if (data.success) {
-                    elementsCache[id].ai_analysis = data.analysis;
-                    elementsCache[id].ai_recommendations = data.recommendations;
-                    elementsCache[id].ai_generated_at = new Date().toISOString();
-                    updateAiStatus(id, true);
-                    showToast('Análisis generado correctamente', 'success');
-
-                    // Mostrar el análisis
-                    viewAiAnalysis(id);
+                    const conclusionDiv = document.getElementById('conclusionText');
+                    conclusionDiv.classList.remove('empty');
+                    conclusionDiv.innerHTML = data.conclusion.replace(/\n/g, '<br>');
+                    document.getElementById('editConclusionText').value = data.conclusion;
+                    showToast('Conclusion generada correctamente', 'success');
+                    // Recargar para mostrar botones de editar/copiar
+                    setTimeout(() => location.reload(), 1500);
                 } else {
-                    showToast(data.message || 'Error al generar análisis', 'error');
+                    showToast(data.message || 'Error al generar', 'error');
                 }
             } catch (error) {
                 generatingModal.hide();
-                showToast('Error de conexión', 'error');
+                showToast('Error de conexion', 'error');
             }
         }
 
-        function regenerateCurrentAi() {
-            viewAiModal.hide();
-            generateAi(currentElementId);
+        function editConclusion() {
+            editModal.show();
         }
 
-        function updateButtonIndicator(id, type, hasContent) {
-            const row = document.querySelector(`tr[data-id="${id}"]`);
-            if (!row) return;
+        async function saveEditedConclusion() {
+            const conclusion = document.getElementById('editConclusionText').value;
 
-            const btnIndex = type === 'context' ? 0 : 1;
-            const btn = row.querySelectorAll('.action-btn')[btnIndex];
-            if (btn) {
-                btn.classList.toggle('has-content', hasContent);
-            }
-        }
+            try {
+                const response = await fetch('/max-risk/save-conclusion', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: `battery_service_id=${batteryServiceId}&conclusion=${encodeURIComponent(conclusion)}`
+                });
 
-        function updateAiStatus(id, generated) {
-            const row = document.querySelector(`tr[data-id="${id}"]`);
-            if (!row) return;
+                const data = await response.json();
 
-            const statusCell = row.querySelector('.ai-status');
-            if (statusCell) {
-                if (generated) {
-                    statusCell.className = 'ai-status generated';
-                    statusCell.innerHTML = '<i class="fas fa-check-circle me-1"></i>Generado';
+                if (data.success) {
+                    document.getElementById('conclusionText').innerHTML = conclusion.replace(/\n/g, '<br>');
+                    editModal.hide();
+                    showToast('Conclusion guardada', 'success');
                 } else {
-                    statusCell.className = 'ai-status pending';
-                    statusCell.innerHTML = '<i class="fas fa-clock me-1"></i>Pendiente';
+                    showToast(data.message || 'Error al guardar', 'error');
                 }
+            } catch (error) {
+                showToast('Error de conexion', 'error');
             }
+        }
 
-            // Agregar botón de ver si no existe
-            const actionsCell = row.querySelector('td:last-child');
-            if (generated && !actionsCell.querySelector('.btn-outline-info')) {
-                const viewBtn = document.createElement('button');
-                viewBtn.className = 'btn btn-outline-info action-btn';
-                viewBtn.setAttribute('onclick', `viewAiAnalysis(${id})`);
-                viewBtn.setAttribute('title', 'Ver análisis');
-                viewBtn.innerHTML = '<i class="fas fa-eye"></i>';
-                actionsCell.appendChild(viewBtn);
-            }
+        function copyConclusion() {
+            const text = document.getElementById('conclusionText').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Conclusion copiada al portapapeles', 'success');
+            });
         }
 
         function showToast(message, type) {
-            // Simple toast usando alert por ahora (se puede mejorar con librería)
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
             alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 250px;';
@@ -740,7 +513,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
             document.body.appendChild(alertDiv);
-
             setTimeout(() => alertDiv.remove(), 3000);
         }
     </script>

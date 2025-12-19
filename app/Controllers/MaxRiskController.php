@@ -10,8 +10,7 @@ use App\Services\MaxRiskResultsService;
 /**
  * Controlador para el módulo "Conclusión Total De RPS (Máximo Riesgo)"
  *
- * Gestiona la visualización y edición de resultados de máximo riesgo,
- * prompts contextuales para IA, y comentarios del consultor.
+ * Genera UNA conclusión global integrando todos los resultados de máximo riesgo.
  */
 class MaxRiskController extends BaseController
 {
@@ -28,7 +27,6 @@ class MaxRiskController extends BaseController
 
     /**
      * Vista principal del módulo
-     * Calcula automáticamente los resultados si no existen
      */
     public function index($batteryServiceId)
     {
@@ -54,18 +52,9 @@ class MaxRiskController extends BaseController
 
         // Agrupar por tipo de cuestionario
         $grouped = [
-            'intralaboral' => [
-                'totals'     => [],
-                'domains'    => [],
-                'dimensions' => [],
-            ],
-            'extralaboral' => [
-                'totals'     => [],
-                'dimensions' => [],
-            ],
-            'estres' => [
-                'totals' => [],
-            ],
+            'intralaboral' => ['totals' => [], 'domains' => [], 'dimensions' => []],
+            'extralaboral' => ['totals' => [], 'dimensions' => []],
+            'estres' => ['totals' => []],
         ];
 
         foreach ($results as $result) {
@@ -84,13 +73,19 @@ class MaxRiskController extends BaseController
         // Obtener estadísticas
         $stats = $this->maxRiskModel->getRiskStats($batteryServiceId);
 
+        // Identificar elementos críticos (alto y muy alto)
+        $criticalElements = array_filter($results, function($r) {
+            return in_array($r['worst_risk_level'], ['alto', 'muy_alto', 'riesgo_alto', 'riesgo_muy_alto']);
+        });
+
         return view('max_risk/index', [
-            'title'          => 'Conclusión Total De RPS (Máximo Riesgo)',
-            'batteryService' => $batteryService,
-            'company'        => $company,
-            'grouped'        => $grouped,
-            'stats'          => $stats,
-            'allResults'     => $results,
+            'title'            => 'Conclusión Total De RPS (Máximo Riesgo)',
+            'batteryService'   => $batteryService,
+            'company'          => $company,
+            'grouped'          => $grouped,
+            'stats'            => $stats,
+            'allResults'       => $results,
+            'criticalElements' => $criticalElements,
         ]);
     }
 
@@ -114,7 +109,7 @@ class MaxRiskController extends BaseController
     }
 
     /**
-     * Guardar prompt contextual del consultor (AJAX)
+     * Guardar contexto complementario del consultor (AJAX)
      */
     public function savePrompt()
     {
@@ -122,10 +117,12 @@ class MaxRiskController extends BaseController
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid request']);
         }
 
-        $id = (int) $this->request->getPost('id');
+        $batteryServiceId = (int) $this->request->getPost('battery_service_id');
         $prompt = $this->request->getPost('prompt');
 
-        $result = $this->maxRiskModel->saveConsultantPrompt($id, $prompt);
+        $result = $this->batteryServiceModel->update($batteryServiceId, [
+            'global_conclusion_prompt' => $prompt,
+        ]);
 
         return $this->response->setJSON([
             'success' => $result,
@@ -134,130 +131,138 @@ class MaxRiskController extends BaseController
     }
 
     /**
-     * Guardar comentario del consultor (AJAX)
+     * Generar Conclusión Global con IA (AJAX)
      */
-    public function saveComment()
+    public function generateGlobalConclusion()
     {
         if (!$this->request->isAJAX()) {
             return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid request']);
         }
 
-        $id = (int) $this->request->getPost('id');
-        $comment = $this->request->getPost('comment');
+        $batteryServiceId = (int) $this->request->getPost('battery_service_id');
 
-        $result = $this->maxRiskModel->saveConsultantComment($id, $comment);
-
-        return $this->response->setJSON([
-            'success' => $result,
-            'message' => $result ? 'Comentario guardado' : 'Error al guardar',
-        ]);
-    }
-
-    /**
-     * Generar análisis con IA (AJAX)
-     */
-    public function generateAi()
-    {
-        if (!$this->request->isAJAX()) {
-            return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid request']);
+        // Obtener datos
+        $batteryService = $this->batteryServiceModel->find($batteryServiceId);
+        if (!$batteryService) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Servicio no encontrado']);
         }
 
-        $id = (int) $this->request->getPost('id');
-
-        // Obtener el elemento
-        $element = $this->maxRiskModel->find($id);
-        if (!$element) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Elemento no encontrado',
-            ]);
-        }
-
-        // Obtener datos del servicio y empresa para contexto
-        $batteryService = $this->batteryServiceModel->find($element['battery_service_id']);
         $company = $this->companyModel->find($batteryService['company_id']);
+        $results = $this->maxRiskModel->getByBatteryService($batteryServiceId);
+        $stats = $this->maxRiskModel->getRiskStats($batteryServiceId);
 
-        // Construir prompt para IA
-        $prompt = $this->buildAiPrompt($element, $company, $batteryService);
+        if (empty($results)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No hay resultados calculados']);
+        }
 
-        // Llamar a la API de IA (OpenAI)
+        // Construir prompt global
+        $prompt = $this->buildGlobalPrompt($results, $stats, $company, $batteryService);
+
+        // Llamar a OpenAI
         $aiResponse = $this->callOpenAI($prompt);
 
         if ($aiResponse['success']) {
-            // Guardar análisis
-            $this->maxRiskModel->updateAiAnalysis(
-                $id,
-                $aiResponse['analysis'],
-                $aiResponse['recommendations'] ?? null,
-                $aiResponse['model'] ?? 'gpt-4'
-            );
+            // Guardar conclusión en battery_services
+            $this->batteryServiceModel->update($batteryServiceId, [
+                'global_conclusion_text' => $aiResponse['analysis'],
+                'global_conclusion_generated_at' => date('Y-m-d H:i:s'),
+            ]);
 
             return $this->response->setJSON([
-                'success'         => true,
-                'analysis'        => $aiResponse['analysis'],
-                'recommendations' => $aiResponse['recommendations'] ?? '',
-                'message'         => 'Análisis generado correctamente',
+                'success' => true,
+                'conclusion' => $aiResponse['analysis'],
+                'message' => 'Conclusión generada correctamente',
             ]);
         }
 
         return $this->response->setJSON([
             'success' => false,
-            'message' => $aiResponse['error'] ?? 'Error al generar análisis',
+            'message' => $aiResponse['error'] ?? 'Error al generar conclusión',
         ]);
     }
 
     /**
-     * Construir prompt para IA
+     * Construir prompt para conclusión global
      */
-    private function buildAiPrompt(array $element, array $company, array $batteryService): string
+    private function buildGlobalPrompt(array $results, array $stats, array $company, array $batteryService): string
     {
-        $nivelDescripcion = [
-            'sin_riesgo'       => 'Sin riesgo o riesgo despreciable',
-            'bajo'             => 'Riesgo bajo',
-            'medio'            => 'Riesgo medio',
-            'alto'             => 'Riesgo alto',
-            'muy_alto'         => 'Riesgo muy alto',
-            'riesgo_bajo'      => 'Riesgo bajo',
-            'riesgo_medio'     => 'Riesgo medio',
-            'riesgo_alto'      => 'Riesgo alto',
-            'riesgo_muy_alto'  => 'Riesgo muy alto',
-        ];
-
-        $nivel = $nivelDescripcion[$element['worst_risk_level']] ?? $element['worst_risk_level'];
-
         $prompt = "Eres un especialista en Seguridad y Salud en el Trabajo (SST) de Colombia, experto en riesgo psicosocial según la Resolución 2764/2022 y Resolución 2404/2019.\n\n";
 
-        $prompt .= "Analiza el siguiente resultado de evaluación de riesgo psicosocial y genera:\n";
-        $prompt .= "1. ANÁLISIS: Interpretación profesional del nivel de riesgo encontrado (2-3 párrafos)\n";
-        $prompt .= "2. CAUSAS PROBABLES: Factores organizacionales que podrían estar generando este riesgo\n";
-        $prompt .= "3. IMPACTO: Consecuencias potenciales para los trabajadores y la organización\n";
-        $prompt .= "4. INTERVENCIÓN PRIORITARIA: Acciones específicas ordenadas por urgencia\n\n";
+        $prompt .= "Genera la **CONCLUSIÓN TOTAL DE APLICACIÓN DE LA BATERÍA DE RIESGO PSICOSOCIAL** para esta empresa.\n\n";
 
-        $prompt .= "=== DATOS DEL RESULTADO ===\n";
+        $prompt .= "Este texto es el resumen ejecutivo final que integra todos los resultados. Debe ser:\n";
+        $prompt .= "- Profesional y técnico, pero comprensible para gerencia\n";
+        $prompt .= "- Integrador: no lista elementos uno por uno, sino que da una visión global\n";
+        $prompt .= "- Práctico: identifica las áreas más críticas y qué hacer al respecto\n";
+        $prompt .= "- Entre 400 y 600 palabras\n\n";
+
+        $prompt .= "=== DATOS DE LA EMPRESA ===\n";
         $prompt .= "Empresa: {$company['name']}\n";
-        $prompt .= "Sector/Actividad: " . ($company['economic_activity'] ?? 'No especificado') . "\n";
-        $prompt .= "Elemento evaluado: {$element['element_name']}\n";
-        $prompt .= "Tipo: {$element['element_type']} ({$element['questionnaire_type']})\n";
-        $prompt .= "Puntaje de máximo riesgo: {$element['worst_score']} (Forma {$element['worst_form']})\n";
-        $prompt .= "Nivel de riesgo: {$nivel}\n";
+        $prompt .= "NIT: " . ($company['nit'] ?? 'N/A') . "\n";
+        $prompt .= "Sector/Actividad: " . ($company['economic_activity'] ?? 'No especificado') . "\n\n";
 
-        if ($element['has_both_forms']) {
-            $prompt .= "\nComparativo entre formas:\n";
-            $prompt .= "- Forma A (Jefes/Profesionales): Puntaje {$element['form_a_score']}, n={$element['form_a_count']} trabajadores\n";
-            $prompt .= "- Forma B (Auxiliares/Operarios): Puntaje {$element['form_b_score']}, n={$element['form_b_count']} trabajadores\n";
+        $prompt .= "=== RESUMEN ESTADÍSTICO ===\n";
+        $prompt .= "Total de elementos evaluados: {$stats['total_elements']}\n";
+        $prompt .= "Elementos en riesgo MUY ALTO: {$stats['muy_alto']}\n";
+        $prompt .= "Elementos en riesgo ALTO: {$stats['alto']}\n";
+        $prompt .= "Elementos en riesgo MEDIO: {$stats['medio']}\n";
+        $prompt .= "Elementos en riesgo BAJO o SIN RIESGO: " . ($stats['bajo'] + $stats['sin_riesgo']) . "\n";
+        $prompt .= "Total elementos críticos (alto + muy alto): {$stats['critical_count']}\n\n";
+
+        // Agrupar resultados para el prompt
+        $prompt .= "=== RESULTADOS POR CUESTIONARIO (Máximo Riesgo) ===\n\n";
+
+        // Totales
+        $prompt .= "TOTALES:\n";
+        foreach ($results as $r) {
+            if ($r['element_type'] === 'total') {
+                $prompt .= "- {$r['element_name']}: {$r['worst_score']} ({$r['worst_risk_level']}) - Forma {$r['worst_form']}\n";
+            }
+        }
+
+        // Dominios con riesgo alto/muy alto
+        $prompt .= "\nDOMINIOS CRÍTICOS (Alto/Muy Alto):\n";
+        $hasCriticalDomains = false;
+        foreach ($results as $r) {
+            if ($r['element_type'] === 'domain' && in_array($r['worst_risk_level'], ['alto', 'muy_alto', 'riesgo_alto', 'riesgo_muy_alto'])) {
+                $prompt .= "- {$r['element_name']}: {$r['worst_score']} ({$r['worst_risk_level']})\n";
+                $hasCriticalDomains = true;
+            }
+        }
+        if (!$hasCriticalDomains) {
+            $prompt .= "- Ningún dominio en riesgo alto o muy alto\n";
+        }
+
+        // Dimensiones con riesgo alto/muy alto
+        $prompt .= "\nDIMENSIONES CRÍTICAS (Alto/Muy Alto):\n";
+        $hasCriticalDimensions = false;
+        foreach ($results as $r) {
+            if ($r['element_type'] === 'dimension' && in_array($r['worst_risk_level'], ['alto', 'muy_alto', 'riesgo_alto', 'riesgo_muy_alto'])) {
+                $prompt .= "- {$r['element_name']} ({$r['questionnaire_type']}): {$r['worst_score']} ({$r['worst_risk_level']})\n";
+                $hasCriticalDimensions = true;
+            }
+        }
+        if (!$hasCriticalDimensions) {
+            $prompt .= "- Ninguna dimensión en riesgo alto o muy alto\n";
         }
 
         // Agregar contexto del consultor si existe
-        if (!empty($element['consultant_prompt'])) {
-            $prompt .= "\n=== CONTEXTO ADICIONAL DEL CONSULTOR (muy importante, considera esto en tu análisis) ===\n";
-            $prompt .= $element['consultant_prompt'] . "\n";
+        if (!empty($batteryService['global_conclusion_prompt'])) {
+            $prompt .= "\n=== CONTEXTO ADICIONAL DEL CONSULTOR (muy importante, integra esto en tu análisis) ===\n";
+            $prompt .= $batteryService['global_conclusion_prompt'] . "\n";
         }
 
-        $prompt .= "\n=== INSTRUCCIONES ===\n";
-        $prompt .= "- Responde en español profesional\n";
-        $prompt .= "- Sé específico y práctico en las recomendaciones\n";
-        $prompt .= "- Fundamenta en la normativa colombiana vigente\n";
-        $prompt .= "- El análisis debe ser útil para un profesional SST que elabora el informe de la batería\n";
+        $prompt .= "\n=== ESTRUCTURA DE LA CONCLUSIÓN ===\n";
+        $prompt .= "1. PANORAMA GENERAL: Estado global de riesgo psicosocial de la organización\n";
+        $prompt .= "2. FACTORES CRÍTICOS: Los 2-3 aspectos más preocupantes que requieren intervención inmediata\n";
+        $prompt .= "3. FACTORES PROTECTORES: Aspectos positivos que la organización debe mantener\n";
+        $prompt .= "4. RECOMENDACIÓN PRINCIPAL: La acción más importante a tomar\n\n";
+
+        $prompt .= "=== INSTRUCCIONES FINALES ===\n";
+        $prompt .= "- NO uses listas con viñetas, escribe en prosa fluida\n";
+        $prompt .= "- NO repitas los puntajes numéricos, interpreta su significado\n";
+        $prompt .= "- Fundamenta en la normativa colombiana (Res. 2764/2022)\n";
+        $prompt .= "- El tono debe ser de un profesional SST presentando conclusiones a la alta dirección\n";
 
         return $prompt;
     }
@@ -287,33 +292,22 @@ class MaxRiskController extends BaseController
                 'json' => [
                     'model'       => 'gpt-4',
                     'messages'    => [
-                        ['role' => 'system', 'content' => 'Eres un experto en SST de Colombia especializado en riesgo psicosocial.'],
+                        ['role' => 'system', 'content' => 'Eres un experto en SST de Colombia especializado en riesgo psicosocial. Escribes conclusiones ejecutivas profesionales.'],
                         ['role' => 'user', 'content' => $prompt],
                     ],
                     'temperature' => 0.7,
                     'max_tokens'  => 2000,
                 ],
-                'timeout' => 60,
+                'timeout' => 90,
             ]);
 
             $data = json_decode($response->getBody(), true);
 
             if (isset($data['choices'][0]['message']['content'])) {
-                $content = $data['choices'][0]['message']['content'];
-
-                // Intentar separar análisis y recomendaciones
-                $analysis = $content;
-                $recommendations = null;
-
-                if (preg_match('/INTERVENCIÓN[^:]*:(.*)/is', $content, $matches)) {
-                    $recommendations = trim($matches[1]);
-                }
-
                 return [
-                    'success'         => true,
-                    'analysis'        => $analysis,
-                    'recommendations' => $recommendations,
-                    'model'           => $data['model'] ?? 'gpt-4',
+                    'success'  => true,
+                    'analysis' => $data['choices'][0]['message']['content'],
+                    'model'    => $data['model'] ?? 'gpt-4',
                 ];
             }
 
@@ -332,16 +326,24 @@ class MaxRiskController extends BaseController
     }
 
     /**
-     * Obtener un elemento específico (AJAX)
+     * Guardar conclusión editada manualmente (AJAX)
      */
-    public function getElement($id)
+    public function saveConclusion()
     {
-        $element = $this->maxRiskModel->find((int) $id);
-
-        if (!$element) {
-            return $this->response->setStatusCode(404)->setJSON(['error' => 'No encontrado']);
+        if (!$this->request->isAJAX()) {
+            return $this->response->setStatusCode(400)->setJSON(['error' => 'Invalid request']);
         }
 
-        return $this->response->setJSON($element);
+        $batteryServiceId = (int) $this->request->getPost('battery_service_id');
+        $conclusion = $this->request->getPost('conclusion');
+
+        $result = $this->batteryServiceModel->update($batteryServiceId, [
+            'global_conclusion_text' => $conclusion,
+        ]);
+
+        return $this->response->setJSON([
+            'success' => $result,
+            'message' => $result ? 'Conclusión guardada' : 'Error al guardar',
+        ]);
     }
 }

@@ -146,6 +146,28 @@
             border-left: 4px solid #dc3545 !important;
             box-shadow: 0 0 10px rgba(220, 53, 69, 0.3) !important;
         }
+
+        /* Estilos para acordeón */
+        .accordion-item {
+            margin-bottom: 2px;
+        }
+        .accordion-item.border-danger {
+            border: 2px solid #dc3545 !important;
+        }
+        .accordion-button {
+            padding: 10px 15px;
+            font-size: 14px;
+        }
+        .accordion-button:not(.collapsed) {
+            background-color: #e7f1ff;
+        }
+        .accordion-button.bg-danger:not(.collapsed) {
+            background-color: #dc3545 !important;
+        }
+        .accordion-body {
+            padding: 15px;
+            background: #fafafa;
+        }
         .formula-box {
             background: #e7f3ff;
             border-left: 3px solid #0066cc;
@@ -501,229 +523,249 @@
         <div class="row">
             <div class="col-12">
                 <h3 class="mb-3"><i class="fas fa-calculator me-2 text-primary"></i>Metodología de Cálculo y Baremos Aplicados</h3>
+                <p class="text-muted mb-3"><i class="fas fa-info-circle me-2"></i>Haga clic en cada elemento para ver el detalle del cálculo y baremos aplicados.</p>
             </div>
         </div>
 
         <?php
-        function renderCalculationDetail($title, $data, $icon, $color) {
-            // Detectar si es riesgo alto o muy alto para resaltar con borde rojo
-            $isHighRisk = in_array($data['nivel'] ?? '', ['riesgo_alto', 'riesgo_muy_alto', 'alto', 'muy_alto']);
-            $borderClass = $isHighRisk ? 'border-danger border-3' : '';
-            $headerBg = $isHighRisk ? 'danger' : $color;
+        $accordionCounter = 0;
+
+        function renderFormaDetail($formaData, $formaLabel) {
+            if (!$formaData || !isset($formaData['promedio'])) return;
+            $colorClass = getColorClass($formaData['nivel']);
+            $badgeClass = $colorClass === 'bg-danger' ? 'danger' : ($colorClass === 'bg-warning' ? 'warning text-dark' : 'success');
             ?>
-            <div class="col-md-6 mb-4">
-                <div class="card shadow-sm calc-card <?= $borderClass ?>">
-                    <div class="card-header bg-<?= $headerBg ?> text-white">
-                        <h5 class="mb-0">
-                            <?php if ($isHighRisk): ?><i class="fas fa-exclamation-triangle me-2"></i><?php endif; ?>
-                            <i class="fas fa-<?= $icon ?> me-2"></i><?= $title ?>
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Resultado -->
-                        <div class="alert alert-info mb-3">
-                            <strong>Nivel de Riesgo:</strong>
-                            <span class="badge bg-<?= getColorClass($data['nivel']) === 'bg-danger' ? 'danger' : (getColorClass($data['nivel']) === 'bg-warning' ? 'warning text-dark' : 'success') ?> ms-2">
-                                <?= strtoupper(str_replace('_', ' ', $data['nivel'])) ?>
-                            </span>
+            <div class="card mb-2">
+                <div class="card-header py-2 <?= $colorClass ?>">
+                    <strong><?= $formaLabel ?></strong>
+                    <span class="badge bg-<?= $badgeClass ?> ms-2"><?= strtoupper(str_replace('_', ' ', $formaData['nivel'])) ?></span>
+                </div>
+                <div class="card-body py-2">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small><strong>Cálculo:</strong></small>
+                            <div class="formula-box py-1 px-2" style="font-size: 11px;">
+                                Suma: <?= number_format($formaData['suma'] ?? 0, 2) ?> |
+                                n=<?= $formaData['cantidad'] ?? 0 ?> |
+                                <strong>Promedio: <?= $formaData['promedio'] ?? 0 ?></strong>
+                            </div>
                         </div>
-
-                        <!-- Fórmula -->
-                        <h6><i class="fas fa-flask me-2"></i>Método de Cálculo:</h6>
-                        <div class="formula-box mb-3">
-                            <strong>1. Suma de puntajes:</strong> <?= number_format($data['suma'], 2) ?><br>
-                            <strong>2. Cantidad de trabajadores:</strong> <?= $data['cantidad'] ?><br>
-                            <strong>3. Promedio aritmético:</strong> <?= $data['suma'] ?> ÷ <?= $data['cantidad'] ?> = <strong><?= $data['promedio'] ?></strong>
-                        </div>
-
-                        <!-- Baremo aplicado -->
-                        <h6><i class="fas fa-table me-2"></i>Baremo Aplicado (Resolución 2404/2019):</h6>
-                        <table class="table table-sm table-bordered baremo-table">
-                            <thead>
-                                <tr>
-                                    <th>Nivel de Riesgo</th>
-                                    <th>Rango</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($data['baremo'] as $nivel => $rango): ?>
-                                <tr class="<?= $nivel === $data['nivel'] ? 'baremo-active' : '' ?>">
+                        <div class="col-md-6">
+                            <small><strong>Baremo aplicado:</strong></small>
+                            <table class="table table-sm table-bordered mb-0" style="font-size: 10px;">
+                                <?php if (isset($formaData['baremo'])): foreach ($formaData['baremo'] as $nivel => $rango): ?>
+                                <tr class="<?= $nivel === $formaData['nivel'] ? 'baremo-active' : '' ?>">
                                     <td><?= ucfirst(str_replace('_', ' ', $nivel)) ?></td>
                                     <td><?= $rango[0] ?> - <?= $rango[1] ?></td>
                                 </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-
-                        <!-- Rango aplicado -->
-                        <div class="alert alert-warning mb-0">
-                            <strong><i class="fas fa-check-circle me-2"></i>El promedio <?= $data['promedio'] ?> se encuentra en el rango:</strong>
-                            [<?= $data['rango_aplicado'][0] ?> - <?= $data['rango_aplicado'][1] ?>]
-                            = <strong><?= strtoupper(str_replace('_', ' ', $data['nivel'])) ?></strong>
+                                <?php endforeach; endif; ?>
+                            </table>
                         </div>
                     </div>
                 </div>
             </div>
             <?php
         }
+
+        function renderAccordionItem($id, $title, $data, $icon, $color, $hasBothForms) {
+            global $accordionCounter;
+            $accordionCounter++;
+            $itemId = $id . '_' . $accordionCounter;
+
+            // Detectar si es riesgo alto o muy alto
+            $isHighRisk = in_array($data['nivel'] ?? '', ['riesgo_alto', 'riesgo_muy_alto', 'alto', 'muy_alto']);
+            $headerClass = $isHighRisk ? 'bg-danger text-white' : '';
+            $btnClass = $isHighRisk ? 'text-white' : '';
+            $borderClass = $isHighRisk ? 'border-danger' : '';
+
+            // Badge de nivel
+            $colorClass = getColorClass($data['nivel'] ?? 'sin_riesgo');
+            $badgeClass = $colorClass === 'bg-danger' ? 'danger' : ($colorClass === 'bg-warning' ? 'warning text-dark' : 'success');
+            ?>
+            <div class="accordion-item <?= $borderClass ?>">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed <?= $headerClass ?>" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $itemId ?>">
+                        <?php if ($isHighRisk): ?><i class="fas fa-exclamation-triangle me-2"></i><?php endif; ?>
+                        <i class="fas fa-<?= $icon ?> me-2"></i>
+                        <span class="<?= $btnClass ?>"><?= $title ?></span>
+                        <span class="badge bg-<?= $badgeClass ?> ms-2"><?= strtoupper(str_replace('_', ' ', $data['nivel'] ?? 'N/D')) ?></span>
+                        <span class="ms-2 text-muted" style="font-size: 12px;">(<?= $data['promedio'] ?? 'N/D' ?>)</span>
+                    </button>
+                </h2>
+                <div id="collapse<?= $itemId ?>" class="accordion-collapse collapse" data-bs-parent="#accordionCalculos">
+                    <div class="accordion-body">
+                        <?php if ($hasBothForms && isset($data['data_a']) && isset($data['data_b'])): ?>
+                            <!-- Mostrar ambas formas -->
+                            <div class="alert alert-secondary py-2 mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Máximo Riesgo:</strong> Se muestra el peor resultado entre Forma A y Forma B.
+                                El valor mostrado en el mapa corresponde a <strong>Forma <?= $data['forma_origen'] ?? '?' ?></strong>.
+                            </div>
+                            <?php if ($data['data_a']): ?>
+                                <?php renderFormaDetail($data['data_a'], 'Forma A (Jefes/Profesionales/Técnicos)'); ?>
+                            <?php endif; ?>
+                            <?php if ($data['data_b']): ?>
+                                <?php renderFormaDetail($data['data_b'], 'Forma B (Auxiliares/Operarios)'); ?>
+                            <?php endif; ?>
+                        <?php else: ?>
+                            <!-- Solo una forma -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-flask me-2"></i>Método de Cálculo:</h6>
+                                    <div class="formula-box mb-3">
+                                        <strong>1. Suma de puntajes:</strong> <?= number_format($data['suma'] ?? 0, 2) ?><br>
+                                        <strong>2. Cantidad de trabajadores:</strong> <?= $data['cantidad'] ?? 0 ?><br>
+                                        <strong>3. Promedio aritmético:</strong> <?= $data['suma'] ?? 0 ?> ÷ <?= $data['cantidad'] ?? 1 ?> = <strong><?= $data['promedio'] ?? 0 ?></strong>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6><i class="fas fa-table me-2"></i>Baremo Aplicado:</h6>
+                                    <table class="table table-sm table-bordered baremo-table">
+                                        <thead><tr><th>Nivel</th><th>Rango</th></tr></thead>
+                                        <tbody>
+                                            <?php if (isset($data['baremo'])): foreach ($data['baremo'] as $nivel => $rango): ?>
+                                            <tr class="<?= $nivel === $data['nivel'] ? 'baremo-active' : '' ?>">
+                                                <td><?= ucfirst(str_replace('_', ' ', $nivel)) ?></td>
+                                                <td><?= $rango[0] ?> - <?= $rango[1] ?></td>
+                                            </tr>
+                                            <?php endforeach; endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+            <?php
+        }
+
+        $hasBothForms = $heatmapCalculations['has_both_forms'] ?? false;
         ?>
 
-        <div class="row">
-            <!-- INTRALABORAL TOTAL -->
-            <?php renderCalculationDetail(
-                'Total Intralaboral (Forma ' . $heatmapCalculations['forma_type'] . ')',
-                $heatmapCalculations['intralaboral_total'],
-                'briefcase',
-                'primary'
-            ); ?>
+        <!-- ACORDEÓN PRINCIPAL -->
+        <div class="accordion" id="accordionCalculos">
 
-            <!-- DOMINIOS -->
-            <?php renderCalculationDetail(
-                'Dominio: Liderazgo y Relaciones Sociales',
-                $heatmapCalculations['dom_liderazgo'],
-                'users-cog',
-                'info'
-            ); ?>
-
-            <?php renderCalculationDetail(
-                'Dominio: Control sobre el Trabajo',
-                $heatmapCalculations['dom_control'],
-                'sliders-h',
-                'success'
-            ); ?>
-
-            <?php renderCalculationDetail(
-                'Dominio: Demandas del Trabajo',
-                $heatmapCalculations['dom_demandas'],
-                'tasks',
-                'warning'
-            ); ?>
-
-            <?php renderCalculationDetail(
-                'Dominio: Recompensas',
-                $heatmapCalculations['dom_recompensas'],
-                'award',
-                'secondary'
-            ); ?>
-
-            <!-- EXTRALABORAL -->
-            <?php renderCalculationDetail(
-                'Total Extralaboral',
-                $heatmapCalculations['extralaboral_total'],
-                'home',
-                'success'
-            ); ?>
-
-            <!-- ESTRÉS -->
-            <?php renderCalculationDetail(
-                'Síntomas de Estrés',
-                $heatmapCalculations['estres_total'],
-                'heartbeat',
-                'danger'
-            ); ?>
-        </div>
-
-        <!-- DIMENSIONES INTRALABORALES -->
-        <div class="row">
-            <div class="col-12">
-                <h4 class="mb-3 mt-4"><i class="fas fa-layer-group me-2 text-info"></i>Dimensiones Intralaborales</h4>
+            <!-- SECCIÓN: TOTALES GENERALES -->
+            <div class="card bg-light mb-3">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Totales Generales</h5></div>
             </div>
-        </div>
-        <div class="row">
-            <!-- Dominio Liderazgo -->
+            <?php renderAccordionItem('intralaboral', 'Total Intralaboral', $heatmapCalculations['intralaboral_total'], 'briefcase', 'primary', $hasBothForms); ?>
+            <?php renderAccordionItem('extralaboral', 'Total Extralaboral', $heatmapCalculations['extralaboral_total'], 'home', 'success', $hasBothForms); ?>
+            <?php renderAccordionItem('estres', 'Síntomas de Estrés', $heatmapCalculations['estres_total'], 'heartbeat', 'danger', $hasBothForms); ?>
+
+            <!-- SECCIÓN: DOMINIOS INTRALABORALES -->
+            <div class="card bg-light mb-3 mt-4">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-sitemap me-2"></i>Dominios Intralaborales</h5></div>
+            </div>
+            <?php renderAccordionItem('dom_liderazgo', 'Dominio: Liderazgo y Relaciones Sociales', $heatmapCalculations['dom_liderazgo'], 'users-cog', 'info', $hasBothForms); ?>
+            <?php renderAccordionItem('dom_control', 'Dominio: Control sobre el Trabajo', $heatmapCalculations['dom_control'], 'sliders-h', 'success', $hasBothForms); ?>
+            <?php renderAccordionItem('dom_demandas', 'Dominio: Demandas del Trabajo', $heatmapCalculations['dom_demandas'], 'tasks', 'warning', $hasBothForms); ?>
+            <?php renderAccordionItem('dom_recompensas', 'Dominio: Recompensas', $heatmapCalculations['dom_recompensas'], 'award', 'secondary', $hasBothForms); ?>
+
+            <!-- SECCIÓN: DIMENSIONES - LIDERAZGO -->
+            <div class="card bg-light mb-3 mt-4">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-layer-group me-2 text-info"></i>Dimensiones: Liderazgo y Relaciones Sociales</h5></div>
+            </div>
             <?php if (isset($heatmapCalculations['dim_caracteristicas_liderazgo'])): ?>
-            <?php renderCalculationDetail('Características del liderazgo', $heatmapCalculations['dim_caracteristicas_liderazgo'], 'user-tie', 'info'); ?>
+            <?php renderAccordionItem('dim_caract_lid', 'Características del liderazgo', $heatmapCalculations['dim_caracteristicas_liderazgo'], 'user-tie', 'info', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_relaciones_sociales'])): ?>
-            <?php renderCalculationDetail('Relaciones sociales en el trabajo', $heatmapCalculations['dim_relaciones_sociales'], 'users', 'info'); ?>
+            <?php renderAccordionItem('dim_rel_soc', 'Relaciones sociales en el trabajo', $heatmapCalculations['dim_relaciones_sociales'], 'users', 'info', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_retroalimentacion'])): ?>
-            <?php renderCalculationDetail('Retroalimentación del desempeño', $heatmapCalculations['dim_retroalimentacion'], 'comments', 'info'); ?>
+            <?php renderAccordionItem('dim_retro', 'Retroalimentación del desempeño', $heatmapCalculations['dim_retroalimentacion'], 'comments', 'info', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_relacion_colaboradores'])): ?>
-            <?php renderCalculationDetail('Relación con los colaboradores', $heatmapCalculations['dim_relacion_colaboradores'], 'handshake', 'info'); ?>
+            <?php renderAccordionItem('dim_rel_colab', 'Relación con los colaboradores', $heatmapCalculations['dim_relacion_colaboradores'], 'handshake', 'info', $hasBothForms); ?>
             <?php endif; ?>
 
-            <!-- Dominio Control -->
+            <!-- SECCIÓN: DIMENSIONES - CONTROL -->
+            <div class="card bg-light mb-3 mt-4">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-layer-group me-2 text-success"></i>Dimensiones: Control sobre el Trabajo</h5></div>
+            </div>
             <?php if (isset($heatmapCalculations['dim_claridad_rol'])): ?>
-            <?php renderCalculationDetail('Claridad de rol', $heatmapCalculations['dim_claridad_rol'], 'bullseye', 'success'); ?>
+            <?php renderAccordionItem('dim_clar_rol', 'Claridad de rol', $heatmapCalculations['dim_claridad_rol'], 'bullseye', 'success', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_capacitacion'])): ?>
-            <?php renderCalculationDetail('Capacitación', $heatmapCalculations['dim_capacitacion'], 'graduation-cap', 'success'); ?>
+            <?php renderAccordionItem('dim_capac', 'Capacitación', $heatmapCalculations['dim_capacitacion'], 'graduation-cap', 'success', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_participacion_manejo_cambio'])): ?>
-            <?php renderCalculationDetail('Participación y manejo del cambio', $heatmapCalculations['dim_participacion_manejo_cambio'], 'sync-alt', 'success'); ?>
+            <?php renderAccordionItem('dim_part_cambio', 'Participación y manejo del cambio', $heatmapCalculations['dim_participacion_manejo_cambio'], 'sync-alt', 'success', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_oportunidades_desarrollo'])): ?>
-            <?php renderCalculationDetail('Oportunidades de desarrollo', $heatmapCalculations['dim_oportunidades_desarrollo'], 'chart-line', 'success'); ?>
+            <?php renderAccordionItem('dim_oport_des', 'Oportunidades de desarrollo', $heatmapCalculations['dim_oportunidades_desarrollo'], 'chart-line', 'success', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_control_autonomia'])): ?>
-            <?php renderCalculationDetail('Control y autonomía', $heatmapCalculations['dim_control_autonomia'], 'sliders-h', 'success'); ?>
+            <?php renderAccordionItem('dim_ctrl_auto', 'Control y autonomía', $heatmapCalculations['dim_control_autonomia'], 'sliders-h', 'success', $hasBothForms); ?>
             <?php endif; ?>
 
-            <!-- Dominio Demandas -->
+            <!-- SECCIÓN: DIMENSIONES - DEMANDAS -->
+            <div class="card bg-light mb-3 mt-4">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-layer-group me-2 text-warning"></i>Dimensiones: Demandas del Trabajo</h5></div>
+            </div>
             <?php if (isset($heatmapCalculations['dim_demandas_ambientales'])): ?>
-            <?php renderCalculationDetail('Demandas ambientales', $heatmapCalculations['dim_demandas_ambientales'], 'building', 'warning'); ?>
+            <?php renderAccordionItem('dim_dem_amb', 'Demandas ambientales', $heatmapCalculations['dim_demandas_ambientales'], 'building', 'warning', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_demandas_emocionales'])): ?>
-            <?php renderCalculationDetail('Demandas emocionales', $heatmapCalculations['dim_demandas_emocionales'], 'heart', 'warning'); ?>
+            <?php renderAccordionItem('dim_dem_emo', 'Demandas emocionales', $heatmapCalculations['dim_demandas_emocionales'], 'heart', 'warning', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_demandas_cuantitativas'])): ?>
-            <?php renderCalculationDetail('Demandas cuantitativas', $heatmapCalculations['dim_demandas_cuantitativas'], 'list-ol', 'warning'); ?>
+            <?php renderAccordionItem('dim_dem_cuant', 'Demandas cuantitativas', $heatmapCalculations['dim_demandas_cuantitativas'], 'list-ol', 'warning', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral'])): ?>
-            <?php renderCalculationDetail('Influencia trabajo-extralaboral', $heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral'], 'exchange-alt', 'warning'); ?>
+            <?php renderAccordionItem('dim_infl_trab', 'Influencia trabajo-extralaboral', $heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral'], 'exchange-alt', 'warning', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_demandas_responsabilidad'])): ?>
-            <?php renderCalculationDetail('Exigencias de responsabilidad', $heatmapCalculations['dim_demandas_responsabilidad'], 'shield-alt', 'warning'); ?>
+            <?php renderAccordionItem('dim_dem_resp', 'Exigencias de responsabilidad', $heatmapCalculations['dim_demandas_responsabilidad'], 'shield-alt', 'warning', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_carga_mental'])): ?>
-            <?php renderCalculationDetail('Demandas de carga mental', $heatmapCalculations['dim_carga_mental'], 'brain', 'warning'); ?>
+            <?php renderAccordionItem('dim_carga_ment', 'Demandas de carga mental', $heatmapCalculations['dim_carga_mental'], 'brain', 'warning', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_consistencia_rol'])): ?>
-            <?php renderCalculationDetail('Consistencia del rol', $heatmapCalculations['dim_consistencia_rol'], 'balance-scale', 'warning'); ?>
+            <?php renderAccordionItem('dim_consist_rol', 'Consistencia del rol', $heatmapCalculations['dim_consistencia_rol'], 'balance-scale', 'warning', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_demandas_jornada_trabajo'])): ?>
-            <?php renderCalculationDetail('Demandas de la jornada de trabajo', $heatmapCalculations['dim_demandas_jornada_trabajo'], 'clock', 'warning'); ?>
+            <?php renderAccordionItem('dim_dem_jorn', 'Demandas de la jornada de trabajo', $heatmapCalculations['dim_demandas_jornada_trabajo'], 'clock', 'warning', $hasBothForms); ?>
             <?php endif; ?>
 
-            <!-- Dominio Recompensas -->
+            <!-- SECCIÓN: DIMENSIONES - RECOMPENSAS -->
+            <div class="card bg-light mb-3 mt-4">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-layer-group me-2 text-secondary"></i>Dimensiones: Recompensas</h5></div>
+            </div>
             <?php if (isset($heatmapCalculations['dim_recompensas_pertenencia'])): ?>
-            <?php renderCalculationDetail('Recompensas y pertenencia', $heatmapCalculations['dim_recompensas_pertenencia'], 'gift', 'secondary'); ?>
+            <?php renderAccordionItem('dim_rec_pert', 'Recompensas y pertenencia', $heatmapCalculations['dim_recompensas_pertenencia'], 'gift', 'secondary', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_reconocimiento_compensacion'])): ?>
-            <?php renderCalculationDetail('Reconocimiento y compensación', $heatmapCalculations['dim_reconocimiento_compensacion'], 'award', 'secondary'); ?>
+            <?php renderAccordionItem('dim_rec_comp', 'Reconocimiento y compensación', $heatmapCalculations['dim_reconocimiento_compensacion'], 'award', 'secondary', $hasBothForms); ?>
             <?php endif; ?>
-        </div>
 
-        <!-- DIMENSIONES EXTRALABORALES -->
-        <div class="row">
-            <div class="col-12">
-                <h4 class="mb-3 mt-4"><i class="fas fa-home me-2 text-success"></i>Dimensiones Extralaborales</h4>
+            <!-- SECCIÓN: DIMENSIONES EXTRALABORALES -->
+            <div class="card bg-light mb-3 mt-4">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-home me-2 text-success"></i>Dimensiones Extralaborales</h5></div>
             </div>
-        </div>
-        <div class="row">
             <?php if (isset($heatmapCalculations['dim_tiempo_fuera'])): ?>
-            <?php renderCalculationDetail('Tiempo fuera del trabajo', $heatmapCalculations['dim_tiempo_fuera'], 'hourglass-half', 'success'); ?>
+            <?php renderAccordionItem('dim_tiempo', 'Tiempo fuera del trabajo', $heatmapCalculations['dim_tiempo_fuera'], 'hourglass-half', 'success', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_relaciones_familiares_extra'])): ?>
-            <?php renderCalculationDetail('Relaciones familiares', $heatmapCalculations['dim_relaciones_familiares_extra'], 'users', 'success'); ?>
+            <?php renderAccordionItem('dim_rel_fam', 'Relaciones familiares', $heatmapCalculations['dim_relaciones_familiares_extra'], 'users', 'success', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_comunicacion'])): ?>
-            <?php renderCalculationDetail('Comunicación interpersonal', $heatmapCalculations['dim_comunicacion'], 'comments', 'success'); ?>
+            <?php renderAccordionItem('dim_comunic', 'Comunicación interpersonal', $heatmapCalculations['dim_comunicacion'], 'comments', 'success', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_situacion_economica'])): ?>
-            <?php renderCalculationDetail('Situación económica familiar', $heatmapCalculations['dim_situacion_economica'], 'dollar-sign', 'success'); ?>
+            <?php renderAccordionItem('dim_sit_econ', 'Situación económica familiar', $heatmapCalculations['dim_situacion_economica'], 'dollar-sign', 'success', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_caracteristicas_vivienda'])): ?>
-            <?php renderCalculationDetail('Características de la vivienda', $heatmapCalculations['dim_caracteristicas_vivienda'], 'home', 'success'); ?>
+            <?php renderAccordionItem('dim_caract_viv', 'Características de la vivienda', $heatmapCalculations['dim_caracteristicas_vivienda'], 'home', 'success', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_influencia_entorno_extra'])): ?>
-            <?php renderCalculationDetail('Influencia del entorno extralaboral', $heatmapCalculations['dim_influencia_entorno_extra'], 'globe', 'success'); ?>
+            <?php renderAccordionItem('dim_infl_extra', 'Influencia del entorno extralaboral', $heatmapCalculations['dim_influencia_entorno_extra'], 'globe', 'success', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_desplazamiento'])): ?>
-            <?php renderCalculationDetail('Desplazamiento vivienda-trabajo', $heatmapCalculations['dim_desplazamiento'], 'car', 'success'); ?>
+            <?php renderAccordionItem('dim_desplaz', 'Desplazamiento vivienda-trabajo', $heatmapCalculations['dim_desplazamiento'], 'car', 'success', $hasBothForms); ?>
             <?php endif; ?>
+
         </div>
 
         <!-- Nota metodológica -->

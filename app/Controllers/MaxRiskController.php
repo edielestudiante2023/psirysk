@@ -104,13 +104,13 @@ class MaxRiskController extends BaseController
         $service = new MaxRiskResultsService();
         $result = $service->calculateAndStore($batteryServiceId, true);
 
-        if ($result['success']) {
+        if ($result['status'] === 'success') {
             return redirect()->to("/max-risk/{$batteryServiceId}")
-                ->with('success', "Recalculado: {$result['inserted']} elementos procesados");
+                ->with('success', "Recalculado: {$result['count']} elementos procesados");
         }
 
         return redirect()->to("/max-risk/{$batteryServiceId}")
-            ->with('error', $result['error'] ?? 'Error al recalcular');
+            ->with('error', $result['message'] ?? 'Error al recalcular');
     }
 
     /**

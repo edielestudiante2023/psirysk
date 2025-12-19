@@ -315,3 +315,6 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
     // Descarga Casos Blanco de Intervención (SOLO CONSULTOR - Confidencial)
     $routes->get('download/casos-intervencion/(:num)', 'CasosIntervencionController::download/$1');
 });
+
+// Ruta temporal para calcular y almacenar máximos riesgos
+$routes->get('dev/calculate-max-risk/(:num)', 'ReportsController::calculateMaxRisk/$1');

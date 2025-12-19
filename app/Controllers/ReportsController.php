@@ -10,6 +10,7 @@ use App\Libraries\IntralaboralAScoring;
 use App\Libraries\IntralaboralBScoring;
 use App\Libraries\ExtralaboralScoring;
 use App\Libraries\EstresScoring;
+use App\Services\MaxRiskResultsService;
 
 class ReportsController extends BaseController
 {
@@ -3296,6 +3297,77 @@ class ReportsController extends BaseController
         $stats['age_ranges'] = $ageRanges;
 
         return $stats;
+    }
+
+    /**
+     * Calcular y almacenar máximos riesgos para un servicio
+     * Ruta temporal: /dev/calculate-max-risk/{id}
+     */
+    public function calculateMaxRisk($batteryServiceId)
+    {
+        // Solo permitir en desarrollo o para consultores
+        $userRole = session()->get('role_name');
+        if (!in_array($userRole, ['consultor', 'superadmin']) && ENVIRONMENT !== 'development') {
+            return $this->response->setJSON(['error' => 'No autorizado']);
+        }
+
+        $service = new MaxRiskResultsService();
+
+        // Calcular y almacenar (forceRecalculate = true)
+        $result = $service->calculateAndStore((int)$batteryServiceId, true);
+
+        // Obtener datos almacenados
+        $data = $service->getByBatteryService((int)$batteryServiceId);
+
+        // Formatear para mostrar
+        $output = "<pre>";
+        $output .= "=== CÁLCULO DE MÁXIMOS RIESGOS ===\n\n";
+        $output .= "Battery Service ID: $batteryServiceId\n";
+        $output .= "Status: {$result['status']}\n";
+        $output .= "Mensaje: {$result['message']}\n";
+        $output .= "Registros: {$result['count']}\n\n";
+
+        if (!empty($data)) {
+            $output .= sprintf("%-40s | %-10s | %-5s | %-7s | %-15s | %-7s | %-7s\n",
+                "Elemento", "Tipo", "Peor", "Score", "Nivel", "A", "B");
+            $output .= str_repeat('-', 105) . "\n";
+
+            foreach ($data as $row) {
+                $output .= sprintf("%-40s | %-10s | %-5s | %-7s | %-15s | %-7s | %-7s\n",
+                    substr($row['element_name'], 0, 40),
+                    $row['element_type'],
+                    $row['worst_form'],
+                    $row['worst_score'],
+                    $row['worst_risk_level'],
+                    $row['form_a_score'] ?? 'N/A',
+                    $row['form_b_score'] ?? 'N/A'
+                );
+            }
+
+            // Mostrar elementos de alto riesgo
+            $highRisk = $service->getHighRiskElements((int)$batteryServiceId);
+            if (!empty($highRisk)) {
+                $output .= "\n\n=== ELEMENTOS DE ALTO RIESGO (para IA) ===\n";
+                foreach ($highRisk as $row) {
+                    $output .= "- {$row['element_name']}: {$row['worst_score']} ({$row['worst_risk_level']}) - Forma {$row['worst_form']}\n";
+                }
+            }
+
+            // Estadísticas
+            $stats = $service->getRiskStats((int)$batteryServiceId);
+            $output .= "\n\n=== ESTADÍSTICAS ===\n";
+            $output .= "Total elementos: {$stats['total_elements']}\n";
+            $output .= "Muy alto: {$stats['muy_alto']}\n";
+            $output .= "Alto: {$stats['alto']}\n";
+            $output .= "Medio: {$stats['medio']}\n";
+            $output .= "Bajo: {$stats['bajo']}\n";
+            $output .= "Sin riesgo: {$stats['sin_riesgo']}\n";
+            $output .= "Críticos (alto+muy_alto): {$stats['critical_count']}\n";
+        }
+
+        $output .= "</pre>";
+
+        return $output;
     }
 }
 

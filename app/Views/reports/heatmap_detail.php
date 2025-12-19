@@ -41,10 +41,11 @@
             flex: 0 0 20%;
             padding: 20px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 12px;
             text-align: center;
             border-right: 2px solid #000;
         }
@@ -64,9 +65,10 @@
             flex: 0 0 30%;
             padding: 10px;
             font-weight: bold;
-            font-size: 10px;
+            font-size: 11px;
             text-align: center;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             border-right: 2px solid #000;
@@ -80,10 +82,24 @@
             flex: 1;
             padding: 8px 12px;
             border-bottom: 1px solid #999;
-            font-size: 9px;
+            font-size: 10px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            text-align: center;
+        }
+        .heatmap-dimension .dimension-score {
+            margin-top: 4px;
+            font-size: 11px;
+        }
+        /* Texto blanco en fondo rojo - aplicar a todos los elementos hijos */
+        .bg-danger,
+        .bg-danger span,
+        .bg-danger strong,
+        .bg-danger .dimension-score,
+        .bg-danger .dimension-score strong {
+            color: white !important;
         }
         .heatmap-dimension:last-child {
             border-bottom: none;
@@ -101,10 +117,11 @@
             flex: 0 0 50%;
             padding: 20px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 12px;
             text-align: center;
             border-right: 2px solid #000;
         }
@@ -392,11 +409,11 @@
                                             <br><strong><?= formatWorstScore($heatmapCalculations['dom_liderazgo']) ?></strong>
                                         </div>
                                         <div class="dimensions-cell">
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_caracteristicas_liderazgo']['nivel']) ?>">Características del liderazgo <strong>(<?= formatWorstScore($heatmapCalculations['dim_caracteristicas_liderazgo']) ?>)</strong></div>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_relaciones_sociales']['nivel']) ?>">Relaciones sociales en el trabajo <strong>(<?= formatWorstScore($heatmapCalculations['dim_relaciones_sociales']) ?>)</strong></div>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_retroalimentacion']['nivel']) ?>">Retroalimentación del desempeño <strong>(<?= formatWorstScore($heatmapCalculations['dim_retroalimentacion']) ?>)</strong></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_caracteristicas_liderazgo']['nivel']) ?>"><span>Características del liderazgo</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_caracteristicas_liderazgo']) ?>)</strong></span></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_relaciones_sociales']['nivel']) ?>"><span>Relaciones sociales en el trabajo</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_relaciones_sociales']) ?>)</strong></span></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_retroalimentacion']['nivel']) ?>"><span>Retroalimentación del desempeño</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_retroalimentacion']) ?>)</strong></span></div>
                                             <?php if (isset($heatmapCalculations['dim_relacion_colaboradores'])): ?>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_relacion_colaboradores']['nivel']) ?>">Relación con los colaboradores <strong>(<?= formatWorstScore($heatmapCalculations['dim_relacion_colaboradores']) ?>)</strong></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_relacion_colaboradores']['nivel']) ?>"><span>Relación con los colaboradores</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_relacion_colaboradores']) ?>)</strong></span></div>
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -406,11 +423,11 @@
                                             <br><strong><?= formatWorstScore($heatmapCalculations['dom_control']) ?></strong>
                                         </div>
                                         <div class="dimensions-cell">
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_claridad_rol']['nivel']) ?>">Claridad de rol <strong>(<?= formatWorstScore($heatmapCalculations['dim_claridad_rol']) ?>)</strong></div>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_capacitacion']['nivel']) ?>">Capacitación <strong>(<?= formatWorstScore($heatmapCalculations['dim_capacitacion']) ?>)</strong></div>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_participacion_manejo_cambio']['nivel']) ?>">Participación y manejo del cambio <strong>(<?= formatWorstScore($heatmapCalculations['dim_participacion_manejo_cambio']) ?>)</strong></div>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_oportunidades_desarrollo']['nivel']) ?>">Oportunidades desarrollo <strong>(<?= formatWorstScore($heatmapCalculations['dim_oportunidades_desarrollo']) ?>)</strong></div>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_control_autonomia']['nivel']) ?>">Control y autonomía <strong>(<?= formatWorstScore($heatmapCalculations['dim_control_autonomia']) ?>)</strong></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_claridad_rol']['nivel']) ?>"><span>Claridad de rol</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_claridad_rol']) ?>)</strong></span></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_capacitacion']['nivel']) ?>"><span>Capacitación</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_capacitacion']) ?>)</strong></span></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_participacion_manejo_cambio']['nivel']) ?>"><span>Participación y manejo del cambio</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_participacion_manejo_cambio']) ?>)</strong></span></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_oportunidades_desarrollo']['nivel']) ?>"><span>Oportunidades desarrollo</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_oportunidades_desarrollo']) ?>)</strong></span></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_control_autonomia']['nivel']) ?>"><span>Control y autonomía</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_control_autonomia']) ?>)</strong></span></div>
                                         </div>
                                     </div>
                                     <div class="domain-row">
@@ -419,18 +436,18 @@
                                             <br><strong><?= formatWorstScore($heatmapCalculations['dom_demandas']) ?></strong>
                                         </div>
                                         <div class="dimensions-cell">
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_ambientales']['nivel']) ?>">Demandas ambientales <strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_ambientales']) ?>)</strong></div>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_emocionales']['nivel']) ?>">Demandas emocionales <strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_emocionales']) ?>)</strong></div>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_cuantitativas']['nivel']) ?>">Demandas cuantitativas <strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_cuantitativas']) ?>)</strong></div>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral']['nivel']) ?>">Influencia trabajo-extralaboral <strong>(<?= formatWorstScore($heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral']) ?>)</strong></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_ambientales']['nivel']) ?>"><span>Demandas ambientales</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_ambientales']) ?>)</strong></span></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_emocionales']['nivel']) ?>"><span>Demandas emocionales</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_emocionales']) ?>)</strong></span></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_cuantitativas']['nivel']) ?>"><span>Demandas cuantitativas</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_cuantitativas']) ?>)</strong></span></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral']['nivel']) ?>"><span>Influencia trabajo-extralaboral</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral']) ?>)</strong></span></div>
                                             <?php if (isset($heatmapCalculations['dim_demandas_responsabilidad'])): ?>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_responsabilidad']['nivel']) ?>">Exigencias responsabilidad <strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_responsabilidad']) ?>)</strong></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_responsabilidad']['nivel']) ?>"><span>Exigencias responsabilidad</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_responsabilidad']) ?>)</strong></span></div>
                                             <?php endif; ?>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_carga_mental']['nivel']) ?>">Demandas carga mental <strong>(<?= formatWorstScore($heatmapCalculations['dim_carga_mental']) ?>)</strong></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_carga_mental']['nivel']) ?>"><span>Demandas carga mental</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_carga_mental']) ?>)</strong></span></div>
                                             <?php if (isset($heatmapCalculations['dim_consistencia_rol'])): ?>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_consistencia_rol']['nivel']) ?>">Consistencia del rol <strong>(<?= formatWorstScore($heatmapCalculations['dim_consistencia_rol']) ?>)</strong></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_consistencia_rol']['nivel']) ?>"><span>Consistencia del rol</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_consistencia_rol']) ?>)</strong></span></div>
                                             <?php endif; ?>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_jornada_trabajo']['nivel']) ?>">Demandas jornada trabajo <strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_jornada_trabajo']) ?>)</strong></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_jornada_trabajo']['nivel']) ?>"><span>Demandas jornada trabajo</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_jornada_trabajo']) ?>)</strong></span></div>
                                         </div>
                                     </div>
                                     <div class="domain-row">
@@ -439,8 +456,8 @@
                                             <br><strong><?= formatWorstScore($heatmapCalculations['dom_recompensas']) ?></strong>
                                         </div>
                                         <div class="dimensions-cell">
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_recompensas_pertenencia']['nivel']) ?>">Recompensas pertenencia <strong>(<?= formatWorstScore($heatmapCalculations['dim_recompensas_pertenencia']) ?>)</strong></div>
-                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_reconocimiento_compensacion']['nivel']) ?>">Reconocimiento y compensación <strong>(<?= formatWorstScore($heatmapCalculations['dim_reconocimiento_compensacion']) ?>)</strong></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_recompensas_pertenencia']['nivel']) ?>"><span>Recompensas pertenencia</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_recompensas_pertenencia']) ?>)</strong></span></div>
+                                            <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_reconocimiento_compensacion']['nivel']) ?>"><span>Reconocimiento y compensación</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_reconocimiento_compensacion']) ?>)</strong></span></div>
                                         </div>
                                     </div>
                                 </div>
@@ -453,13 +470,13 @@
                                     <br><strong style="font-size: 14px;"><?= formatWorstScore($heatmapCalculations['extralaboral_total']) ?></strong>
                                 </div>
                                 <div class="heatmap-dimensions-only">
-                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_tiempo_fuera']['nivel']) ?>">Tiempo fuera del trabajo <strong>(<?= formatWorstScore($heatmapCalculations['dim_tiempo_fuera']) ?>)</strong></div>
-                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_relaciones_familiares_extra']['nivel']) ?>">Relaciones familiares <strong>(<?= formatWorstScore($heatmapCalculations['dim_relaciones_familiares_extra']) ?>)</strong></div>
-                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_comunicacion']['nivel']) ?>">Comunicación interpersonal <strong>(<?= formatWorstScore($heatmapCalculations['dim_comunicacion']) ?>)</strong></div>
-                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_situacion_economica']['nivel']) ?>">Situación económica familiar <strong>(<?= formatWorstScore($heatmapCalculations['dim_situacion_economica']) ?>)</strong></div>
-                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_caracteristicas_vivienda']['nivel']) ?>">Características vivienda <strong>(<?= formatWorstScore($heatmapCalculations['dim_caracteristicas_vivienda']) ?>)</strong></div>
-                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_influencia_entorno_extra']['nivel']) ?>">Influencia entorno extralaboral <strong>(<?= formatWorstScore($heatmapCalculations['dim_influencia_entorno_extra']) ?>)</strong></div>
-                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_desplazamiento']['nivel']) ?>">Desplazamiento vivienda-trabajo <strong>(<?= formatWorstScore($heatmapCalculations['dim_desplazamiento']) ?>)</strong></div>
+                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_tiempo_fuera']['nivel']) ?>"><span>Tiempo fuera del trabajo</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_tiempo_fuera']) ?>)</strong></span></div>
+                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_relaciones_familiares_extra']['nivel']) ?>"><span>Relaciones familiares</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_relaciones_familiares_extra']) ?>)</strong></span></div>
+                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_comunicacion']['nivel']) ?>"><span>Comunicación interpersonal</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_comunicacion']) ?>)</strong></span></div>
+                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_situacion_economica']['nivel']) ?>"><span>Situación económica familiar</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_situacion_economica']) ?>)</strong></span></div>
+                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_caracteristicas_vivienda']['nivel']) ?>"><span>Características vivienda</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_caracteristicas_vivienda']) ?>)</strong></span></div>
+                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_influencia_entorno_extra']['nivel']) ?>"><span>Influencia entorno extralaboral</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_influencia_entorno_extra']) ?>)</strong></span></div>
+                                    <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_desplazamiento']['nivel']) ?>"><span>Desplazamiento vivienda-trabajo</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_desplazamiento']) ?>)</strong></span></div>
                                 </div>
                             </div>
 

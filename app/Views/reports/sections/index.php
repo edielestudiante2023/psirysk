@@ -326,14 +326,28 @@ function getFormattedName($section, $dimensionNames, $domainNames, $questionnair
                                 <?php endif; ?>
                             </td>
                             <td class="text-center">
-                                <a href="<?= base_url('report-sections/edit/' . $section['id']) ?>" class="btn btn-sm btn-outline-primary" target="_blank" title="Ver/Editar">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <?php if (!$section['is_approved']): ?>
-                                <button type="button" class="btn btn-sm btn-success btn-approve" data-id="<?= $section['id'] ?>" title="Aprobar">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                <?php endif; ?>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="<?= base_url('report-sections/edit/' . $section['id']) ?>" class="btn btn-outline-primary" target="_blank" title="Ver/Editar">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-outline-info btn-prompt" data-id="<?= $section['id'] ?>" data-prompt="<?= esc($section['consultant_prompt'] ?? '') ?>" title="Contexto IA">
+                                        <i class="fas fa-comment-dots"></i>
+                                    </button>
+                                    <?php if ($section['ai_generated_text']): ?>
+                                    <button type="button" class="btn btn-outline-warning btn-reset" data-id="<?= $section['id'] ?>" title="Resetear y regenerar IA">
+                                        <i class="fas fa-redo"></i>
+                                    </button>
+                                    <?php endif; ?>
+                                    <?php if ($section['is_approved']): ?>
+                                    <button type="button" class="btn btn-outline-secondary btn-unapprove" data-id="<?= $section['id'] ?>" title="Desaprobar">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                    <?php else: ?>
+                                    <button type="button" class="btn btn-success btn-approve" data-id="<?= $section['id'] ?>" title="Aprobar">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -374,6 +388,44 @@ function getFormattedName($section, $dimensionNames, $domainNames, $questionnair
                     <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
                 </div>
                 <p class="text-muted small mt-2" id="progressDetail">Por favor no cierre esta ventana.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Contexto del Consultor -->
+<div class="modal fade" id="promptModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fas fa-comment-dots me-2"></i>Contexto Adicional para IA</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info mb-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>¿Qué es esto?</strong> Este campo complementa el prompt del sistema.
+                    Use-lo para dar contexto específico que la IA debe considerar al generar el análisis.
+                </div>
+                <div class="mb-3">
+                    <label for="consultantPromptText" class="form-label fw-bold">Contexto para la IA:</label>
+                    <textarea class="form-control" id="consultantPromptText" rows="4"
+                        placeholder="Ejemplos:
+• Enfoca tu respuesta a una población en mayor medida madres cabeza de familia
+• Es industria textil con ruido de máquinas planas que genera condiciones de salud
+• El área administrativa trabaja en turnos nocturnos rotativos
+• Considerar que hay alto índice de rotación en el último año"></textarea>
+                    <div class="form-text">
+                        Este contexto se enviará a la IA junto con los datos de la sección.
+                        Después de guardar, debe <strong>regenerar</strong> el texto IA para ver los cambios.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-info" id="btnSavePrompt">
+                    <i class="fas fa-save me-1"></i> Guardar Contexto
+                </button>
             </div>
         </div>
     </div>
@@ -627,30 +679,28 @@ $(document).ready(function() {
         table.column(colIdx).search(this.value).draw();
     });
 
-    // Re-enlazar eventos de aprobar después de cada redibujado de la tabla
-    table.on('draw', function() {
+    // Variables para el modal de prompt
+    var promptModal = new bootstrap.Modal(document.getElementById('promptModal'));
+    var currentSectionId = null;
+    var baseUrl = '<?= base_url() ?>';
+
+    // Re-enlazar eventos después de cada redibujado de la tabla
+    function bindTableEvents() {
+        // Evento Aprobar
         $('.btn-approve').off('click').on('click', function() {
             var btn = $(this);
             var sectionId = btn.data('id');
-            var baseUrl = '<?= base_url() ?>';
 
             btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
 
             fetch(baseUrl + 'report-sections/approve/' + sectionId, {
                 method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Actualizar la fila en lugar de eliminarla
-                    var row = btn.closest('tr');
-                    row.find('td:eq(5)').html('<span class="badge bg-success"><i class="fas fa-check me-1"></i>Aprobada</span>');
-                    btn.remove();
-                    // Actualizar el atributo de datos
-                    row.attr('data-approved', '1');
+                    window.location.reload();
                 } else {
                     btn.prop('disabled', false).html('<i class="fas fa-check"></i>');
                     alert('Error: ' + data.message);
@@ -661,7 +711,145 @@ $(document).ready(function() {
                 alert('Error: ' + error.message);
             });
         });
-    }).draw(); // Ejecutar inmediatamente
+
+        // Evento Desaprobar
+        $('.btn-unapprove').off('click').on('click', function() {
+            var btn = $(this);
+            var sectionId = btn.data('id');
+
+            if (!confirm('¿Desaprobar esta sección?')) return;
+
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+            fetch(baseUrl + 'report-sections/unapprove/' + sectionId, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    btn.prop('disabled', false).html('<i class="fas fa-undo"></i>');
+                    alert('Error: ' + data.message);
+                }
+            });
+        });
+
+        // Evento Reset (para regenerar IA)
+        $('.btn-reset').off('click').on('click', function() {
+            var btn = $(this);
+            var sectionId = btn.data('id');
+
+            if (!confirm('¿Resetear esta sección? Se eliminará el texto generado y podrá regenerarlo con IA.')) return;
+
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+            fetch(baseUrl + 'report-sections/reset/' + sectionId, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Preguntar si quiere regenerar ahora
+                    if (confirm('Sección reseteada. ¿Desea regenerar el texto con IA ahora?')) {
+                        btn.html('<i class="fas fa-spinner fa-spin"></i>');
+                        fetch(baseUrl + 'report-sections/generate-ai/' + sectionId, {
+                            method: 'POST',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                alert('Texto regenerado exitosamente.');
+                            } else {
+                                alert('Error al regenerar: ' + result.message);
+                            }
+                            window.location.reload();
+                        });
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    btn.prop('disabled', false).html('<i class="fas fa-redo"></i>');
+                    alert('Error: ' + data.message);
+                }
+            });
+        });
+
+        // Evento Contexto IA (abrir modal)
+        $('.btn-prompt').off('click').on('click', function() {
+            currentSectionId = $(this).data('id');
+            var currentPrompt = $(this).data('prompt') || '';
+            $('#consultantPromptText').val(currentPrompt);
+            promptModal.show();
+        });
+    }
+
+    // Guardar contexto del consultor
+    $('#btnSavePrompt').on('click', function() {
+        if (!currentSectionId) return;
+
+        var btn = $(this);
+        var prompt = $('#consultantPromptText').val();
+
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> Guardando...');
+
+        fetch(baseUrl + 'report-sections/save-prompt/' + currentSectionId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'consultant_prompt=' + encodeURIComponent(prompt)
+        })
+        .then(response => response.json())
+        .then(data => {
+            btn.prop('disabled', false).html('<i class="fas fa-save me-1"></i> Guardar Contexto');
+            if (data.success) {
+                // Actualizar el data-prompt del botón
+                $('[data-id="' + currentSectionId + '"].btn-prompt').data('prompt', prompt);
+                promptModal.hide();
+
+                // Preguntar si quiere regenerar
+                if (prompt && confirm('Contexto guardado. ¿Desea regenerar el texto con IA ahora para aplicar este contexto?')) {
+                    var resetBtn = $('[data-id="' + currentSectionId + '"].btn-reset');
+                    if (resetBtn.length) {
+                        // Primero resetear, luego regenerar
+                        fetch(baseUrl + 'report-sections/reset/' + currentSectionId, {
+                            method: 'POST',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        })
+                        .then(() => fetch(baseUrl + 'report-sections/generate-ai/' + currentSectionId, {
+                            method: 'POST',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        }))
+                        .then(response => response.json())
+                        .then(result => {
+                            alert(result.success ? 'Texto regenerado con el nuevo contexto.' : 'Error: ' + result.message);
+                            window.location.reload();
+                        });
+                    } else {
+                        alert('Contexto guardado. La próxima vez que genere el texto IA, se usará este contexto.');
+                    }
+                } else if (!prompt) {
+                    alert('Contexto eliminado correctamente.');
+                } else {
+                    alert('Contexto guardado. La próxima vez que regenere el texto IA, se usará este contexto.');
+                }
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            btn.prop('disabled', false).html('<i class="fas fa-save me-1"></i> Guardar Contexto');
+            alert('Error: ' + error.message);
+        });
+    });
+
+    // Enlazar eventos y re-enlazar después de cada redibujado
+    table.on('draw', bindTableEvents).draw();
 });
 </script>
 <?= $this->endSection() ?>

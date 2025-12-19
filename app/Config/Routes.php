@@ -227,7 +227,10 @@ $routes->group('report-sections', function($routes) {
     $routes->get('generate-all-ai/(:num)', 'ReportSectionsController::generateAllAI/$1'); // Obtener secciones pendientes de IA
     $routes->get('edit/(:num)', 'ReportSectionsController::edit/$1'); // Editar sección
     $routes->post('save-comment/(:num)', 'ReportSectionsController::saveComment/$1'); // Guardar comentario
+    $routes->post('save-prompt/(:num)', 'ReportSectionsController::saveConsultantPrompt/$1'); // Guardar prompt consultor
     $routes->post('approve/(:num)', 'ReportSectionsController::approve/$1'); // Aprobar sección
+    $routes->post('unapprove/(:num)', 'ReportSectionsController::unapprove/$1'); // Desaprobar sección
+    $routes->post('reset/(:num)', 'ReportSectionsController::resetSection/$1'); // Resetear para regenerar IA
     $routes->post('approve-all/(:num)', 'ReportSectionsController::approveAll/$1'); // Aprobar todas
     $routes->get('review/(:num)/(:alpha)', 'ReportSectionsController::review/$1/$2'); // Revisar por nivel
     $routes->get('api/sections/(:num)', 'ReportSectionsController::getSections/$1'); // API: obtener secciones

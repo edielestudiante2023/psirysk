@@ -299,6 +299,84 @@ class ReportSectionsController extends BaseController
     }
 
     /**
+     * Resetear una sección para regenerarla con IA
+     * Limpia el texto generado y la aprobación
+     */
+    public function resetSection(int $sectionId)
+    {
+        if (!$this->isConsultor()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
+        $section = $this->sectionModel->find($sectionId);
+        if (!$section) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Sección no encontrada']);
+        }
+
+        $result = $this->sectionModel->resetSection($sectionId);
+
+        // Obtener estadísticas actualizadas
+        $stats = $this->sectionModel->getApprovalStats($section['report_id']);
+
+        return $this->response->setJSON([
+            'success' => $result,
+            'stats' => $stats,
+            'message' => $result ? 'Sección reseteada. Puede regenerar el texto con IA.' : 'Error al resetear'
+        ]);
+    }
+
+    /**
+     * Desaprobar una sección (sin borrar el texto)
+     */
+    public function unapprove(int $sectionId)
+    {
+        if (!$this->isConsultor()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
+        $section = $this->sectionModel->find($sectionId);
+        if (!$section) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Sección no encontrada']);
+        }
+
+        $result = $this->sectionModel->unapproveSection($sectionId);
+
+        // Obtener estadísticas actualizadas
+        $stats = $this->sectionModel->getApprovalStats($section['report_id']);
+
+        return $this->response->setJSON([
+            'success' => $result,
+            'stats' => $stats,
+            'message' => $result ? 'Sección desaprobada' : 'Error al desaprobar'
+        ]);
+    }
+
+    /**
+     * Guardar prompt complementario del consultor
+     */
+    public function saveConsultantPrompt(int $sectionId)
+    {
+        if (!$this->isConsultor()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
+        $section = $this->sectionModel->find($sectionId);
+        if (!$section) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Sección no encontrada']);
+        }
+
+        $prompt = $this->request->getPost('consultant_prompt');
+
+        // Permitir vacío para limpiar el prompt
+        $result = $this->sectionModel->saveConsultantPrompt($sectionId, $prompt ?: null);
+
+        return $this->response->setJSON([
+            'success' => $result,
+            'message' => $result ? 'Contexto guardado correctamente' : 'Error al guardar'
+        ]);
+    }
+
+    /**
      * Generar texto de IA para todas las secciones pendientes (una por una)
      */
     public function generateAllAI(int $reportId)

@@ -16,10 +16,12 @@ class OpenAIService
 
     /**
      * Generar interpretación para una dimensión/dominio/total
+     * @param array $data Datos de la sección
+     * @param string|null $consultantPrompt Contexto adicional del consultor para complementar el prompt
      */
-    public function generateInterpretation(array $data): ?string
+    public function generateInterpretation(array $data, ?string $consultantPrompt = null): ?string
     {
-        $prompt = $this->buildPrompt($data);
+        $prompt = $this->buildPrompt($data, $consultantPrompt);
 
         $response = $this->callOpenAI($prompt);
 
@@ -28,18 +30,21 @@ class OpenAIService
 
     /**
      * Generar resumen ejecutivo
+     * @param string|null $consultantPrompt Contexto adicional del consultor
      */
-    public function generateExecutiveSummary(array $companyData, array $overallResults, array $criticalAreas): ?string
+    public function generateExecutiveSummary(array $companyData, array $overallResults, array $criticalAreas, ?string $consultantPrompt = null): ?string
     {
-        $prompt = $this->buildExecutiveSummaryPrompt($companyData, $overallResults, $criticalAreas);
+        $prompt = $this->buildExecutiveSummaryPrompt($companyData, $overallResults, $criticalAreas, $consultantPrompt);
 
         return $this->callOpenAI($prompt);
     }
 
     /**
      * Construir prompt para interpretación de dimensión/dominio
+     * @param array $data Datos de la sección
+     * @param string|null $consultantPrompt Contexto adicional del consultor
      */
-    private function buildPrompt(array $data): string
+    private function buildPrompt(array $data, ?string $consultantPrompt = null): string
     {
         $sectionLevel = $data['section_level'] ?? 'dimension';
         $name = $data['name'] ?? '';
@@ -124,7 +129,16 @@ DISTRIBUCIÓN PORCENTUAL:";
             }
         }
 
-        $prompt .= "
+        // Agregar contexto del consultor si existe
+        $consultantContext = '';
+        if (!empty($consultantPrompt)) {
+            $consultantContext = "
+
+CONTEXTO ADICIONAL DEL CONSULTOR (muy importante, considera esto en tu análisis):
+{$consultantPrompt}";
+        }
+
+        $prompt .= "{$consultantContext}
 
 INSTRUCCIONES:
 1. Redacta en tercera persona, tono técnico pero comprensible.
@@ -134,6 +148,7 @@ INSTRUCCIONES:
 5. Longitud: 2-3 párrafos máximo.
 6. NO menciones que eres una IA ni que este texto fue generado automáticamente.
 7. El texto debe sonar como si lo escribiera un consultor humano experto.{$formInstruction}
+8. Si hay contexto adicional del consultor, intégralo naturalmente en tu análisis.
 
 Genera el texto de interpretación:";
 
@@ -142,8 +157,9 @@ Genera el texto de interpretación:";
 
     /**
      * Construir prompt para resumen ejecutivo
+     * @param string|null $consultantPrompt Contexto adicional del consultor
      */
-    private function buildExecutiveSummaryPrompt(array $companyData, array $overallResults, array $criticalAreas): string
+    private function buildExecutiveSummaryPrompt(array $companyData, array $overallResults, array $criticalAreas, ?string $consultantPrompt = null): string
     {
         $companyName = $companyData['name'] ?? 'la empresa';
         $totalWorkers = $companyData['total_workers'] ?? 0;
@@ -172,6 +188,15 @@ Genera el texto de interpretación:";
             }
         }
 
+        // Contexto adicional del consultor
+        $consultantContext = '';
+        if (!empty($consultantPrompt)) {
+            $consultantContext = "
+CONTEXTO ADICIONAL DEL CONSULTOR (muy importante, considera esto en tu análisis):
+{$consultantPrompt}
+";
+        }
+
         $prompt = "Eres un psicólogo organizacional experto en riesgo psicosocial según la Resolución 2646 de 2008 de Colombia.
 
 Genera un RESUMEN EJECUTIVO para el informe de diagnóstico de riesgo psicosocial.
@@ -190,7 +215,7 @@ RESULTADOS GENERALES:
 
 ÁREAS CRÍTICAS (Riesgo Alto y Muy Alto):
 {$criticalAreasText}
-
+{$consultantContext}
 INSTRUCCIONES:
 1. Este resumen es para GERENTES que solo quieren la conclusión final.
 2. Máximo 3 párrafos: situación actual, áreas críticas, recomendación general.
@@ -200,6 +225,7 @@ INSTRUCCIONES:
 6. Indica si se requiere programa de vigilancia epidemiológica.
 7. NO uses jerga técnica excesiva. Debe ser entendible para no psicólogos.
 8. NO menciones que eres una IA.
+9. Si hay contexto adicional del consultor, intégralo naturalmente en tu análisis.
 
 Genera el resumen ejecutivo:";
 

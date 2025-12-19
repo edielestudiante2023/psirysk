@@ -24,6 +24,7 @@ class ReportSectionModel extends Model
         'distribution_data',
         'ai_generated_text',
         'consultant_comment',
+        'consultant_prompt',
         'is_approved',
         'approved_at',
         'approved_by',
@@ -153,6 +154,43 @@ class ReportSectionModel extends Model
     {
         return $this->update($sectionId, [
             'consultant_comment' => $comment,
+        ]);
+    }
+
+    /**
+     * Guardar prompt complementario del consultor
+     * Este prompt se concatena al prompt del sistema para dar contexto adicional a la IA
+     */
+    public function saveConsultantPrompt(int $sectionId, ?string $prompt): bool
+    {
+        return $this->update($sectionId, [
+            'consultant_prompt' => $prompt,
+        ]);
+    }
+
+    /**
+     * Resetear una sección para poder regenerarla con IA
+     * Limpia el texto generado y la aprobación, pero conserva el prompt del consultor
+     */
+    public function resetSection(int $sectionId): bool
+    {
+        return $this->update($sectionId, [
+            'ai_generated_text' => null,
+            'is_approved' => 0,
+            'approved_at' => null,
+            'approved_by' => null,
+        ]);
+    }
+
+    /**
+     * Desaprobar una sección (sin borrar el texto)
+     */
+    public function unapproveSection(int $sectionId): bool
+    {
+        return $this->update($sectionId, [
+            'is_approved' => 0,
+            'approved_at' => null,
+            'approved_by' => null,
         ]);
     }
 

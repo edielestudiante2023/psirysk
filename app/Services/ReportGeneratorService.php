@@ -486,6 +486,9 @@ class ReportGeneratorService
             $data['definition'] = 'Resultado integrado de los factores de riesgo psicosocial.';
         }
 
+        // Obtener el prompt complementario del consultor (si existe)
+        $consultantPrompt = $section['consultant_prompt'] ?? null;
+
         // Generar texto con IA
         if ($section['section_level'] === 'executive') {
             // Usar resultados de la forma específica (A o B), no mezclar
@@ -517,9 +520,9 @@ class ReportGeneratorService
                 'stress_score' => $resultsForma['estres_total_puntaje'] ?? 0,
             ];
 
-            $aiText = $this->openAIService->generateExecutiveSummary($companyData, $overallResults, $criticalAreas);
+            $aiText = $this->openAIService->generateExecutiveSummary($companyData, $overallResults, $criticalAreas, $consultantPrompt);
         } else {
-            $aiText = $this->openAIService->generateInterpretation($data);
+            $aiText = $this->openAIService->generateInterpretation($data, $consultantPrompt);
         }
 
         if ($aiText) {

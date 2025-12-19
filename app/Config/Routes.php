@@ -247,6 +247,11 @@ $routes->group('demographics-report', function($routes) {
     $routes->post('save-comment/(:num)', 'DemographicsReportController::saveComment/$1'); // Guardar comentario consultor (síntesis)
     $routes->get('comment/(:num)', 'DemographicsReportController::getComment/$1'); // Obtener comentario
     $routes->post('clear/(:num)', 'DemographicsReportController::clearInterpretation/$1'); // Limpiar interpretación
+    // Rutas para contexto IA por sección
+    $routes->post('save-prompt/(:num)/(:segment)', 'DemographicsReportController::savePrompt/$1/$2'); // Guardar prompt de contexto
+    $routes->get('get-prompt/(:num)/(:segment)', 'DemographicsReportController::getPrompt/$1/$2'); // Obtener prompt guardado
+    $routes->post('reset-section/(:num)/(:segment)', 'DemographicsReportController::resetSection/$1/$2'); // Resetear sección
+    $routes->post('regenerate-section/(:num)/(:segment)', 'DemographicsReportController::regenerateSection/$1/$2'); // Regenerar sección con IA
 });
 
 // Rutas de Prueba para Generación de PDF (PROVISIONAL - ELIMINAR EN PRODUCCIÓN)

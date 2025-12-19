@@ -375,6 +375,151 @@ class DemographicsReportController extends BaseController
     }
 
     /**
+     * Guardar prompt de contexto para una sección específica
+     */
+    public function savePrompt(int $serviceId, string $section)
+    {
+        if (!$this->isConsultor()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
+        $prompt = $this->request->getPost('prompt') ?? '';
+
+        try {
+            $saved = $this->sectionsModel->savePrompt($serviceId, $section, $prompt);
+
+            if ($saved) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Contexto guardado correctamente',
+                    'saved_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No se pudo guardar el contexto',
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error guardando prompt demográfico: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Resetear (limpiar) el texto IA de una sección
+     */
+    public function resetSection(int $serviceId, string $section)
+    {
+        if (!$this->isConsultor()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
+        try {
+            $reset = $this->sectionsModel->resetSectionIA($serviceId, $section);
+
+            if ($reset) {
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Sección reseteada correctamente',
+                ]);
+            }
+
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'No se pudo resetear la sección',
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error reseteando sección demográfica: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Regenerar una sección específica con IA
+     */
+    public function regenerateSection(int $serviceId, string $section)
+    {
+        if (!$this->isConsultor()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
+        if (!$this->demographicsService->isConfigured()) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'OpenAI no está configurado'
+            ]);
+        }
+
+        try {
+            // Obtener prompt del consultor si existe
+            $consultantPrompt = $this->sectionsModel->getPrompt($serviceId, $section);
+
+            // Regenerar la sección
+            $newText = $this->demographicsService->regenerateSection($serviceId, $section, $consultantPrompt);
+
+            if ($newText) {
+                // Guardar el nuevo texto
+                $existing = $this->sectionsModel->getByService($serviceId);
+                $column = $section . '_ia';
+
+                if ($existing) {
+                    $this->sectionsModel->update($existing['id'], [$column => $newText]);
+                } else {
+                    $this->sectionsModel->insert([
+                        'battery_service_id' => $serviceId,
+                        $column => $newText,
+                    ]);
+                }
+
+                return $this->response->setJSON([
+                    'success' => true,
+                    'message' => 'Sección regenerada correctamente',
+                    'new_text' => $newText,
+                    'generated_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al regenerar con IA',
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', 'Error regenerando sección demográfica: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Obtener prompt guardado de una sección
+     */
+    public function getPrompt(int $serviceId, string $section)
+    {
+        if (!$this->isConsultor()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Acceso denegado']);
+        }
+
+        $prompt = $this->sectionsModel->getPrompt($serviceId, $section);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'prompt' => $prompt ?? '',
+        ]);
+    }
+
+    /**
      * Verificar si el usuario es consultor
      */
     private function isConsultor(): bool

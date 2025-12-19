@@ -979,4 +979,223 @@ Genera las interpretaciones completas:";
     {
         return $this->openAIService->isConfigured();
     }
+
+    /**
+     * Regenerar interpretación para una sección específica con prompt del consultor
+     */
+    public function regenerateSection(int $serviceId, string $section, ?string $consultantPrompt = null): ?string
+    {
+        // Obtener datos del servicio y empresa
+        $service = $this->batteryModel
+            ->select('battery_services.*, companies.name as company_name')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->find($serviceId);
+
+        if (!$service) {
+            return null;
+        }
+
+        // Agregar datos demográficos
+        $aggregated = $this->aggregateDemographics($serviceId);
+
+        if (isset($aggregated['error'])) {
+            return null;
+        }
+
+        // Construir prompt para una sola sección
+        $prompt = $this->buildSingleSectionPrompt($service, $aggregated, $section, $consultantPrompt);
+
+        // Llamar a OpenAI
+        return $this->callOpenAI($prompt);
+    }
+
+    /**
+     * Construir prompt para regenerar una sola sección
+     */
+    private function buildSingleSectionPrompt(array $service, array $data, string $section, ?string $consultantPrompt = null): string
+    {
+        $companyName = $service['company_name'];
+        $total = $data['total_workers'];
+
+        // Mapeo de secciones a datos y títulos
+        $sectionConfig = [
+            'sexo' => [
+                'title' => 'SEXO',
+                'data' => $this->formatDistribution($data['gender']),
+                'example' => 'El X% de los empleados son mujeres y el X% restante corresponde a hombres, siendo acorde a la actividad económica de la organización.',
+            ],
+            'edad' => [
+                'title' => 'RANGO DE EDAD',
+                'data' => $this->formatAgeData($data['age_groups']),
+                'example' => 'La composición por edades muestra que la mayoría de los trabajadores (X%) se encuentra entre los X y X años.',
+            ],
+            'estado_civil' => [
+                'title' => 'ESTADO CIVIL',
+                'data' => $this->formatDistribution($data['marital_status']),
+                'example' => 'El estado civil de los trabajadores muestra que la mayoría de los colaboradores, un X% son solteros...',
+            ],
+            'educacion' => [
+                'title' => 'NIVEL EDUCATIVO',
+                'data' => $this->formatDistribution($data['education_level']),
+                'example' => 'La mayoría de los colaboradores cuenta con formación profesional completa (X%)...',
+            ],
+            'estrato' => [
+                'title' => 'ESTRATO SOCIOECONÓMICO',
+                'data' => $this->formatDistribution($data['stratum']),
+                'example' => 'En cuanto al estrato socioeconómico, se observa que un X% de los trabajadores pertenece al estrato X...',
+            ],
+            'vivienda' => [
+                'title' => 'TIPO DE VIVIENDA',
+                'data' => $this->formatDistribution($data['housing_type']),
+                'example' => 'Respecto al tipo de vivienda, el X% de los colaboradores reside en vivienda propia...',
+            ],
+            'dependientes' => [
+                'title' => 'PERSONAS A CARGO',
+                'data' => $this->formatDependentsData($data['dependents']),
+                'example' => 'En relación con las personas a cargo, el X% de los trabajadores tiene entre X y X personas dependientes...',
+            ],
+            'residencia' => [
+                'title' => 'LUGAR DE RESIDENCIA',
+                'data' => $this->formatDistribution($data['city_residence']),
+                'example' => 'Los colaboradores residen principalmente en X, lo que facilita la logística de desplazamiento...',
+            ],
+            'antiguedad_empresa' => [
+                'title' => 'ANTIGÜEDAD EN LA EMPRESA',
+                'data' => $this->formatDistribution($data['time_in_company']),
+                'example' => 'En cuanto a la antigüedad en la empresa, el X% de los trabajadores tiene menos de X año...',
+            ],
+            'antiguedad_cargo' => [
+                'title' => 'ANTIGÜEDAD EN EL CARGO',
+                'data' => $this->formatDistribution($data['time_in_position']),
+                'example' => 'Respecto a la antigüedad en el cargo actual, el X% de los colaboradores tiene menos de X año...',
+            ],
+            'contrato' => [
+                'title' => 'TIPO DE CONTRATO',
+                'data' => $this->formatDistribution($data['contract_type']),
+                'example' => 'La modalidad contractual predominante es el contrato a término indefinido con un X%...',
+            ],
+            'cargo' => [
+                'title' => 'TIPO DE CARGO',
+                'data' => $this->formatDistribution($data['position_type']),
+                'example' => 'En la distribución por tipo de cargo, el X% corresponde a cargos profesionales/analistas...',
+            ],
+            'area' => [
+                'title' => 'ÁREA/DEPARTAMENTO',
+                'data' => $this->formatDistribution($data['department_area']),
+                'example' => 'La distribución por áreas muestra que el X% de los trabajadores pertenece al área de X...',
+            ],
+            'horas' => [
+                'title' => 'HORAS DE TRABAJO',
+                'data' => $this->formatHoursData($data['hours_per_day']),
+                'example' => 'El X% de los colaboradores trabaja X horas diarias o menos...',
+            ],
+            'salario' => [
+                'title' => 'RANGO SALARIAL',
+                'data' => $this->formatDistribution($data['salary_type']),
+                'example' => 'En cuanto a la remuneración, el X% de los trabajadores percibe entre X y X SMLV...',
+            ],
+            'sintesis' => [
+                'title' => 'SÍNTESIS GENERAL',
+                'data' => $this->buildSynthesisData($data),
+                'example' => 'Análisis comprehensivo que integra todas las variables sociodemográficas...',
+            ],
+        ];
+
+        if (!isset($sectionConfig[$section])) {
+            return '';
+        }
+
+        $config = $sectionConfig[$section];
+        $consultantContext = '';
+
+        if (!empty($consultantPrompt)) {
+            $consultantContext = "
+
+CONTEXTO ADICIONAL DEL CONSULTOR (muy importante, considera esto en tu análisis):
+{$consultantPrompt}";
+        }
+
+        // Prompt específico para síntesis
+        if ($section === 'sintesis') {
+            $prompt = "Eres un experto en riesgo psicosocial laboral con conocimientos en psicología organizacional, sociología del trabajo y trabajo social.
+
+DATOS DE LA EMPRESA:
+- Empresa: {$companyName}
+- Total de trabajadores evaluados: {$total}
+
+DATOS SOCIODEMOGRÁFICOS COMPLETOS:
+{$config['data']}{$consultantContext}
+
+GENERA UNA SÍNTESIS GENERAL EXTENSA (mínimo 10-12 oraciones en 3-4 párrafos):
+
+PÁRRAFO 1 - PERFIL DEMOGRÁFICO BÁSICO: Integrar sexo, edad, estado civil y nivel educativo.
+
+PÁRRAFO 2 - CONDICIONES SOCIOECONÓMICAS: Analizar estrato, vivienda, personas a cargo y residencia.
+
+PÁRRAFO 3 - PERFIL LABORAL: Sintetizar antigüedad, contrato, cargo, área, horas y salario.
+
+PÁRRAFO 4 - CONCLUSIONES: Factores de riesgo psicosocial relevantes y recomendaciones.
+
+REGLAS:
+- Mínimo 10-12 oraciones en 3-4 párrafos sustanciales
+- Menciona TODOS los porcentajes exactos
+- NO uses bullet points ni listas
+- Tono técnico profesional en tercera persona
+- NO menciones que eres IA
+
+Genera la síntesis:";
+        } else {
+            $prompt = "Eres un experto en riesgo psicosocial laboral según la Resolución 2646 de 2008 de Colombia.
+
+DATOS DE LA EMPRESA:
+- Empresa: {$companyName}
+- Total de trabajadores evaluados: {$total}
+
+VARIABLE A INTERPRETAR: {$config['title']}
+
+DATOS:
+{$config['data']}{$consultantContext}
+
+INSTRUCCIONES:
+- Genera una interpretación narrativa de 2-4 oraciones
+- Menciona TODOS los porcentajes de las categorías presentes
+- Incluye una reflexión sobre las implicaciones para el riesgo psicosocial
+- NO uses bullet points ni listas, solo texto narrativo fluido
+- Escribe en tercera persona con tono técnico profesional
+- NO menciones que eres IA
+
+EJEMPLO DE FORMATO:
+{$config['example']}
+
+Genera la interpretación para {$config['title']}:";
+        }
+
+        return $prompt;
+    }
+
+    /**
+     * Construir datos de síntesis para regeneración
+     */
+    private function buildSynthesisData(array $data): string
+    {
+        $parts = [];
+
+        $parts[] = "SEXO:\n" . $this->formatDistribution($data['gender']);
+        $parts[] = "RANGO DE EDAD:\n" . $this->formatAgeData($data['age_groups']);
+        $parts[] = "ESTADO CIVIL:\n" . $this->formatDistribution($data['marital_status']);
+        $parts[] = "NIVEL EDUCATIVO:\n" . $this->formatDistribution($data['education_level']);
+        $parts[] = "ESTRATO:\n" . $this->formatDistribution($data['stratum']);
+        $parts[] = "VIVIENDA:\n" . $this->formatDistribution($data['housing_type']);
+        $parts[] = "PERSONAS A CARGO:\n" . $this->formatDependentsData($data['dependents']);
+        $parts[] = "RESIDENCIA:\n" . $this->formatDistribution($data['city_residence']);
+        $parts[] = "ANTIGÜEDAD EMPRESA:\n" . $this->formatDistribution($data['time_in_company']);
+        $parts[] = "ANTIGÜEDAD CARGO:\n" . $this->formatDistribution($data['time_in_position']);
+        $parts[] = "TIPO CONTRATO:\n" . $this->formatDistribution($data['contract_type']);
+        $parts[] = "TIPO CARGO:\n" . $this->formatDistribution($data['position_type']);
+        $parts[] = "ÁREA:\n" . $this->formatDistribution($data['department_area']);
+        $parts[] = "HORAS:\n" . $this->formatHoursData($data['hours_per_day']);
+        $parts[] = "SALARIO:\n" . $this->formatDistribution($data['salary_type']);
+
+        return implode("\n\n", $parts);
+    }
 }

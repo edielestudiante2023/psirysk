@@ -184,10 +184,20 @@
         <div class="card-body p-0">
 
             <!-- SEXO -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="sexo">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-venus-mars me-2"></i>SEXO</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-venus-mars me-2"></i>SEXO</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="sexo" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="sexo" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-sexo">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -199,10 +209,20 @@
             </div>
 
             <!-- RANGO DE EDAD -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="edad">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-birthday-cake me-2"></i>RANGO DE EDAD</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-birthday-cake me-2"></i>RANGO DE EDAD</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="edad" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="edad" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <?php if (!empty($aggregatedData['age_groups']['statistics'])): ?>
                         <div class="mb-2">
                             <small class="text-muted">
@@ -223,10 +243,20 @@
             </div>
 
             <!-- ESTADO CIVIL -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="estado_civil">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-heart me-2"></i>ESTADO CIVIL</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-heart me-2"></i>ESTADO CIVIL</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="estado_civil" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="estado_civil" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-estado-civil">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -238,10 +268,20 @@
             </div>
 
             <!-- NIVEL EDUCATIVO -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="educacion">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-graduation-cap me-2"></i>NIVEL MÁXIMO DE ESCOLARIDAD</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-graduation-cap me-2"></i>NIVEL MÁXIMO DE ESCOLARIDAD</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="educacion" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="educacion" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-educacion">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -253,10 +293,20 @@
             </div>
 
             <!-- ESTRATO -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="estrato">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-layer-group me-2"></i>ESTRATO SOCIOECONÓMICO</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-layer-group me-2"></i>ESTRATO SOCIOECONÓMICO</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="estrato" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="estrato" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-estrato">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -268,10 +318,20 @@
             </div>
 
             <!-- TIPO DE VIVIENDA -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="vivienda">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-home me-2"></i>TIPO DE VIVIENDA</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-home me-2"></i>TIPO DE VIVIENDA</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="vivienda" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="vivienda" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-vivienda">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -283,10 +343,20 @@
             </div>
 
             <!-- PERSONAS A CARGO -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="dependientes">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-users me-2"></i>PERSONAS A CARGO</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-users me-2"></i>PERSONAS A CARGO</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="dependientes" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="dependientes" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <?php if (!empty($aggregatedData['dependents']['statistics'])): ?>
                         <div class="mb-2">
                             <small class="text-muted">
@@ -305,10 +375,20 @@
             </div>
 
             <!-- LUGAR DE RESIDENCIA -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="residencia">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-map-marker-alt me-2"></i>LUGAR DE RESIDENCIA</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-map-marker-alt me-2"></i>LUGAR DE RESIDENCIA</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="residencia" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="residencia" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-residencia">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -320,10 +400,20 @@
             </div>
 
             <!-- ANTIGÜEDAD EN LA EMPRESA -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="antiguedad_empresa">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-building me-2"></i>ANTIGÜEDAD EN LA EMPRESA</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-building me-2"></i>ANTIGÜEDAD EN LA EMPRESA</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="antiguedad_empresa" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="antiguedad_empresa" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-antiguedad-empresa">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -335,10 +425,20 @@
             </div>
 
             <!-- ANTIGÜEDAD EN EL CARGO -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="antiguedad_cargo">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-user-clock me-2"></i>ANTIGÜEDAD EN EL CARGO</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-user-clock me-2"></i>ANTIGÜEDAD EN EL CARGO</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="antiguedad_cargo" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="antiguedad_cargo" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-antiguedad-cargo">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -350,10 +450,20 @@
             </div>
 
             <!-- TIPO DE CONTRATO -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="contrato">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-file-contract me-2"></i>TIPO DE CONTRATO</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-file-contract me-2"></i>TIPO DE CONTRATO</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="contrato" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="contrato" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-contrato">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -365,10 +475,20 @@
             </div>
 
             <!-- TIPO DE CARGO -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="cargo">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-user-tie me-2"></i>TIPO DE CARGO</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-user-tie me-2"></i>TIPO DE CARGO</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="cargo" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="cargo" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-cargo">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -380,10 +500,20 @@
             </div>
 
             <!-- ÁREA/DEPARTAMENTO -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="area">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-sitemap me-2"></i>ÁREA / DEPARTAMENTO</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-sitemap me-2"></i>ÁREA / DEPARTAMENTO</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="area" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="area" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-area">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -395,10 +525,20 @@
             </div>
 
             <!-- HORAS DE TRABAJO -->
-            <div class="variable-section border-bottom">
+            <div class="variable-section border-bottom" data-section="horas">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-clock me-2"></i>HORAS DE TRABAJO DIARIAS</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-clock me-2"></i>HORAS DE TRABAJO DIARIAS</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="horas" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="horas" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <?php if (!empty($aggregatedData['hours_per_day']['statistics'])): ?>
                         <div class="mb-2">
                             <small class="text-muted">
@@ -417,10 +557,20 @@
             </div>
 
             <!-- RANGO SALARIAL -->
-            <div class="variable-section">
+            <div class="variable-section" data-section="salario">
                 <div class="row g-0">
                     <div class="col-md-5 p-4 bg-light border-end">
-                        <h6 class="text-primary mb-3"><i class="fas fa-money-bill-wave me-2"></i>RANGO SALARIAL</h6>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h6 class="text-primary mb-0"><i class="fas fa-money-bill-wave me-2"></i>RANGO SALARIAL</h6>
+                            <div class="btn-group btn-group-sm section-actions" style="display: none;">
+                                <button type="button" class="btn btn-outline-info btn-context-ia" data-section="salario" title="Contexto IA">
+                                    <i class="fas fa-comment-dots"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-warning btn-regenerate-section" data-section="salario" title="Regenerar">
+                                    <i class="fas fa-sync"></i>
+                                </button>
+                            </div>
+                        </div>
                         <div class="interpretation-box" id="interp-salario">
                             <p class="text-muted fst-italic mb-0">Genera la interpretación con IA para ver el análisis.</p>
                         </div>
@@ -435,12 +585,65 @@
     </div>
 
     <!-- Síntesis General (se muestra después de generar IA) -->
-    <div id="sintesisContainer" class="card shadow-sm mt-4" style="display: none;">
-        <div class="card-header bg-primary text-white">
+    <div id="sintesisContainer" class="card shadow-sm mt-4" data-section="sintesis" style="display: none;">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>SÍNTESIS GENERAL</h5>
+            <div class="btn-group btn-group-sm section-actions-sintesis" style="display: none;">
+                <button type="button" class="btn btn-light btn-sm btn-context-ia" data-section="sintesis" title="Contexto IA">
+                    <i class="fas fa-comment-dots"></i>
+                </button>
+                <button type="button" class="btn btn-warning btn-sm btn-regenerate-section" data-section="sintesis" title="Regenerar">
+                    <i class="fas fa-sync"></i>
+                </button>
+            </div>
         </div>
         <div class="card-body">
             <div id="interp-sintesis" class="lead">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Contexto IA -->
+    <div class="modal fade" id="contextIAModal" tabindex="-1" aria-labelledby="contextIAModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="contextIAModalLabel">
+                        <i class="fas fa-comment-dots me-2"></i>Contexto Complementario para IA
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Agregue contexto específico que la IA considerará al generar la interpretación.
+                        <strong>Este texto NO aparece en el informe final</strong>, solo guía a la IA.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Sección: <span id="contextSectionName" class="text-primary"></span></label>
+                        <textarea id="contextPromptText" class="form-control" rows="5"
+                            placeholder="Ej: Esta empresa es del sector textil con turnos rotativos. La mayoría trabaja en producción con alta rotación de personal..."></textarea>
+                    </div>
+                    <div class="alert alert-light border">
+                        <strong><i class="fas fa-lightbulb me-1 text-warning"></i>Ejemplos de contexto útil:</strong>
+                        <ul class="mb-0 mt-2 small">
+                            <li>Sector/industria específica de la empresa</li>
+                            <li>Contexto de turnos o jornadas especiales</li>
+                            <li>Situaciones particulares del personal</li>
+                            <li>Aspectos regionales o culturales relevantes</li>
+                        </ul>
+                    </div>
+                    <input type="hidden" id="contextSection" value="">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-info" id="btnSaveContext">
+                        <i class="fas fa-save me-1"></i>Guardar Contexto
+                    </button>
+                    <button type="button" class="btn btn-warning" id="btnSaveAndRegenerate">
+                        <i class="fas fa-sync me-1"></i>Guardar y Regenerar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -814,6 +1017,203 @@ document.addEventListener('DOMContentLoaded', function() {
             commentSaveTimeout = setTimeout(saveComment, 2000);
         });
     }
+
+    // ===== FUNCIONALIDAD DE CONTEXTO IA POR SECCIÓN =====
+    const contextModal = document.getElementById('contextIAModal');
+    const contextPromptText = document.getElementById('contextPromptText');
+    const contextSectionInput = document.getElementById('contextSection');
+    const contextSectionName = document.getElementById('contextSectionName');
+    const btnSaveContext = document.getElementById('btnSaveContext');
+    const btnSaveAndRegenerate = document.getElementById('btnSaveAndRegenerate');
+
+    // Mapeo de sección a nombre legible
+    const sectionNames = {
+        'sexo': 'Sexo',
+        'edad': 'Rango de Edad',
+        'estado_civil': 'Estado Civil',
+        'educacion': 'Nivel Educativo',
+        'estrato': 'Estrato Socioeconómico',
+        'vivienda': 'Tipo de Vivienda',
+        'dependientes': 'Personas a Cargo',
+        'residencia': 'Lugar de Residencia',
+        'antiguedad_empresa': 'Antigüedad en la Empresa',
+        'antiguedad_cargo': 'Antigüedad en el Cargo',
+        'contrato': 'Tipo de Contrato',
+        'cargo': 'Tipo de Cargo',
+        'area': 'Área/Departamento',
+        'horas': 'Horas de Trabajo',
+        'salario': 'Rango Salarial',
+        'sintesis': 'Síntesis General'
+    };
+
+    // Mapeo de sección a contenedor de interpretación
+    const sectionToInterpId = {
+        'sexo': 'interp-sexo',
+        'edad': 'interp-edad',
+        'estado_civil': 'interp-estado-civil',
+        'educacion': 'interp-educacion',
+        'estrato': 'interp-estrato',
+        'vivienda': 'interp-vivienda',
+        'dependientes': 'interp-dependientes',
+        'residencia': 'interp-residencia',
+        'antiguedad_empresa': 'interp-antiguedad-empresa',
+        'antiguedad_cargo': 'interp-antiguedad-cargo',
+        'contrato': 'interp-contrato',
+        'cargo': 'interp-cargo',
+        'area': 'interp-area',
+        'horas': 'interp-horas',
+        'salario': 'interp-salario',
+        'sintesis': 'interp-sintesis'
+    };
+
+    // Función para mostrar botones de sección cuando hay contenido generado
+    function showSectionActions() {
+        document.querySelectorAll('.section-actions').forEach(el => {
+            el.style.display = 'flex';
+        });
+        document.querySelectorAll('.section-actions-sintesis').forEach(el => {
+            el.style.display = 'flex';
+        });
+    }
+
+    // Mostrar botones si ya hay interpretación guardada
+    <?php if ($savedInterpretation): ?>
+    showSectionActions();
+    <?php endif; ?>
+
+    // Abrir modal de contexto IA
+    document.querySelectorAll('.btn-context-ia').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const section = this.dataset.section;
+            contextSectionInput.value = section;
+            contextSectionName.textContent = sectionNames[section] || section;
+
+            // Cargar prompt guardado
+            try {
+                const response = await fetch(`${baseUrl}demographics-report/get-prompt/${serviceId}/${section}`);
+                const data = await response.json();
+                contextPromptText.value = data.prompt || '';
+            } catch (e) {
+                contextPromptText.value = '';
+            }
+
+            // Abrir modal
+            const modal = new bootstrap.Modal(contextModal);
+            modal.show();
+        });
+    });
+
+    // Guardar contexto
+    btnSaveContext.addEventListener('click', async function() {
+        const section = contextSectionInput.value;
+        const prompt = contextPromptText.value;
+
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Guardando...';
+
+        try {
+            const formData = new FormData();
+            formData.append('prompt', prompt);
+
+            const response = await fetch(`${baseUrl}demographics-report/save-prompt/${serviceId}/${section}`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                bootstrap.Modal.getInstance(contextModal).hide();
+                alert('Contexto guardado correctamente');
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (e) {
+            alert('Error al guardar: ' + e.message);
+        } finally {
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-save me-1"></i>Guardar Contexto';
+        }
+    });
+
+    // Guardar y regenerar
+    btnSaveAndRegenerate.addEventListener('click', async function() {
+        const section = contextSectionInput.value;
+        const prompt = contextPromptText.value;
+
+        this.disabled = true;
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Regenerando...';
+
+        try {
+            // Primero guardar el prompt
+            const formData = new FormData();
+            formData.append('prompt', prompt);
+
+            await fetch(`${baseUrl}demographics-report/save-prompt/${serviceId}/${section}`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            });
+
+            // Cerrar modal
+            bootstrap.Modal.getInstance(contextModal).hide();
+
+            // Regenerar sección
+            await regenerateSection(section);
+
+        } catch (e) {
+            alert('Error: ' + e.message);
+        } finally {
+            this.disabled = false;
+            this.innerHTML = '<i class="fas fa-sync me-1"></i>Guardar y Regenerar';
+        }
+    });
+
+    // Regenerar sección individual
+    document.querySelectorAll('.btn-regenerate-section').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const section = this.dataset.section;
+            regenerateSection(section);
+        });
+    });
+
+    async function regenerateSection(section) {
+        const interpId = sectionToInterpId[section];
+        const interpBox = document.getElementById(interpId);
+
+        if (!interpBox) return;
+
+        // Mostrar loading en la sección
+        const originalContent = interpBox.innerHTML;
+        interpBox.innerHTML = '<div class="spinner-border spinner-border-sm text-primary me-2"></div>Regenerando con IA...';
+        interpBox.classList.remove('generated');
+
+        try {
+            const response = await fetch(`${baseUrl}demographics-report/regenerate-section/${serviceId}/${section}`, {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                interpBox.innerHTML = data.new_text;
+                interpBox.classList.add('generated');
+            } else {
+                interpBox.innerHTML = originalContent;
+                alert('Error al regenerar: ' + data.message);
+            }
+        } catch (e) {
+            interpBox.innerHTML = originalContent;
+            alert('Error: ' + e.message);
+        }
+    }
+
+    // Mostrar botones de acción después de generar interpretaciones
+    const originalDistributeInterpretations = distributeInterpretations;
+    distributeInterpretations = function(text) {
+        originalDistributeInterpretations(text);
+        showSectionActions();
+    };
 });
 </script>
 <?= $this->endSection() ?>

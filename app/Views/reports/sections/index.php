@@ -583,26 +583,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Aprobar sección individual
-    document.querySelectorAll('.btn-approve').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const sectionId = this.dataset.id;
-
-            fetch(`${baseUrl}report-sections/approve/${sectionId}`, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    this.closest('tr').remove();
-                }
-            });
-        });
-    });
-
     // Aprobar todas
     document.getElementById('btnApproveAll')?.addEventListener('click', function() {
         if (!confirm('¿Aprobar todas las secciones pendientes?')) return;
@@ -848,8 +828,11 @@ $(document).ready(function() {
         });
     });
 
-    // Enlazar eventos y re-enlazar después de cada redibujado
-    table.on('draw', bindTableEvents).draw();
+    // Enlazar eventos inicialmente y re-enlazar después de cada redibujado
+    bindTableEvents();
+    table.on('draw', function() {
+        bindTableEvents();
+    });
 });
 </script>
 <?= $this->endSection() ?>

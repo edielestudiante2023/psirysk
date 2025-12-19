@@ -1038,14 +1038,14 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
             return ['promedio' => round($promedio, 2), 'nivel' => $nivel, 'nivel_order' => $riskOrder[$nivel] ?? 0];
         };
 
-        // Función para obtener MÁXIMO RIESGO entre formas
+        // Función para obtener MÁXIMO RIESGO entre formas - devuelve puntaje Y nivel
         $getWorstResult = function($field, $baremoA, $baremoB) use ($calculateForma, $resultsA, $resultsB, $hasFormaA, $hasFormaB, $hasBothForms) {
             $dataA = $hasFormaA ? $calculateForma($field, $baremoA, $resultsA) : null;
             $dataB = $hasFormaB ? $calculateForma($field, $baremoB, $resultsB) : null;
 
             if (!$hasBothForms) {
                 $data = $dataA ?? $dataB;
-                return $data ? $data['promedio'] : 0;
+                return $data ? ['puntaje' => $data['promedio'], 'nivel' => $data['nivel']] : ['puntaje' => 0, 'nivel' => 'sin_riesgo'];
             }
 
             // Determinar el peor resultado
@@ -1053,9 +1053,17 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
             $orderB = $dataB['nivel_order'] ?? 0;
 
             if ($orderA === $orderB) {
-                return max($dataA['promedio'] ?? 0, $dataB['promedio'] ?? 0);
+                // Si empatan en nivel, tomar el de mayor puntaje
+                if (($dataA['promedio'] ?? 0) >= ($dataB['promedio'] ?? 0)) {
+                    return ['puntaje' => $dataA['promedio'], 'nivel' => $dataA['nivel']];
+                }
+                return ['puntaje' => $dataB['promedio'], 'nivel' => $dataB['nivel']];
             }
-            return $orderA > $orderB ? $dataA['promedio'] : $dataB['promedio'];
+            // Tomar el de mayor nivel de riesgo
+            if ($orderA > $orderB) {
+                return ['puntaje' => $dataA['promedio'], 'nivel' => $dataA['nivel']];
+            }
+            return ['puntaje' => $dataB['promedio'], 'nivel' => $dataB['nivel']];
         };
 
         // Mapeo de campos de BD a claves de salida
@@ -1146,19 +1154,27 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
         $batteryServiceId = $this->companyData['battery_service_id'] ?? 1;
         $promedios = $this->loadPromediosGenerales($batteryServiceId);
 
-        // Obtener niveles y colores para totales
-        $puntajeIntra = floatval($promedios['intralaboral_total'] ?? 0);
-        $nivelIntra = $this->getNivelPorPuntaje($puntajeIntra, 'intralaboral_total');
+        // Helper para extraer puntaje y nivel de la nueva estructura
+        $getPuntaje = function($data) {
+            return is_array($data) ? floatval($data['puntaje'] ?? 0) : floatval($data);
+        };
+        $getNivel = function($data) {
+            return is_array($data) ? ($data['nivel'] ?? 'sin_riesgo') : 'sin_riesgo';
+        };
+
+        // Obtener niveles y colores para totales (ahora con nivel pre-calculado)
+        $puntajeIntra = $getPuntaje($promedios['intralaboral_total'] ?? 0);
+        $nivelIntra = $getNivel($promedios['intralaboral_total'] ?? []);
         $colorIntra = $this->getColorPorNivel($nivelIntra);
         $textColorIntra = $this->getTextColorPorNivel($nivelIntra);
 
-        $puntajeExtra = floatval($promedios['extralaboral_total'] ?? 0);
-        $nivelExtra = $this->getNivelPorPuntaje($puntajeExtra, 'extralaboral_total');
+        $puntajeExtra = $getPuntaje($promedios['extralaboral_total'] ?? 0);
+        $nivelExtra = $getNivel($promedios['extralaboral_total'] ?? []);
         $colorExtra = $this->getColorPorNivel($nivelExtra);
         $textColorExtra = $this->getTextColorPorNivel($nivelExtra);
 
-        $puntajeEstres = floatval($promedios['estres_total'] ?? 0);
-        $nivelEstres = $this->getNivelPorPuntaje($puntajeEstres, 'estres_total');
+        $puntajeEstres = $getPuntaje($promedios['estres_total'] ?? 0);
+        $nivelEstres = $getNivel($promedios['estres_total'] ?? []);
         $colorEstres = $this->getColorPorNivel($nivelEstres);
         $textColorEstres = $this->getTextColorPorNivel($nivelEstres);
 
@@ -1258,15 +1274,17 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
 
         $firstRow = true;
         foreach ($dominiosConfig as $dominio) {
-            $puntajeDom = floatval($promedios[$dominio['key']] ?? 0);
-            $nivelDom = $this->getNivelPorPuntaje($puntajeDom, 'dominio');
+            $dataDom = $promedios[$dominio['key']] ?? [];
+            $puntajeDom = $getPuntaje($dataDom);
+            $nivelDom = $getNivel($dataDom);
             $colorDom = $this->getColorPorNivel($nivelDom);
             $textColorDom = $this->getTextColorPorNivel($nivelDom);
             $numDimensiones = count($dominio['dimensiones']);
 
             foreach ($dominio['dimensiones'] as $dimIndex => $dim) {
-                $puntajeDim = floatval($promedios[$dim['key']] ?? 0);
-                $nivelDim = $this->getNivelPorPuntaje($puntajeDim, 'dimension');
+                $dataDim = $promedios[$dim['key']] ?? [];
+                $puntajeDim = $getPuntaje($dataDim);
+                $nivelDim = $getNivel($dataDim);
                 $colorDim = $this->getColorPorNivel($nivelDim);
                 $textColorDim = $this->getTextColorPorNivel($nivelDim);
 
@@ -1314,8 +1332,9 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
 
         $firstExtraRow = true;
         foreach ($dimensionesExtra as $dim) {
-            $puntajeDim = floatval($promedios[$dim['key']] ?? 0);
-            $nivelDim = $this->getNivelPorPuntaje($puntajeDim, 'dimension');
+            $dataDim = $promedios[$dim['key']] ?? [];
+            $puntajeDim = $getPuntaje($dataDim);
+            $nivelDim = $getNivel($dataDim);
             $colorDim = $this->getColorPorNivel($nivelDim);
             $textColorDim = $this->getTextColorPorNivel($nivelDim);
 

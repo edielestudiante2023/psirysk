@@ -633,10 +633,14 @@ Los resultados obtenidos se presentan en el siguiente orden:
 
     /**
      * Página 2: Conclusiones de la Batería
+     * Si existe una conclusión global generada por IA, la usa; sino, genera texto automático
      */
     protected function renderConclusiones()
     {
         $nombreEmpresa = esc($this->companyData['company_name'] ?? 'la empresa');
+
+        // Verificar si existe conclusión global generada por IA
+        $globalConclusion = $this->getGlobalConclusion();
 
         // Calcular promedios por forma
         $promediosA = $this->calcularPromediosForma('A');
@@ -676,7 +680,23 @@ Los resultados obtenidos se presentan en el siguiente orden:
 
         $html = '
 <h1 style="font-size: 16pt; margin: 0 0 15pt 0; padding-bottom: 8pt; border-bottom: 2pt solid #006699;">Conclusión Total De Aplicación Batería De Riesgo Psicosocial</h1>
+';
 
+        // Si existe conclusión global generada por IA, mostrarla
+        if (!empty($globalConclusion)) {
+            // Convertir saltos de línea a párrafos HTML
+            $paragraphs = explode("\n\n", $globalConclusion);
+            foreach ($paragraphs as $paragraph) {
+                $paragraph = trim($paragraph);
+                if (!empty($paragraph)) {
+                    // Convertir saltos de línea simples a <br>
+                    $paragraph = nl2br(esc($paragraph));
+                    $html .= '<p style="font-size: 10pt; text-align: justify; margin: 0 0 12pt 0; line-height: 1.6;">' . $paragraph . '</p>';
+                }
+            }
+        } else {
+            // Texto automático si no hay conclusión de IA
+            $html .= '
 <p style="font-size: 10pt; text-align: justify; margin: 0 0 12pt 0; line-height: 1.5;">
 Los dominios principales de la batería de riesgo psicosocial como sus respectivas dimensiones son calificadas a partir de la interpretación del mayor puntaje obtenido, siendo este el factor determinante para establecer el panorama de riesgo psicosocial.
 </p>
@@ -688,13 +708,22 @@ Los resultados obtenidos del nivel de riesgo psicosocial a nivel general en <str
 <p style="font-size: 10pt; text-align: justify; margin: 0 0 12pt 0; line-height: 1.5;">
 Las dimensiones y dominios que se encuentren bajo esta categoría serán objeto de acciones o programas de intervención, a fin de mantenerlos en los niveles de riesgo más bajos posibles.
 </p>
+';
+        }
 
+        // Caja de periodicidad (siempre mostrar)
+        $html .= '
 <div style="background-color: #e8f4fc; border: 1pt solid #006699; padding: 10pt; margin: 15pt 0;">
     <p style="font-size: 10pt; margin: 0; line-height: 1.5;">
         <strong>Periodicidad de próxima medición:</strong> De acuerdo con el artículo 3 de la resolución 2764 del 2022, el periodo de la próxima medición se establece de acuerdo con el puntaje de la dimensión principal intralaboral observado anteriormente. Asimismo, se debe realizar una nueva medición en un plazo máximo de <strong>' . $periodicidadIntra . '</strong>.
     </p>
 </div>
+';
 
+        // Solo mostrar sección "Conclusión Del Profesional" si NO hay conclusión de IA
+        // (La conclusión de IA ya incluye el análisis profesional integrado)
+        if (empty($globalConclusion)) {
+            $html .= '
 <h2 style="font-size: 13pt; color: #006699; margin: 20pt 0 10pt 0; padding-bottom: 5pt; border-bottom: 1pt solid #006699;">Conclusión Del Profesional</h2>
 
 <p style="font-size: 10pt; text-align: justify; margin: 0 0 12pt 0; line-height: 1.5;">
@@ -702,25 +731,42 @@ El entorno de análisis de la batería de riesgo psicosocial consta de tres dime
 </p>
 ';
 
-        // Alerta si el nivel de estrés es alto o muy alto
-        if (in_array($nivelEstresGeneral, ['alto', 'muy_alto'])) {
-            $colorEstres = $this->stressColors[$nivelEstresGeneral];
-            $html .= '
+            // Alerta si el nivel de estrés es alto o muy alto
+            if (in_array($nivelEstresGeneral, ['alto', 'muy_alto'])) {
+                $colorEstres = $this->stressColors[$nivelEstresGeneral];
+                $html .= '
 <div style="background-color: #ffebee; border-left: 4pt solid ' . $colorEstres . '; padding: 10pt; margin: 15pt 0;">
     <p style="font-size: 10pt; margin: 0; line-height: 1.5; color: #c62828;">
         <strong>Acción Inmediata Requerida:</strong> Se sugiere proceder mediante la Acción Inmediata del Programa de vigilancia epidemiológica: Concentración elevada de niveles de estrés sobre este grupo poblacional, Diseño de Programas De Vigilancia Epidemiológica En Riesgo Psicosocial. El factor de riesgo causa, o podría causar, alteraciones serias en la salud del trabajador, aumentando en consecuencia el número de incapacidades laborales.
     </p>
 </div>
 ';
-        }
+            }
 
-        $html .= '
+            $html .= '
 <p style="font-size: 10pt; text-align: justify; margin: 15pt 0 0 0; line-height: 1.5;">
 Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstres . '</strong> en función de llevar a cabo un correcto seguimiento de efectividad en la dimensión estrés.
 </p>
 ';
+        }
 
         return $html;
+    }
+
+    /**
+     * Obtiene la conclusión global generada por IA (si existe)
+     */
+    protected function getGlobalConclusion()
+    {
+        $db = \Config\Database::connect();
+        $query = $db->query("
+            SELECT global_conclusion_text
+            FROM battery_services
+            WHERE id = ?
+        ", [$this->batteryServiceId]);
+
+        $row = $query->getRowArray();
+        return $row['global_conclusion_text'] ?? null;
     }
 
     /**

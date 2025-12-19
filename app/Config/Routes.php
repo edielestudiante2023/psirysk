@@ -316,5 +316,18 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
     $routes->get('download/casos-intervencion/(:num)', 'CasosIntervencionController::download/$1');
 });
 
-// Ruta temporal para calcular y almacenar máximos riesgos
+// ============================================
+// RUTAS DE CONCLUSIÓN TOTAL RPS (MÁXIMO RIESGO)
+// Módulo IA para análisis de máximos riesgos
+// ============================================
+$routes->group('max-risk', function($routes) {
+    $routes->get('(:num)', 'MaxRiskController::index/$1');                    // Vista principal
+    $routes->get('(:num)/recalculate', 'MaxRiskController::recalculate/$1');  // Recalcular resultados
+    $routes->post('save-prompt', 'MaxRiskController::savePrompt');            // Guardar contexto IA (AJAX)
+    $routes->post('save-comment', 'MaxRiskController::saveComment');          // Guardar comentario (AJAX)
+    $routes->post('generate-ai', 'MaxRiskController::generateAi');            // Generar análisis IA (AJAX)
+    $routes->get('element/(:num)', 'MaxRiskController::getElement/$1');       // Obtener elemento (AJAX)
+});
+
+// Ruta temporal para calcular y almacenar máximos riesgos (legacy/dev)
 $routes->get('dev/calculate-max-risk/(:num)', 'ReportsController::calculateMaxRisk/$1');

@@ -277,6 +277,9 @@
                 <a href="<?= base_url('demographics-report/' . $service['id']) ?>" class="quick-action-btn text-white" style="background: #9B59B6;" target="_blank">
                     <i class="fas fa-brain"></i> Interpretación IA
                 </a>
+                <a href="<?= base_url('max-risk/' . $service['id']) ?>" class="quick-action-btn text-white" style="background: linear-gradient(135deg, #e53e3e, #c53030);" target="_blank">
+                    <i class="fas fa-chart-line"></i> Conclusión Total RPS
+                </a>
                 <?php endif; ?>
             </div>
         </div>

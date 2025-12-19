@@ -33,6 +33,8 @@ class MaxRiskResultModel extends Model
         'ai_recommendations',
         'ai_generated_at',
         'ai_model_version',
+        'consultant_prompt',
+        'consultant_comment',
     ];
 
     protected bool $allowEmptyInserts = false;
@@ -155,6 +157,26 @@ class MaxRiskResultModel extends Model
             'ai_recommendations' => $recommendations,
             'ai_generated_at'    => date('Y-m-d H:i:s'),
             'ai_model_version'   => $modelVersion,
+        ]);
+    }
+
+    /**
+     * Guardar prompt contextual del consultor (instrucciones para IA)
+     */
+    public function saveConsultantPrompt(int $id, ?string $prompt): bool
+    {
+        return $this->update($id, [
+            'consultant_prompt' => $prompt,
+        ]);
+    }
+
+    /**
+     * Guardar comentario del consultor (visible en informe)
+     */
+    public function saveConsultantComment(int $id, ?string $comment): bool
+    {
+        return $this->update($id, [
+            'consultant_comment' => $comment,
         ]);
     }
 

@@ -170,32 +170,6 @@ function getFormattedName($section, $dimensionNames, $domainNames, $questionnair
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <!-- Resumen Ejecutivo -->
-                        <div class="col-md-4 col-lg">
-                            <a href="<?= base_url('report-sections/review/' . $service['id'] . '/executive') ?>" class="card h-100 text-decoration-none hover-shadow" target="_blank">
-                                <div class="card-body text-center">
-                                    <div class="display-6 text-primary mb-2">
-                                        <i class="fas fa-crown"></i>
-                                    </div>
-                                    <h6 class="card-title">Resumen Ejecutivo</h6>
-                                    <p class="card-text text-muted small">Para gerentes</p>
-                                </div>
-                            </a>
-                        </div>
-
-                        <!-- Totales Generales -->
-                        <div class="col-md-4 col-lg">
-                            <a href="<?= base_url('report-sections/review/' . $service['id'] . '/total') ?>" class="card h-100 text-decoration-none hover-shadow" target="_blank">
-                                <div class="card-body text-center">
-                                    <div class="display-6 text-success mb-2">
-                                        <i class="fas fa-chart-pie"></i>
-                                    </div>
-                                    <h6 class="card-title">Totales Generales</h6>
-                                    <p class="card-text text-muted small">Puntajes globales</p>
-                                </div>
-                            </a>
-                        </div>
-
                         <!-- Cuestionarios -->
                         <div class="col-md-4 col-lg">
                             <a href="<?= base_url('report-sections/review/' . $service['id'] . '/questionnaire') ?>" class="card h-100 text-decoration-none hover-shadow" target="_blank">

@@ -6,6 +6,8 @@
     <title><?= esc($title) ?> - PsyRisk</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
     <style>
         body { background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%); min-height: 100vh; }
         .header-banner {
@@ -77,17 +79,6 @@
             margin-bottom: 0.5rem;
         }
 
-        .risk-table { width: 100%; font-size: 0.9rem; }
-        .risk-table th {
-            background: #f8f9fa;
-            font-weight: 600;
-            padding: 0.5rem;
-        }
-        .risk-table td {
-            padding: 0.5rem;
-            vertical-align: middle;
-            border-bottom: 1px solid #e2e8f0;
-        }
         .risk-badge {
             padding: 0.25rem 0.5rem;
             border-radius: 15px;
@@ -100,6 +91,48 @@
         .risk-badge.medio, .risk-badge.riesgo-medio { background: #fefcbf; color: #975a16; }
         .risk-badge.bajo, .risk-badge.riesgo-bajo { background: #c6f6d5; color: #276749; }
         .risk-badge.sin-riesgo { background: #e2e8f0; color: #4a5568; }
+
+        /* DataTables customization */
+        #maxRiskTable thead th {
+            background: #2c5282;
+            color: white;
+            font-weight: 600;
+            border: none;
+        }
+        #maxRiskTable thead .filters th {
+            background: #f8f9fa;
+            padding: 8px 4px;
+        }
+        #maxRiskTable thead .filters select {
+            font-size: 0.85rem;
+            padding: 4px 8px;
+        }
+        #maxRiskTable tbody tr:hover {
+            background-color: #ebf8ff;
+        }
+        .dataTables_wrapper .dataTables_filter input {
+            border-radius: 20px;
+            padding: 5px 15px;
+        }
+        .questionnaire-badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .questionnaire-badge.intralaboral { background: #bee3f8; color: #2b6cb0; }
+        .questionnaire-badge.extralaboral { background: #c6f6d5; color: #276749; }
+        .questionnaire-badge.estres { background: #e9d8fd; color: #553c9a; }
+        .type-badge {
+            padding: 0.2rem 0.4rem;
+            border-radius: 8px;
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .type-badge.total { background: #1a365d; color: white; }
+        .type-badge.domain { background: #4a5568; color: white; }
+        .type-badge.dimension { background: #718096; color: white; }
 
         .critical-alert {
             background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
@@ -257,118 +290,110 @@
             <?php endif; ?>
         </div>
 
-        <!-- Tabla de Resultados (Colapsable) -->
+        <!-- Tabla de Resultados con DataTables -->
         <div class="section-card">
-            <div class="accordion" id="resultsAccordion">
-                <div class="accordion-item border-0">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseResults">
-                            <i class="fas fa-table me-2"></i>Ver Detalle de Resultados de Maximo Riesgo
-                            <span class="badge bg-secondary ms-2"><?= count($allResults) ?> elementos</span>
-                        </button>
-                    </h2>
-                    <div id="collapseResults" class="accordion-collapse collapse" data-bs-parent="#resultsAccordion">
-                        <div class="accordion-body">
-                            <!-- Intralaboral -->
-                            <h6 class="text-primary mb-2"><i class="fas fa-building me-1"></i>Intralaboral</h6>
-                            <div class="table-responsive mb-4">
-                                <table class="risk-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Elemento</th>
-                                            <th>Tipo</th>
-                                            <th>Puntaje</th>
-                                            <th>Forma</th>
-                                            <th>Nivel</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $intraElements = array_merge(
-                                            $grouped['intralaboral']['totals'],
-                                            $grouped['intralaboral']['domains'],
-                                            $grouped['intralaboral']['dimensions']
-                                        );
-                                        foreach ($intraElements as $el):
-                                            $riskClass = str_replace('_', '-', $el['worst_risk_level']);
-                                        ?>
-                                        <tr>
-                                            <td><?= esc($el['element_name']) ?></td>
-                                            <td><small class="text-muted"><?= ucfirst($el['element_type']) ?></small></td>
-                                            <td><strong><?= $el['worst_score'] ?></strong></td>
-                                            <td><?= $el['worst_form'] ?></td>
-                                            <td><span class="risk-badge <?= $riskClass ?>"><?= ucfirst(str_replace('_', ' ', $el['worst_risk_level'])) ?></span></td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
+            <h5 class="mb-3"><i class="fas fa-table me-2"></i>Resultados de Maximo Riesgo <span class="badge bg-secondary"><?= count($allResults) ?> elementos</span></h5>
 
-                            <!-- Extralaboral -->
-                            <h6 class="text-success mb-2"><i class="fas fa-home me-1"></i>Extralaboral</h6>
-                            <div class="table-responsive mb-4">
-                                <table class="risk-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Elemento</th>
-                                            <th>Tipo</th>
-                                            <th>Puntaje</th>
-                                            <th>Forma</th>
-                                            <th>Nivel</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $extraElements = array_merge(
-                                            $grouped['extralaboral']['totals'],
-                                            $grouped['extralaboral']['dimensions']
-                                        );
-                                        foreach ($extraElements as $el):
-                                            $riskClass = str_replace('_', '-', $el['worst_risk_level']);
-                                        ?>
-                                        <tr>
-                                            <td><?= esc($el['element_name']) ?></td>
-                                            <td><small class="text-muted"><?= ucfirst($el['element_type']) ?></small></td>
-                                            <td><strong><?= $el['worst_score'] ?></strong></td>
-                                            <td><?= $el['worst_form'] ?></td>
-                                            <td><span class="risk-badge <?= $riskClass ?>"><?= ucfirst(str_replace('_', ' ', $el['worst_risk_level'])) ?></span></td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <!-- Estres -->
-                            <h6 class="text-purple mb-2"><i class="fas fa-brain me-1"></i>Estres</h6>
-                            <div class="table-responsive">
-                                <table class="risk-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Elemento</th>
-                                            <th>Tipo</th>
-                                            <th>Puntaje</th>
-                                            <th>Forma</th>
-                                            <th>Nivel</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($grouped['estres']['totals'] as $el):
-                                            $riskClass = str_replace('_', '-', $el['worst_risk_level']);
-                                        ?>
-                                        <tr>
-                                            <td><?= esc($el['element_name']) ?></td>
-                                            <td><small class="text-muted"><?= ucfirst($el['element_type']) ?></small></td>
-                                            <td><strong><?= $el['worst_score'] ?></strong></td>
-                                            <td><?= $el['worst_form'] ?></td>
-                                            <td><span class="risk-badge <?= $riskClass ?>"><?= ucfirst(str_replace('_', ' ', $el['worst_risk_level'])) ?></span></td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="table-responsive">
+                <table id="maxRiskTable" class="table table-striped table-hover" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Cuestionario</th>
+                            <th>Tipo</th>
+                            <th>Elemento</th>
+                            <th>Puntaje</th>
+                            <th>Forma</th>
+                            <th>Nivel de Riesgo</th>
+                            <th>Forma A</th>
+                            <th>Forma B</th>
+                        </tr>
+                        <tr class="filters">
+                            <th>
+                                <select class="form-select form-select-sm" id="filterQuestionnaire">
+                                    <option value="">Todos</option>
+                                    <option value="Intralaboral">Intralaboral</option>
+                                    <option value="Extralaboral">Extralaboral</option>
+                                    <option value="Estres">Estrés</option>
+                                </select>
+                            </th>
+                            <th>
+                                <select class="form-select form-select-sm" id="filterType">
+                                    <option value="">Todos</option>
+                                    <option value="Total">Total</option>
+                                    <option value="Domain">Dominio</option>
+                                    <option value="Dimension">Dimensión</option>
+                                </select>
+                            </th>
+                            <th></th>
+                            <th></th>
+                            <th>
+                                <select class="form-select form-select-sm" id="filterForm">
+                                    <option value="">Todas</option>
+                                    <option value="A">Forma A</option>
+                                    <option value="B">Forma B</option>
+                                </select>
+                            </th>
+                            <th>
+                                <select class="form-select form-select-sm" id="filterRisk">
+                                    <option value="">Todos</option>
+                                    <option value="Muy Alto">Muy Alto</option>
+                                    <option value="Alto">Alto</option>
+                                    <option value="Medio">Medio</option>
+                                    <option value="Bajo">Bajo</option>
+                                    <option value="Sin Riesgo">Sin Riesgo</option>
+                                </select>
+                            </th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($allResults as $el):
+                            $riskClass = str_replace('_', '-', $el['worst_risk_level']);
+                            $riskLabel = ucfirst(str_replace('_', ' ', str_replace('riesgo_', '', $el['worst_risk_level'])));
+                            $questionnaireLabel = ucfirst($el['questionnaire_type']);
+                            if ($questionnaireLabel === 'Estres') $questionnaireLabel = 'Estrés';
+                            $typeLabel = ucfirst($el['element_type']);
+                        ?>
+                        <tr>
+                            <td>
+                                <span class="questionnaire-badge <?= $el['questionnaire_type'] ?>">
+                                    <?= $questionnaireLabel ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="type-badge <?= $el['element_type'] ?>">
+                                    <?= $typeLabel ?>
+                                </span>
+                            </td>
+                            <td><strong><?= esc($el['element_name']) ?></strong></td>
+                            <td class="text-center"><strong><?= number_format($el['worst_score'], 1) ?></strong></td>
+                            <td class="text-center"><strong><?= $el['worst_form'] ?></strong></td>
+                            <td>
+                                <span class="risk-badge <?= $riskClass ?>">
+                                    <?= $riskLabel ?>
+                                </span>
+                            </td>
+                            <td class="text-center small">
+                                <?php if ($el['form_a_score'] !== null): ?>
+                                    <?= number_format($el['form_a_score'], 1) ?>
+                                    <br><small class="text-muted"><?= $el['form_a_count'] ?? 0 ?> eval.</small>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center small">
+                                <?php if ($el['form_b_score'] !== null): ?>
+                                    <?= number_format($el['form_b_score'], 1) ?>
+                                    <br><small class="text-muted"><?= $el['form_b_count'] ?? 0 ?> eval.</small>
+                                <?php else: ?>
+                                    <span class="text-muted">-</span>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -408,10 +433,54 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script>
         const batteryServiceId = <?= $batteryService['id'] ?>;
         const editModal = new bootstrap.Modal(document.getElementById('editModal'));
         const generatingModal = new bootstrap.Modal(document.getElementById('generatingModal'));
+
+        // Inicializar DataTables
+        $(document).ready(function() {
+            const table = $('#maxRiskTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                order: [[5, 'desc'], [3, 'desc']], // Ordenar por nivel de riesgo y puntaje
+                pageLength: 25,
+                dom: '<"row"<"col-md-6"l><"col-md-6"f>>rtip',
+                columnDefs: [
+                    { orderable: true, targets: [0, 1, 2, 3, 4, 5] },
+                    { orderable: false, targets: [6, 7] }
+                ]
+            });
+
+            // Filtros personalizados
+            $('#filterQuestionnaire').on('change', function() {
+                const val = $(this).val();
+                table.column(0).search(val).draw();
+            });
+
+            $('#filterType').on('change', function() {
+                const val = $(this).val();
+                table.column(1).search(val).draw();
+            });
+
+            $('#filterForm').on('change', function() {
+                const val = $(this).val();
+                table.column(4).search(val ? '^' + val + '$' : '', true, false).draw();
+            });
+
+            $('#filterRisk').on('change', function() {
+                const val = $(this).val();
+                table.column(5).search(val).draw();
+            });
+        });
 
         async function saveContext() {
             const prompt = document.getElementById('contextPrompt').value;

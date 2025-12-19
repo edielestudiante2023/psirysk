@@ -652,7 +652,7 @@
             </div>
             <?php renderAccordionItem('intralaboral', 'Total Intralaboral', $heatmapCalculations['intralaboral_total'], 'briefcase', 'primary', $hasBothForms); ?>
             <?php renderAccordionItem('extralaboral', 'Total Extralaboral', $heatmapCalculations['extralaboral_total'], 'home', 'success', $hasBothForms); ?>
-            <?php renderAccordionItem('estres', 'Síntomas de Estrés', $heatmapCalculations['estres_total'], 'heartbeat', 'danger', $hasBothForms); ?>
+            <?php renderAccordionItem('estres', 'Síntomas de Estrés', $heatmapCalculations['estres_total'], 'heartbeat', 'secondary', $hasBothForms); ?>
 
             <!-- SECCIÓN: DOMINIOS INTRALABORALES -->
             <div class="card bg-light mb-3 mt-4">

@@ -1242,6 +1242,7 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
         }
 
         $html = '
+<!-- PDF_HEATMAP_VERSION: 2025-12-19_MaxRisk_v2 -->
 <h2 style="color: #006699; text-align: center; margin: 0 0 8pt 0; font-size: 12pt; text-decoration: underline;">
     Mapa de Calor - Riesgo Psicosocial General
 </h2>

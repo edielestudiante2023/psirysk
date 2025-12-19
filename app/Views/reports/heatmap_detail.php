@@ -438,7 +438,7 @@
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_caracteristicas_liderazgo']['nivel']) ?>"><span>Características del liderazgo</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_caracteristicas_liderazgo']) ?>)</strong></span></div>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_relaciones_sociales']['nivel']) ?>"><span>Relaciones sociales en el trabajo</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_relaciones_sociales']) ?>)</strong></span></div>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_retroalimentacion']['nivel']) ?>"><span>Retroalimentación del desempeño</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_retroalimentacion']) ?>)</strong></span></div>
-                                            <?php if (isset($heatmapCalculations['dim_relacion_colaboradores'])): ?>
+                                            <?php if (!empty($heatmapCalculations['dim_relacion_colaboradores'])): ?>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_relacion_colaboradores']['nivel']) ?>"><span>Relación con los colaboradores</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_relacion_colaboradores']) ?>)</strong></span></div>
                                             <?php endif; ?>
                                         </div>
@@ -466,11 +466,11 @@
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_emocionales']['nivel']) ?>"><span>Demandas emocionales</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_emocionales']) ?>)</strong></span></div>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_cuantitativas']['nivel']) ?>"><span>Demandas cuantitativas</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_cuantitativas']) ?>)</strong></span></div>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral']['nivel']) ?>"><span>Influencia trabajo-extralaboral</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral']) ?>)</strong></span></div>
-                                            <?php if (isset($heatmapCalculations['dim_demandas_responsabilidad'])): ?>
+                                            <?php if (!empty($heatmapCalculations['dim_demandas_responsabilidad'])): ?>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_responsabilidad']['nivel']) ?>"><span>Exigencias responsabilidad</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_responsabilidad']) ?>)</strong></span></div>
                                             <?php endif; ?>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_carga_mental']['nivel']) ?>"><span>Demandas carga mental</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_carga_mental']) ?>)</strong></span></div>
-                                            <?php if (isset($heatmapCalculations['dim_consistencia_rol'])): ?>
+                                            <?php if (!empty($heatmapCalculations['dim_consistencia_rol'])): ?>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_consistencia_rol']['nivel']) ?>"><span>Consistencia del rol</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_consistencia_rol']) ?>)</strong></span></div>
                                             <?php endif; ?>
                                             <div class="heatmap-dimension <?= getColorClass($heatmapCalculations['dim_demandas_jornada_trabajo']['nivel']) ?>"><span>Demandas jornada trabajo</span><span class="dimension-score"><strong>(<?= formatWorstScore($heatmapCalculations['dim_demandas_jornada_trabajo']) ?>)</strong></span></div>
@@ -676,7 +676,7 @@
             <?php if (isset($heatmapCalculations['dim_retroalimentacion'])): ?>
             <?php renderAccordionItem('dim_retro', 'Retroalimentación del desempeño', $heatmapCalculations['dim_retroalimentacion'], 'comments', 'info', $hasBothForms); ?>
             <?php endif; ?>
-            <?php if (isset($heatmapCalculations['dim_relacion_colaboradores'])): ?>
+            <?php if (!empty($heatmapCalculations['dim_relacion_colaboradores'])): ?>
             <?php renderAccordionItem('dim_rel_colab', 'Relación con los colaboradores', $heatmapCalculations['dim_relacion_colaboradores'], 'handshake', 'info', $hasBothForms); ?>
             <?php endif; ?>
 
@@ -716,13 +716,13 @@
             <?php if (isset($heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral'])): ?>
             <?php renderAccordionItem('dim_infl_trab', 'Influencia trabajo-extralaboral', $heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral'], 'exchange-alt', 'warning', $hasBothForms); ?>
             <?php endif; ?>
-            <?php if (isset($heatmapCalculations['dim_demandas_responsabilidad'])): ?>
+            <?php if (!empty($heatmapCalculations['dim_demandas_responsabilidad'])): ?>
             <?php renderAccordionItem('dim_dem_resp', 'Exigencias de responsabilidad', $heatmapCalculations['dim_demandas_responsabilidad'], 'shield-alt', 'warning', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_carga_mental'])): ?>
             <?php renderAccordionItem('dim_carga_ment', 'Demandas de carga mental', $heatmapCalculations['dim_carga_mental'], 'brain', 'warning', $hasBothForms); ?>
             <?php endif; ?>
-            <?php if (isset($heatmapCalculations['dim_consistencia_rol'])): ?>
+            <?php if (!empty($heatmapCalculations['dim_consistencia_rol'])): ?>
             <?php renderAccordionItem('dim_consist_rol', 'Consistencia del rol', $heatmapCalculations['dim_consistencia_rol'], 'balance-scale', 'warning', $hasBothForms); ?>
             <?php endif; ?>
             <?php if (isset($heatmapCalculations['dim_demandas_jornada_trabajo'])): ?>

@@ -236,10 +236,10 @@ class ReportGeneratorService
 
         $batteryServiceId = $report['battery_service_id'];
 
-        // Obtener datos agregados por forma
+        // Obtener datos agregados por forma (SOLO A y B - no existe baremo "conjunto")
+        // Resolución 2404/2019 Tabla 34: Los baremos son específicos por forma
         $resultsFormaA = $this->getAggregatedResults($batteryServiceId, 'A');
         $resultsFormaB = $this->getAggregatedResults($batteryServiceId, 'B');
-        $resultsConjunto = $this->getAggregatedResultsConjunto($batteryServiceId);
 
         // Obtener información de la empresa
         $batteryService = $this->batteryModel->find($batteryServiceId);
@@ -248,21 +248,29 @@ class ReportGeneratorService
         $sectionsCreated = 0;
         $order = 1;
 
-        // 1. RESUMEN EJECUTIVO (conjunto)
-        if (!empty($resultsConjunto)) {
-            $sectionsCreated += $this->createSection($reportId, [
-                'section_level' => 'executive',
-                'questionnaire_type' => 'general',
-                'form_type' => 'conjunto',
-                'score_value' => $resultsConjunto['puntaje_total_general'] ?? null,
-                'risk_level' => $resultsConjunto['puntaje_total_general_nivel'] ?? null,
-                'order_position' => $order++,
-            ]);
+        // NOTA METODOLÓGICA: No se genera sección "executive conjunto" porque
+        // la Resolución 2404/2019 (Tabla 34) NO define baremos para mezclar
+        // trabajadores de Forma A y Forma B. Cada forma tiene su propio baremo.
+
+        // 1. RESUMEN EJECUTIVO POR FORMA (A y B separados)
+        // El resumen ejecutivo ahora se genera por forma, con baremos válidos
+        foreach (['A', 'B'] as $formType) {
+            $results = $formType === 'A' ? $resultsFormaA : $resultsFormaB;
+            if (!empty($results)) {
+                $sectionsCreated += $this->createSection($reportId, [
+                    'section_level' => 'executive',
+                    'questionnaire_type' => 'general',
+                    'form_type' => $formType,
+                    'score_value' => $results['puntaje_total_general'] ?? null,
+                    'risk_level' => $results['puntaje_total_general_nivel'] ?? null,
+                    'order_position' => $order++,
+                ]);
+            }
         }
 
-        // 2. TOTALES GENERALES (A, B, conjunto)
-        foreach (['A', 'B', 'conjunto'] as $formType) {
-            $results = $formType === 'conjunto' ? $resultsConjunto : ($formType === 'A' ? $resultsFormaA : $resultsFormaB);
+        // 2. TOTALES GENERALES (solo A y B - sin "conjunto")
+        foreach (['A', 'B'] as $formType) {
+            $results = $formType === 'A' ? $resultsFormaA : $resultsFormaB;
             if (!empty($results)) {
                 $sectionsCreated += $this->createSection($reportId, [
                     'section_level' => 'total',
@@ -480,21 +488,33 @@ class ReportGeneratorService
 
         // Generar texto con IA
         if ($section['section_level'] === 'executive') {
-            $resultsConjunto = $this->getAggregatedResultsConjunto($report['battery_service_id']);
-            $criticalAreas = $this->getCriticalAreas($resultsConjunto);
+            // Usar resultados de la forma específica (A o B), no mezclar
+            $formType = $section['form_type'] ?? 'A';
+            $resultsForma = $this->getAggregatedResults($report['battery_service_id'], $formType);
+            $criticalAreas = $this->getCriticalAreas($resultsForma);
+
+            // Contar trabajadores de esta forma
+            $totalWorkersForma = $this->resultModel
+                ->where('battery_service_id', $report['battery_service_id'])
+                ->where('intralaboral_form_type', $formType)
+                ->countAllResults();
+
+            $formaNombre = $formType === 'A' ? 'Jefes, Profesionales y Técnicos' : 'Auxiliares y Operarios';
 
             $companyData = [
                 'name' => $company['name'] ?? 'Empresa',
-                'total_workers' => $resultsConjunto['total_workers'] ?? 0,
+                'total_workers' => $totalWorkersForma,
                 'evaluation_date' => date('Y-m-d'),
+                'form_type' => $formType,
+                'form_name' => $formaNombre,
             ];
 
             $overallResults = [
                 'general_score' => $section['score_value'] ?? 0,
                 'general_risk' => $section['risk_level'] ?? 'sin_riesgo',
-                'intralaboral_score' => $resultsConjunto['intralaboral_total_puntaje'] ?? 0,
-                'extralaboral_score' => $resultsConjunto['extralaboral_total_puntaje'] ?? 0,
-                'stress_score' => $resultsConjunto['estres_total_puntaje'] ?? 0,
+                'intralaboral_score' => $resultsForma['intralaboral_total_puntaje'] ?? 0,
+                'extralaboral_score' => $resultsForma['extralaboral_total_puntaje'] ?? 0,
+                'stress_score' => $resultsForma['estres_total_puntaje'] ?? 0,
             ];
 
             $aiText = $this->openAIService->generateExecutiveSummary($companyData, $overallResults, $criticalAreas);
@@ -528,10 +548,18 @@ class ReportGeneratorService
     }
 
     /**
-     * Obtener resultados agregados del conjunto (A + B)
+     * DEPRECATED: Este método mezclaba Forma A y B sin baremo válido.
+     * La Resolución 2404/2019 (Tabla 34) NO define baremos para "conjunto".
+     * Usar getAggregatedResults($batteryServiceId, 'A') o 'B' en su lugar.
+     *
+     * @deprecated Usar getAggregatedResults() con forma específica
      */
     protected function getAggregatedResultsConjunto(int $batteryServiceId): array
     {
+        // Mantener por compatibilidad pero devolver vacío
+        // TODO: Eliminar este método cuando se confirme que no hay dependencias
+        log_message('warning', 'DEPRECATED: getAggregatedResultsConjunto() fue llamado. Use getAggregatedResults() con forma A o B.');
+
         $results = $this->resultModel
             ->where('battery_service_id', $batteryServiceId)
             ->findAll();

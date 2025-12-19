@@ -672,15 +672,30 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
 </table>
 ';
 
-        // Texto IA conjunto si existe
-        $aiText = $this->getAiText('conjunto');
-        if (!empty($aiText)) {
-            $html .= '
-<div class="ai-text-box" style="margin-top: 15pt;">
-    <div class="ai-text-title">Análisis Consolidado:</div>
-    ' . nl2br(esc($aiText)) . '
-</div>
-';
+        // Textos AI por forma (no existe baremo para 'conjunto')
+        $aiTextA = $this->getAiText('A');
+        $aiTextB = $this->getAiText('B');
+
+        if (!empty($aiTextA) || !empty($aiTextB)) {
+            $html .= '<div style="margin-top: 15pt;">';
+
+            if (!empty($aiTextA)) {
+                $html .= '
+<div class="ai-text-box" style="margin-bottom: 10pt;">
+    <div class="ai-text-title">Análisis del Especialista SST - Forma A:</div>
+    ' . nl2br(esc($aiTextA)) . '
+</div>';
+            }
+
+            if (!empty($aiTextB)) {
+                $html .= '
+<div class="ai-text-box">
+    <div class="ai-text-title">Análisis del Especialista SST - Forma B:</div>
+    ' . nl2br(esc($aiTextB)) . '
+</div>';
+            }
+
+            $html .= '</div>';
         }
 
         return $html;

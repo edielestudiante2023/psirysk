@@ -1451,6 +1451,7 @@ class ReportsController extends BaseController
 
     /**
      * Calcular heatmap con información detallada de baremos y promedios
+     * MAPA DE CALOR DE MÁXIMO RIESGO: Muestra el peor resultado entre Forma A y B
      */
     private function calculateHeatmapWithDetails($results)
     {
@@ -1458,42 +1459,47 @@ class ReportsController extends BaseController
             return null;
         }
 
-        // Determinar tipo de forma predominante (empate favorece A)
-        $formasCounts = array_count_values(array_column($results, 'intralaboral_form_type'));
-        $formaType = ($formasCounts['A'] ?? 0) >= ($formasCounts['B'] ?? 0) ? 'A' : 'B';
+        // Separar resultados por forma
+        $resultsA = array_filter($results, fn($r) => $r['intralaboral_form_type'] === 'A');
+        $resultsB = array_filter($results, fn($r) => $r['intralaboral_form_type'] === 'B');
 
-        // Para extralaboral y estrés, usar la misma lógica de forma
-        // Forma A = Jefes/Profesionales/Técnicos → Tabla 17 (extralaboral) y baremos jefes (estrés)
-        // Forma B = Auxiliares/Operarios → Tabla 18 (extralaboral) y baremos auxiliares (estrés)
-        // Empate favorece A (jefes)
-        $cargoType = $formaType === 'A' ? 'jefes' : 'auxiliares';
+        $countA = count($resultsA);
+        $countB = count($resultsB);
 
-        // BAREMOS - Desde fuente única autorizada (README_BAREMOS.md)
-        $baremoIntralaboralTotal = $formaType === 'A'
-            ? IntralaboralAScoring::getBaremoTotal()
-            : IntralaboralBScoring::getBaremoTotal();
+        // Determinar qué formas están presentes
+        $hasFormaA = $countA > 0;
+        $hasFormaB = $countB > 0;
+        $hasBothForms = $hasFormaA && $hasFormaB;
 
-        // Baremos de dominios según forma
-        $mapDominios = [
-            'liderazgo' => 'liderazgo_relaciones_sociales',
-            'control' => 'control',
-            'demandas' => 'demandas',
-            'recompensas' => 'recompensas',
+        // Para compatibilidad, mantener forma_type como la predominante
+        $formaType = ($countA >= $countB) ? 'A' : 'B';
+
+        // BAREMOS para cada forma - Desde fuente única autorizada
+        $baremosA = [
+            'intralaboral_total' => IntralaboralAScoring::getBaremoTotal(),
+            'dominios' => [
+                'liderazgo' => IntralaboralAScoring::getBaremoDominio('liderazgo_relaciones_sociales'),
+                'control' => IntralaboralAScoring::getBaremoDominio('control'),
+                'demandas' => IntralaboralAScoring::getBaremoDominio('demandas'),
+                'recompensas' => IntralaboralAScoring::getBaremoDominio('recompensas'),
+            ],
+            'extralaboral_total' => ExtralaboralScoring::getBaremoTotal('A'),
+            'estres_total' => EstresScoring::getBaremoA(),
         ];
-        $baremoDominios = [];
-        foreach ($mapDominios as $codigoCorto => $codigoLibreria) {
-            $baremoDominios[$codigoCorto] = $formaType === 'A'
-                ? IntralaboralAScoring::getBaremoDominio($codigoLibreria)
-                : IntralaboralBScoring::getBaremoDominio($codigoLibreria);
-        }
 
-        // Baremos Extralaboral y Estrés según tipo de cargo
-        $baremoExtralaboralTotal = ExtralaboralScoring::getBaremoTotal($formaType);
-        $baremoEstres = $cargoType === 'jefes'
-            ? EstresScoring::getBaremoA()
-            : EstresScoring::getBaremoB();
+        $baremosB = [
+            'intralaboral_total' => IntralaboralBScoring::getBaremoTotal(),
+            'dominios' => [
+                'liderazgo' => IntralaboralBScoring::getBaremoDominio('liderazgo_relaciones_sociales'),
+                'control' => IntralaboralBScoring::getBaremoDominio('control'),
+                'demandas' => IntralaboralBScoring::getBaremoDominio('demandas'),
+                'recompensas' => IntralaboralBScoring::getBaremoDominio('recompensas'),
+            ],
+            'extralaboral_total' => ExtralaboralScoring::getBaremoTotal('B'),
+            'estres_total' => EstresScoring::getBaremoB(),
+        ];
 
-        // Baremos de dimensiones intralaborales según forma
+        // Mapeo de dimensiones intralaborales
         $mapDimensionesIntra = [
             'caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
             'relaciones_sociales' => 'relaciones_sociales_trabajo',
@@ -1515,17 +1521,18 @@ class ReportsController extends BaseController
             'recompensas_pertenencia' => 'recompensas_pertenencia_estabilidad',
             'reconocimiento_compensacion' => 'reconocimiento_compensacion',
         ];
-        $baremoDimensionesIntra = [];
+
+        // Cargar baremos de dimensiones para cada forma
+        $baremosA['dimensiones_intra'] = [];
+        $baremosB['dimensiones_intra'] = [];
         foreach ($mapDimensionesIntra as $codigoCorto => $codigoLibreria) {
-            $baremo = $formaType === 'A'
-                ? IntralaboralAScoring::getBaremoDimension($codigoLibreria)
-                : IntralaboralBScoring::getBaremoDimension($codigoLibreria);
-            if ($baremo !== null) {
-                $baremoDimensionesIntra[$codigoCorto] = $baremo;
-            }
+            $baremoA = IntralaboralAScoring::getBaremoDimension($codigoLibreria);
+            $baremoB = IntralaboralBScoring::getBaremoDimension($codigoLibreria);
+            if ($baremoA !== null) $baremosA['dimensiones_intra'][$codigoCorto] = $baremoA;
+            if ($baremoB !== null) $baremosB['dimensiones_intra'][$codigoCorto] = $baremoB;
         }
 
-        // Baremos de dimensiones extralaborales
+        // Baremos de dimensiones extralaborales (igual para ambas formas)
         $mapDimensionesExtra = [
             'tiempo_fuera' => 'tiempo_fuera_trabajo',
             'relaciones_familiares' => 'relaciones_familiares',
@@ -1543,20 +1550,29 @@ class ReportsController extends BaseController
             }
         }
 
-        // Función helper para calcular y retornar detalles
-        $calculateDetail = function($field, $baremo) use ($results) {
-            $puntajes = array_filter(array_column($results, $field), function($v) {
+        // Orden de niveles de riesgo (mayor = peor)
+        $riskOrder = [
+            'sin_riesgo' => 0,
+            'riesgo_bajo' => 1,
+            'riesgo_medio' => 2,
+            'riesgo_alto' => 3,
+            'riesgo_muy_alto' => 4,
+            // Alias para estrés
+            'muy_bajo' => 0,
+            'bajo' => 1,
+            'medio' => 2,
+            'alto' => 3,
+            'muy_alto' => 4,
+        ];
+
+        // Función helper para calcular detalle de UNA forma
+        $calculateForma = function($field, $baremo, $resultados) use ($riskOrder) {
+            $puntajes = array_filter(array_column($resultados, $field), function($v) {
                 return $v !== null && $v !== '';
             });
 
             if (empty($puntajes)) {
-                return [
-                    'promedio' => 0,
-                    'nivel' => 'sin_riesgo',
-                    'cantidad' => 0,
-                    'puntajes' => [],
-                    'baremo' => $baremo
-                ];
+                return null; // No hay datos para esta forma
             }
 
             $promedio = array_sum($puntajes) / count($puntajes);
@@ -1572,60 +1588,165 @@ class ReportsController extends BaseController
             return [
                 'promedio' => round($promedio, 2),
                 'nivel' => $nivel,
+                'nivel_order' => $riskOrder[$nivel] ?? 0,
                 'cantidad' => count($puntajes),
-                'puntajes' => $puntajes,
                 'suma' => array_sum($puntajes),
                 'baremo' => $baremo,
                 'rango_aplicado' => $baremo[$nivel] ?? [0, 0]
             ];
         };
 
-        // Calcular todos los detalles
+        // Función para obtener el PEOR resultado entre Forma A y B
+        $getWorstResult = function($field, $baremoA, $baremoB) use ($calculateForma, $resultsA, $resultsB, $hasFormaA, $hasFormaB, $hasBothForms) {
+            $dataA = $hasFormaA ? $calculateForma($field, $baremoA, $resultsA) : null;
+            $dataB = $hasFormaB ? $calculateForma($field, $baremoB, $resultsB) : null;
+
+            // Si solo hay una forma, devolver esa
+            if (!$hasBothForms) {
+                $data = $dataA ?? $dataB;
+                if ($data === null) {
+                    return [
+                        'promedio' => 0,
+                        'nivel' => 'sin_riesgo',
+                        'cantidad' => 0,
+                        'forma_origen' => null,
+                        'solo_una_forma' => true,
+                        'data_a' => null,
+                        'data_b' => null,
+                    ];
+                }
+                $forma = $dataA ? 'A' : 'B';
+                return array_merge($data, [
+                    'forma_origen' => $forma,
+                    'solo_una_forma' => true,
+                    'data_a' => $dataA,
+                    'data_b' => $dataB,
+                ]);
+            }
+
+            // Hay ambas formas: determinar cuál es peor
+            $orderA = $dataA['nivel_order'] ?? 0;
+            $orderB = $dataB['nivel_order'] ?? 0;
+
+            // Si empatan en nivel, el peor es el de mayor puntaje
+            if ($orderA === $orderB) {
+                $worst = ($dataA['promedio'] ?? 0) >= ($dataB['promedio'] ?? 0) ? $dataA : $dataB;
+                $formaOrigen = ($dataA['promedio'] ?? 0) >= ($dataB['promedio'] ?? 0) ? 'A' : 'B';
+            } else {
+                $worst = $orderA > $orderB ? $dataA : $dataB;
+                $formaOrigen = $orderA > $orderB ? 'A' : 'B';
+            }
+
+            return array_merge($worst, [
+                'forma_origen' => $formaOrigen,
+                'solo_una_forma' => false,
+                'data_a' => $dataA,
+                'data_b' => $dataB,
+            ]);
+        };
+
+        // Calcular todos los detalles usando PEOR RESULTADO entre formas
         $calculations = [
             'forma_type' => $formaType,
-            'intralaboral_total' => $calculateDetail('intralaboral_total_puntaje', $baremoIntralaboralTotal),
-            'dom_liderazgo' => $calculateDetail('dom_liderazgo_puntaje', $baremoDominios['liderazgo']),
-            'dom_control' => $calculateDetail('dom_control_puntaje', $baremoDominios['control']),
-            'dom_demandas' => $calculateDetail('dom_demandas_puntaje', $baremoDominios['demandas']),
-            'dom_recompensas' => $calculateDetail('dom_recompensas_puntaje', $baremoDominios['recompensas']),
-            'extralaboral_total' => $calculateDetail('extralaboral_total_puntaje', $baremoExtralaboralTotal),
-            'estres_total' => $calculateDetail('estres_total_puntaje', $baremoEstres),
+            'has_forma_a' => $hasFormaA,
+            'has_forma_b' => $hasFormaB,
+            'has_both_forms' => $hasBothForms,
+            'count_a' => $countA,
+            'count_b' => $countB,
 
-            // Dimensiones intralaborales
-            'dim_caracteristicas_liderazgo' => $calculateDetail('dim_caracteristicas_liderazgo_puntaje', $baremoDimensionesIntra['caracteristicas_liderazgo']),
-            'dim_relaciones_sociales' => $calculateDetail('dim_relaciones_sociales_puntaje', $baremoDimensionesIntra['relaciones_sociales']),
-            'dim_retroalimentacion' => $calculateDetail('dim_retroalimentacion_puntaje', $baremoDimensionesIntra['retroalimentacion']),
-            'dim_relacion_colaboradores' => isset($baremoDimensionesIntra['relacion_colaboradores'])
-                ? $calculateDetail('dim_relacion_colaboradores_puntaje', $baremoDimensionesIntra['relacion_colaboradores'])
-                : null,
-            'dim_claridad_rol' => $calculateDetail('dim_claridad_rol_puntaje', $baremoDimensionesIntra['claridad_rol']),
-            'dim_capacitacion' => $calculateDetail('dim_capacitacion_puntaje', $baremoDimensionesIntra['capacitacion']),
-            'dim_participacion_manejo_cambio' => $calculateDetail('dim_participacion_manejo_cambio_puntaje', $baremoDimensionesIntra['participacion_cambio']),
-            'dim_oportunidades_desarrollo' => $calculateDetail('dim_oportunidades_desarrollo_puntaje', $baremoDimensionesIntra['oportunidades_desarrollo']),
-            'dim_control_autonomia' => $calculateDetail('dim_control_autonomia_puntaje', $baremoDimensionesIntra['control_autonomia']),
-            'dim_demandas_ambientales' => $calculateDetail('dim_demandas_ambientales_puntaje', $baremoDimensionesIntra['demandas_ambientales']),
-            'dim_demandas_emocionales' => $calculateDetail('dim_demandas_emocionales_puntaje', $baremoDimensionesIntra['demandas_emocionales']),
-            'dim_demandas_cuantitativas' => $calculateDetail('dim_demandas_cuantitativas_puntaje', $baremoDimensionesIntra['demandas_cuantitativas']),
-            'dim_influencia_trabajo_entorno_extralaboral' => $calculateDetail('dim_influencia_trabajo_entorno_extralaboral_puntaje', $baremoDimensionesIntra['influencia_entorno']),
-            'dim_demandas_responsabilidad' => isset($baremoDimensionesIntra['exigencias_responsabilidad'])
-                ? $calculateDetail('dim_demandas_responsabilidad_puntaje', $baremoDimensionesIntra['exigencias_responsabilidad'])
-                : null,
-            'dim_carga_mental' => $calculateDetail('dim_demandas_carga_mental_puntaje', $baremoDimensionesIntra['carga_mental']),
-            'dim_consistencia_rol' => isset($baremoDimensionesIntra['consistencia_rol'])
-                ? $calculateDetail('dim_consistencia_rol_puntaje', $baremoDimensionesIntra['consistencia_rol'])
-                : null,
-            'dim_demandas_jornada_trabajo' => $calculateDetail('dim_demandas_jornada_trabajo_puntaje', $baremoDimensionesIntra['demandas_jornada']),
-            'dim_recompensas_pertenencia' => $calculateDetail('dim_recompensas_pertenencia_puntaje', $baremoDimensionesIntra['recompensas_pertenencia']),
-            'dim_reconocimiento_compensacion' => $calculateDetail('dim_reconocimiento_compensacion_puntaje', $baremoDimensionesIntra['reconocimiento_compensacion']),
+            // Totales - PEOR entre A y B
+            'intralaboral_total' => $getWorstResult('intralaboral_total_puntaje', $baremosA['intralaboral_total'], $baremosB['intralaboral_total']),
 
-            // Dimensiones extralaborales
-            'dim_tiempo_fuera' => $calculateDetail('extralaboral_tiempo_fuera_puntaje', $baremoDimensionesExtra['tiempo_fuera']),
-            'dim_relaciones_familiares_extra' => $calculateDetail('extralaboral_relaciones_familiares_puntaje', $baremoDimensionesExtra['relaciones_familiares']),
-            'dim_comunicacion' => $calculateDetail('extralaboral_comunicacion_puntaje', $baremoDimensionesExtra['comunicacion']),
-            'dim_situacion_economica' => $calculateDetail('extralaboral_situacion_economica_puntaje', $baremoDimensionesExtra['situacion_economica']),
-            'dim_caracteristicas_vivienda' => $calculateDetail('extralaboral_caracteristicas_vivienda_puntaje', $baremoDimensionesExtra['caracteristicas_vivienda']),
-            'dim_influencia_entorno_extra' => $calculateDetail('extralaboral_influencia_entorno_puntaje', $baremoDimensionesExtra['influencia_entorno_extra']),
-            'dim_desplazamiento' => $calculateDetail('extralaboral_desplazamiento_puntaje', $baremoDimensionesExtra['desplazamiento']),
+            // Dominios - PEOR entre A y B
+            'dom_liderazgo' => $getWorstResult('dom_liderazgo_puntaje', $baremosA['dominios']['liderazgo'], $baremosB['dominios']['liderazgo']),
+            'dom_control' => $getWorstResult('dom_control_puntaje', $baremosA['dominios']['control'], $baremosB['dominios']['control']),
+            'dom_demandas' => $getWorstResult('dom_demandas_puntaje', $baremosA['dominios']['demandas'], $baremosB['dominios']['demandas']),
+            'dom_recompensas' => $getWorstResult('dom_recompensas_puntaje', $baremosA['dominios']['recompensas'], $baremosB['dominios']['recompensas']),
+
+            // Extralaboral y Estrés - PEOR entre A y B
+            'extralaboral_total' => $getWorstResult('extralaboral_total_puntaje', $baremosA['extralaboral_total'], $baremosB['extralaboral_total']),
+            'estres_total' => $getWorstResult('estres_total_puntaje', $baremosA['estres_total'], $baremosB['estres_total']),
+
+            // Dimensiones intralaborales - PEOR entre A y B
+            'dim_caracteristicas_liderazgo' => $getWorstResult('dim_caracteristicas_liderazgo_puntaje',
+                $baremosA['dimensiones_intra']['caracteristicas_liderazgo'] ?? [],
+                $baremosB['dimensiones_intra']['caracteristicas_liderazgo'] ?? []),
+            'dim_relaciones_sociales' => $getWorstResult('dim_relaciones_sociales_puntaje',
+                $baremosA['dimensiones_intra']['relaciones_sociales'] ?? [],
+                $baremosB['dimensiones_intra']['relaciones_sociales'] ?? []),
+            'dim_retroalimentacion' => $getWorstResult('dim_retroalimentacion_puntaje',
+                $baremosA['dimensiones_intra']['retroalimentacion'] ?? [],
+                $baremosB['dimensiones_intra']['retroalimentacion'] ?? []),
+            'dim_relacion_colaboradores' => isset($baremosA['dimensiones_intra']['relacion_colaboradores'])
+                ? $getWorstResult('dim_relacion_colaboradores_puntaje',
+                    $baremosA['dimensiones_intra']['relacion_colaboradores'] ?? [],
+                    $baremosB['dimensiones_intra']['relacion_colaboradores'] ?? [])
+                : null,
+            'dim_claridad_rol' => $getWorstResult('dim_claridad_rol_puntaje',
+                $baremosA['dimensiones_intra']['claridad_rol'] ?? [],
+                $baremosB['dimensiones_intra']['claridad_rol'] ?? []),
+            'dim_capacitacion' => $getWorstResult('dim_capacitacion_puntaje',
+                $baremosA['dimensiones_intra']['capacitacion'] ?? [],
+                $baremosB['dimensiones_intra']['capacitacion'] ?? []),
+            'dim_participacion_manejo_cambio' => $getWorstResult('dim_participacion_manejo_cambio_puntaje',
+                $baremosA['dimensiones_intra']['participacion_cambio'] ?? [],
+                $baremosB['dimensiones_intra']['participacion_cambio'] ?? []),
+            'dim_oportunidades_desarrollo' => $getWorstResult('dim_oportunidades_desarrollo_puntaje',
+                $baremosA['dimensiones_intra']['oportunidades_desarrollo'] ?? [],
+                $baremosB['dimensiones_intra']['oportunidades_desarrollo'] ?? []),
+            'dim_control_autonomia' => $getWorstResult('dim_control_autonomia_puntaje',
+                $baremosA['dimensiones_intra']['control_autonomia'] ?? [],
+                $baremosB['dimensiones_intra']['control_autonomia'] ?? []),
+            'dim_demandas_ambientales' => $getWorstResult('dim_demandas_ambientales_puntaje',
+                $baremosA['dimensiones_intra']['demandas_ambientales'] ?? [],
+                $baremosB['dimensiones_intra']['demandas_ambientales'] ?? []),
+            'dim_demandas_emocionales' => $getWorstResult('dim_demandas_emocionales_puntaje',
+                $baremosA['dimensiones_intra']['demandas_emocionales'] ?? [],
+                $baremosB['dimensiones_intra']['demandas_emocionales'] ?? []),
+            'dim_demandas_cuantitativas' => $getWorstResult('dim_demandas_cuantitativas_puntaje',
+                $baremosA['dimensiones_intra']['demandas_cuantitativas'] ?? [],
+                $baremosB['dimensiones_intra']['demandas_cuantitativas'] ?? []),
+            'dim_influencia_trabajo_entorno_extralaboral' => $getWorstResult('dim_influencia_trabajo_entorno_extralaboral_puntaje',
+                $baremosA['dimensiones_intra']['influencia_entorno'] ?? [],
+                $baremosB['dimensiones_intra']['influencia_entorno'] ?? []),
+            'dim_demandas_responsabilidad' => isset($baremosA['dimensiones_intra']['exigencias_responsabilidad'])
+                ? $getWorstResult('dim_demandas_responsabilidad_puntaje',
+                    $baremosA['dimensiones_intra']['exigencias_responsabilidad'] ?? [],
+                    $baremosB['dimensiones_intra']['exigencias_responsabilidad'] ?? [])
+                : null,
+            'dim_carga_mental' => $getWorstResult('dim_demandas_carga_mental_puntaje',
+                $baremosA['dimensiones_intra']['carga_mental'] ?? [],
+                $baremosB['dimensiones_intra']['carga_mental'] ?? []),
+            'dim_consistencia_rol' => isset($baremosA['dimensiones_intra']['consistencia_rol'])
+                ? $getWorstResult('dim_consistencia_rol_puntaje',
+                    $baremosA['dimensiones_intra']['consistencia_rol'] ?? [],
+                    $baremosB['dimensiones_intra']['consistencia_rol'] ?? [])
+                : null,
+            'dim_demandas_jornada_trabajo' => $getWorstResult('dim_demandas_jornada_trabajo_puntaje',
+                $baremosA['dimensiones_intra']['demandas_jornada'] ?? [],
+                $baremosB['dimensiones_intra']['demandas_jornada'] ?? []),
+            'dim_recompensas_pertenencia' => $getWorstResult('dim_recompensas_pertenencia_puntaje',
+                $baremosA['dimensiones_intra']['recompensas_pertenencia'] ?? [],
+                $baremosB['dimensiones_intra']['recompensas_pertenencia'] ?? []),
+            'dim_reconocimiento_compensacion' => $getWorstResult('dim_reconocimiento_compensacion_puntaje',
+                $baremosA['dimensiones_intra']['reconocimiento_compensacion'] ?? [],
+                $baremosB['dimensiones_intra']['reconocimiento_compensacion'] ?? []),
+
+            // Dimensiones extralaborales - mismo baremo para ambas formas
+            'dim_tiempo_fuera' => $getWorstResult('extralaboral_tiempo_fuera_puntaje',
+                $baremoDimensionesExtra['tiempo_fuera'], $baremoDimensionesExtra['tiempo_fuera']),
+            'dim_relaciones_familiares_extra' => $getWorstResult('extralaboral_relaciones_familiares_puntaje',
+                $baremoDimensionesExtra['relaciones_familiares'], $baremoDimensionesExtra['relaciones_familiares']),
+            'dim_comunicacion' => $getWorstResult('extralaboral_comunicacion_puntaje',
+                $baremoDimensionesExtra['comunicacion'], $baremoDimensionesExtra['comunicacion']),
+            'dim_situacion_economica' => $getWorstResult('extralaboral_situacion_economica_puntaje',
+                $baremoDimensionesExtra['situacion_economica'], $baremoDimensionesExtra['situacion_economica']),
+            'dim_caracteristicas_vivienda' => $getWorstResult('extralaboral_caracteristicas_vivienda_puntaje',
+                $baremoDimensionesExtra['caracteristicas_vivienda'], $baremoDimensionesExtra['caracteristicas_vivienda']),
+            'dim_influencia_entorno_extra' => $getWorstResult('extralaboral_influencia_entorno_puntaje',
+                $baremoDimensionesExtra['influencia_entorno_extra'], $baremoDimensionesExtra['influencia_entorno_extra']),
+            'dim_desplazamiento' => $getWorstResult('extralaboral_desplazamiento_puntaje',
+                $baremoDimensionesExtra['desplazamiento'], $baremoDimensionesExtra['desplazamiento']),
         ];
 
         return $calculations;
@@ -2698,7 +2819,11 @@ class ReportsController extends BaseController
     /**
      * Consolidación Grupal - Reporte estilo Excel
      * Muestra distribución por escalas agrupadas: Bajo/Sin riesgo, Medio, Alto/Muy alto
-     * Separado por Forma A, Forma B y Conjunto
+     * Separado por Forma A y Forma B (sin "conjunto" - no existe baremo para mezclar formas)
+     *
+     * NOTA METODOLÓGICA (Resolución 2404/2019):
+     * Los baremos de la Tabla 34 son específicos por forma. No se deben mezclar
+     * trabajadores de Forma A con Forma B para calcular porcentajes combinados.
      */
     public function consolidacion($serviceId)
     {
@@ -2725,7 +2850,7 @@ class ReportsController extends BaseController
 
         $totalA = count($formaA);
         $totalB = count($formaB);
-        $totalConjunto = $totalA + $totalB;
+        $totalGeneral = $totalA + $totalB; // Solo para información, no para cálculos
 
         // Obtener escalas y calcular consolidación
         $escalas = $this->getEscalasConsolidacion();
@@ -2739,14 +2864,9 @@ class ReportsController extends BaseController
                 $label = $config['label'];
                 $isEstres = $config['is_estres'] ?? false;
 
-                // Contar por nivel para cada forma
+                // Contar por nivel para cada forma (sin mezclar)
                 $conteoA = $this->contarPorNivelAgrupado($formaA, $nivelField, $isEstres);
                 $conteoB = $this->contarPorNivelAgrupado($formaB, $nivelField, $isEstres);
-                $conteoConjunto = [
-                    'bajo_sin_riesgo' => $conteoA['bajo_sin_riesgo'] + $conteoB['bajo_sin_riesgo'],
-                    'riesgo_medio' => $conteoA['riesgo_medio'] + $conteoB['riesgo_medio'],
-                    'alto_muy_alto' => $conteoA['alto_muy_alto'] + $conteoB['alto_muy_alto'],
-                ];
 
                 $consolidacion[$seccion][$key] = [
                     'label' => $label,
@@ -2759,12 +2879,8 @@ class ReportsController extends BaseController
                         'conteo' => $conteoB,
                         'porcentaje' => $this->calcularPorcentajesConsolidacion($conteoB, $totalB),
                         'total' => $totalB
-                    ],
-                    'conjunto' => [
-                        'conteo' => $conteoConjunto,
-                        'porcentaje' => $this->calcularPorcentajesConsolidacion($conteoConjunto, $totalConjunto),
-                        'total' => $totalConjunto
                     ]
+                    // ELIMINADO: 'conjunto' - no existe baremo para mezclar formas A y B
                 ];
             }
         }
@@ -2776,7 +2892,7 @@ class ReportsController extends BaseController
             'totales' => [
                 'forma_a' => $totalA,
                 'forma_b' => $totalB,
-                'conjunto' => $totalConjunto
+                'total_general' => $totalGeneral // Solo informativo
             ],
             'genero' => [
                 'masculino' => count(array_filter($results, fn($r) => $r['gender'] === 'Masculino')),

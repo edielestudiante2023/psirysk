@@ -52,9 +52,7 @@
         .header-forma-b {
             background-color: #fce4ec !important;
         }
-        .header-conjunto {
-            background-color: #e8f5e9 !important;
-        }
+        /* ELIMINADO: header-conjunto - no existe baremo para mezclar formas */
         .cell-bajo { background-color: #c8e6c9; }
         .cell-medio { background-color: #fff9c4; }
         .cell-alto { background-color: #ffcdd2; }
@@ -79,7 +77,7 @@
         }
         .badge-forma-a { background-color: #bbdefb; color: #1565c0; }
         .badge-forma-b { background-color: #f8bbd9; color: #c2185b; }
-        .badge-conjunto { background-color: #c8e6c9; color: #2e7d32; }
+        .badge-total { background-color: #e0e0e0; color: #424242; }
         .badge-masculino { background-color: #90caf9; color: #0d47a1; }
         .badge-femenino { background-color: #f48fb1; color: #880e4f; }
         @media print {
@@ -120,7 +118,7 @@
                         </p>
                     </div>
                     <div class="col-md-6 text-end">
-                        <span class="badge bg-primary">Total: <?= $totales['conjunto'] ?> trabajadores</span>
+                        <span class="badge bg-primary">Total: <?= $totales['total_general'] ?> trabajadores</span>
                     </div>
                 </div>
             </div>
@@ -183,7 +181,6 @@
                                     <th rowspan="2" style="min-width: 250px;">ESCALAS</th>
                                     <th colspan="3" class="header-forma-a">FORMA A</th>
                                     <th colspan="3" class="header-forma-b">FORMA B</th>
-                                    <th colspan="3" class="header-conjunto">CONJUNTO</th>
                                 </tr>
                                 <tr>
                                     <!-- Forma A -->
@@ -194,10 +191,6 @@
                                     <th class="header-forma-b cell-bajo" style="width: 80px;">Bajo y<br>sin riesgo</th>
                                     <th class="header-forma-b cell-medio" style="width: 80px;">Riesgo<br>medio</th>
                                     <th class="header-forma-b cell-alto" style="width: 80px;">Riesgo alto<br>y muy alto</th>
-                                    <!-- Conjunto -->
-                                    <th class="header-conjunto cell-bajo" style="width: 80px;">Bajo y<br>sin riesgo</th>
-                                    <th class="header-conjunto cell-medio" style="width: 80px;">Riesgo<br>medio</th>
-                                    <th class="header-conjunto cell-alto" style="width: 80px;">Riesgo alto<br>y muy alto</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -212,10 +205,6 @@
                                     <td class="cell-bajo"><?= $data['forma_b']['porcentaje']['bajo_sin_riesgo'] ?>%</td>
                                     <td class="cell-medio"><?= $data['forma_b']['porcentaje']['riesgo_medio'] ?>%</td>
                                     <td class="cell-alto"><?= $data['forma_b']['porcentaje']['alto_muy_alto'] ?>%</td>
-                                    <!-- Conjunto -->
-                                    <td class="cell-bajo"><?= $data['conjunto']['porcentaje']['bajo_sin_riesgo'] ?>%</td>
-                                    <td class="cell-medio"><?= $data['conjunto']['porcentaje']['riesgo_medio'] ?>%</td>
-                                    <td class="cell-alto"><?= $data['conjunto']['porcentaje']['alto_muy_alto'] ?>%</td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -224,14 +213,14 @@
                 </div>
             </div>
 
-            <!-- Gráfico para esta sección -->
+            <!-- Gráficos por Forma (sin conjunto - no existe baremo para mezclar formas) -->
             <?php if (count($items) > 0): ?>
             <?php $firstItem = reset($items); ?>
             <div class="row mb-4">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="card border-0 shadow-sm">
                         <div class="card-header bg-light py-2">
-                            <small class="fw-bold">Forma A (n=<?= $totales['forma_a'] ?>)</small>
+                            <small class="fw-bold">Forma A - Jefes, Profesionales y Técnicos (n=<?= $totales['forma_a'] ?>)</small>
                         </div>
                         <div class="card-body p-2">
                             <div class="chart-container" style="height: 200px;">
@@ -240,26 +229,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="card border-0 shadow-sm">
                         <div class="card-header bg-light py-2">
-                            <small class="fw-bold">Forma B (n=<?= $totales['forma_b'] ?>)</small>
+                            <small class="fw-bold">Forma B - Auxiliares y Operarios (n=<?= $totales['forma_b'] ?>)</small>
                         </div>
                         <div class="card-body p-2">
                             <div class="chart-container" style="height: 200px;">
                                 <canvas id="chart_<?= $seccion ?>_b"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-light py-2">
-                            <small class="fw-bold">Conjunto (n=<?= $totales['conjunto'] ?>)</small>
-                        </div>
-                        <div class="card-body p-2">
-                            <div class="chart-container" style="height: 200px;">
-                                <canvas id="chart_<?= $seccion ?>_conjunto"></canvas>
                             </div>
                         </div>
                     </div>
@@ -292,14 +269,15 @@
 
             const data = items[firstKey];
 
-            // Crear gráfico para cada forma
-            ['a', 'b', 'conjunto'].forEach(forma => {
+            // Crear gráfico solo para Forma A y B (no existe baremo para conjunto)
+            ['a', 'b'].forEach(forma => {
                 const canvasId = `chart_${seccion}_${forma}`;
                 const canvas = document.getElementById(canvasId);
                 if (!canvas) return;
 
-                const formaKey = forma === 'conjunto' ? 'conjunto' : `forma_${forma}`;
-                const porcentajes = data[formaKey].porcentaje;
+                const formaKey = `forma_${forma}`;
+                const porcentajes = data[formaKey]?.porcentaje;
+                if (!porcentajes) return;
 
                 new Chart(canvas, {
                     type: 'bar',

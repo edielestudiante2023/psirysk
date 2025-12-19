@@ -142,6 +142,10 @@
             border-left: 4px solid #667eea;
             background: #f8f9fa;
         }
+        .calc-card.border-danger {
+            border-left: 4px solid #dc3545 !important;
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.3) !important;
+        }
         .formula-box {
             background: #e7f3ff;
             border-left: 3px solid #0066cc;
@@ -502,11 +506,18 @@
 
         <?php
         function renderCalculationDetail($title, $data, $icon, $color) {
+            // Detectar si es riesgo alto o muy alto para resaltar con borde rojo
+            $isHighRisk = in_array($data['nivel'] ?? '', ['riesgo_alto', 'riesgo_muy_alto', 'alto', 'muy_alto']);
+            $borderClass = $isHighRisk ? 'border-danger border-3' : '';
+            $headerBg = $isHighRisk ? 'danger' : $color;
             ?>
             <div class="col-md-6 mb-4">
-                <div class="card shadow-sm calc-card">
-                    <div class="card-header bg-<?= $color ?> text-white">
-                        <h5 class="mb-0"><i class="fas fa-<?= $icon ?> me-2"></i><?= $title ?></h5>
+                <div class="card shadow-sm calc-card <?= $borderClass ?>">
+                    <div class="card-header bg-<?= $headerBg ?> text-white">
+                        <h5 class="mb-0">
+                            <?php if ($isHighRisk): ?><i class="fas fa-exclamation-triangle me-2"></i><?php endif; ?>
+                            <i class="fas fa-<?= $icon ?> me-2"></i><?= $title ?>
+                        </h5>
                     </div>
                     <div class="card-body">
                         <!-- Resultado -->
@@ -610,6 +621,109 @@
                 'heartbeat',
                 'danger'
             ); ?>
+        </div>
+
+        <!-- DIMENSIONES INTRALABORALES -->
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-3 mt-4"><i class="fas fa-layer-group me-2 text-info"></i>Dimensiones Intralaborales</h4>
+            </div>
+        </div>
+        <div class="row">
+            <!-- Dominio Liderazgo -->
+            <?php if (isset($heatmapCalculations['dim_caracteristicas_liderazgo'])): ?>
+            <?php renderCalculationDetail('Características del liderazgo', $heatmapCalculations['dim_caracteristicas_liderazgo'], 'user-tie', 'info'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_relaciones_sociales'])): ?>
+            <?php renderCalculationDetail('Relaciones sociales en el trabajo', $heatmapCalculations['dim_relaciones_sociales'], 'users', 'info'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_retroalimentacion'])): ?>
+            <?php renderCalculationDetail('Retroalimentación del desempeño', $heatmapCalculations['dim_retroalimentacion'], 'comments', 'info'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_relacion_colaboradores'])): ?>
+            <?php renderCalculationDetail('Relación con los colaboradores', $heatmapCalculations['dim_relacion_colaboradores'], 'handshake', 'info'); ?>
+            <?php endif; ?>
+
+            <!-- Dominio Control -->
+            <?php if (isset($heatmapCalculations['dim_claridad_rol'])): ?>
+            <?php renderCalculationDetail('Claridad de rol', $heatmapCalculations['dim_claridad_rol'], 'bullseye', 'success'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_capacitacion'])): ?>
+            <?php renderCalculationDetail('Capacitación', $heatmapCalculations['dim_capacitacion'], 'graduation-cap', 'success'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_participacion_manejo_cambio'])): ?>
+            <?php renderCalculationDetail('Participación y manejo del cambio', $heatmapCalculations['dim_participacion_manejo_cambio'], 'sync-alt', 'success'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_oportunidades_desarrollo'])): ?>
+            <?php renderCalculationDetail('Oportunidades de desarrollo', $heatmapCalculations['dim_oportunidades_desarrollo'], 'chart-line', 'success'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_control_autonomia'])): ?>
+            <?php renderCalculationDetail('Control y autonomía', $heatmapCalculations['dim_control_autonomia'], 'sliders-h', 'success'); ?>
+            <?php endif; ?>
+
+            <!-- Dominio Demandas -->
+            <?php if (isset($heatmapCalculations['dim_demandas_ambientales'])): ?>
+            <?php renderCalculationDetail('Demandas ambientales', $heatmapCalculations['dim_demandas_ambientales'], 'building', 'warning'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_demandas_emocionales'])): ?>
+            <?php renderCalculationDetail('Demandas emocionales', $heatmapCalculations['dim_demandas_emocionales'], 'heart', 'warning'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_demandas_cuantitativas'])): ?>
+            <?php renderCalculationDetail('Demandas cuantitativas', $heatmapCalculations['dim_demandas_cuantitativas'], 'list-ol', 'warning'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral'])): ?>
+            <?php renderCalculationDetail('Influencia trabajo-extralaboral', $heatmapCalculations['dim_influencia_trabajo_entorno_extralaboral'], 'exchange-alt', 'warning'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_demandas_responsabilidad'])): ?>
+            <?php renderCalculationDetail('Exigencias de responsabilidad', $heatmapCalculations['dim_demandas_responsabilidad'], 'shield-alt', 'warning'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_carga_mental'])): ?>
+            <?php renderCalculationDetail('Demandas de carga mental', $heatmapCalculations['dim_carga_mental'], 'brain', 'warning'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_consistencia_rol'])): ?>
+            <?php renderCalculationDetail('Consistencia del rol', $heatmapCalculations['dim_consistencia_rol'], 'balance-scale', 'warning'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_demandas_jornada_trabajo'])): ?>
+            <?php renderCalculationDetail('Demandas de la jornada de trabajo', $heatmapCalculations['dim_demandas_jornada_trabajo'], 'clock', 'warning'); ?>
+            <?php endif; ?>
+
+            <!-- Dominio Recompensas -->
+            <?php if (isset($heatmapCalculations['dim_recompensas_pertenencia'])): ?>
+            <?php renderCalculationDetail('Recompensas y pertenencia', $heatmapCalculations['dim_recompensas_pertenencia'], 'gift', 'secondary'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_reconocimiento_compensacion'])): ?>
+            <?php renderCalculationDetail('Reconocimiento y compensación', $heatmapCalculations['dim_reconocimiento_compensacion'], 'award', 'secondary'); ?>
+            <?php endif; ?>
+        </div>
+
+        <!-- DIMENSIONES EXTRALABORALES -->
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-3 mt-4"><i class="fas fa-home me-2 text-success"></i>Dimensiones Extralaborales</h4>
+            </div>
+        </div>
+        <div class="row">
+            <?php if (isset($heatmapCalculations['dim_tiempo_fuera'])): ?>
+            <?php renderCalculationDetail('Tiempo fuera del trabajo', $heatmapCalculations['dim_tiempo_fuera'], 'hourglass-half', 'success'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_relaciones_familiares_extra'])): ?>
+            <?php renderCalculationDetail('Relaciones familiares', $heatmapCalculations['dim_relaciones_familiares_extra'], 'users', 'success'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_comunicacion'])): ?>
+            <?php renderCalculationDetail('Comunicación interpersonal', $heatmapCalculations['dim_comunicacion'], 'comments', 'success'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_situacion_economica'])): ?>
+            <?php renderCalculationDetail('Situación económica familiar', $heatmapCalculations['dim_situacion_economica'], 'dollar-sign', 'success'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_caracteristicas_vivienda'])): ?>
+            <?php renderCalculationDetail('Características de la vivienda', $heatmapCalculations['dim_caracteristicas_vivienda'], 'home', 'success'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_influencia_entorno_extra'])): ?>
+            <?php renderCalculationDetail('Influencia del entorno extralaboral', $heatmapCalculations['dim_influencia_entorno_extra'], 'globe', 'success'); ?>
+            <?php endif; ?>
+            <?php if (isset($heatmapCalculations['dim_desplazamiento'])): ?>
+            <?php renderCalculationDetail('Desplazamiento vivienda-trabajo', $heatmapCalculations['dim_desplazamiento'], 'car', 'success'); ?>
+            <?php endif; ?>
         </div>
 
         <!-- Nota metodológica -->

@@ -936,6 +936,18 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
         $reportsController = new \App\Controllers\ReportsController();
         $heatmapData = $reportsController->calculateHeatmapForPdf($results);
 
+        // DEBUG: Log para verificar qué está retornando
+        log_message('debug', 'PDF Heatmap - heatmapData: ' . json_encode([
+            'is_null' => $heatmapData === null,
+            'intralaboral_total' => $heatmapData['intralaboral_total'] ?? 'NOT_SET',
+            'count_results' => count($results),
+        ]));
+
+        // Si heatmapData es null, retornar vacío
+        if ($heatmapData === null) {
+            return [];
+        }
+
         // Convertir formato heatmap (usa 'promedio') a formato PDF (usa 'puntaje')
         $convertData = function($data) {
             if (!is_array($data) || !isset($data['promedio'])) {
@@ -1090,7 +1102,7 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
 <h2 style="color: #006699; text-align: center; margin: 0 0 8pt 0; font-size: 12pt; text-decoration: underline;">
     Mapa de Calor - Riesgo Psicosocial General
 </h2>
-<p style="font-size: 6pt; color: #999; text-align: center; margin: 0 0 4pt 0;">[v5-SharedCalc ' . date('Y-m-d H:i:s') . ']</p>
+<p style="font-size: 6pt; color: #999; text-align: center; margin: 0 0 4pt 0;">[v6-Debug ' . date('Y-m-d H:i:s') . ' | Intra=' . $puntajeIntra . ']</p>
 
 <!-- Leyenda -->
 <table style="width: 100%; margin-bottom: 6pt; background: #f5f5f5;">

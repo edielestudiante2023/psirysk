@@ -1451,6 +1451,15 @@ class ReportsController extends BaseController
     }
 
     /**
+     * Método público para calcular heatmap - usado por PdfEjecutivo
+     * Garantiza que PDF y vista web usen exactamente los mismos cálculos
+     */
+    public function calculateHeatmapForPdf($results)
+    {
+        return $this->calculateHeatmapWithDetails($results);
+    }
+
+    /**
      * Calcular heatmap con información detallada de baremos y promedios
      * MAPA DE CALOR DE MÁXIMO RIESGO: Muestra el peor resultado entre Forma A y B
      */

@@ -3,7 +3,6 @@
 namespace App\Controllers\PdfEjecutivo;
 
 use App\Libraries\IntralaboralAScoring;
-use App\Libraries\IntralaboralBScoring;
 use App\Libraries\ExtralaboralScoring;
 use App\Libraries\EstresScoring;
 
@@ -564,9 +563,6 @@ class MapasCalorController extends PdfEjecutivoBaseController
         $html .= $this->renderTablaMapaCalor();
         $html .= $this->renderLeyenda();
 
-        // Página 4: Mapa de Calor Visual General (todos los dominios y dimensiones)
-        $html .= '<div class="page-break"></div>';
-        $html .= $this->renderMapaCalorVisualGeneral();
 
         // Página 5: Mapa visual intralaboral Forma A
         if ($this->heatmapData['total_a'] > 0) {
@@ -912,441 +908,56 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
     }
 
     /**
-     * Carga promedios generales usando metodología de MÁXIMO RIESGO
-     * Calcula separadamente para Form A y Form B, aplica baremos por forma,
-     * y selecciona el peor resultado entre ambas formas.
-     *
-     * VERSIÓN: v7-DirectCalc - Cálculo directo sin depender de ReportsController
+     * Carga los promedios generales (combinando todas las formas)
      */
     protected function loadPromediosGenerales($batteryServiceId)
     {
         $db = \Config\Database::connect();
 
         $query = $db->query("
-            SELECT *
+            SELECT
+                AVG(intralaboral_total_puntaje) as intralaboral_total,
+                AVG(extralaboral_total_puntaje) as extralaboral_total,
+                AVG(estres_total_puntaje) as estres_total,
+
+                AVG(dom_liderazgo_puntaje) as dom_liderazgo,
+                AVG(dom_control_puntaje) as dom_control,
+                AVG(dom_demandas_puntaje) as dom_demandas,
+                AVG(dom_recompensas_puntaje) as dom_recompensas,
+
+                AVG(dim_caracteristicas_liderazgo_puntaje) as dim_caracteristicas_liderazgo,
+                AVG(dim_relaciones_sociales_puntaje) as dim_relaciones_sociales,
+                AVG(dim_retroalimentacion_puntaje) as dim_retroalimentacion,
+                AVG(dim_relacion_colaboradores_puntaje) as dim_relacion_colaboradores,
+                AVG(dim_claridad_rol_puntaje) as dim_claridad_rol,
+                AVG(dim_capacitacion_puntaje) as dim_capacitacion,
+                AVG(dim_participacion_manejo_cambio_puntaje) as dim_participacion_cambio,
+                AVG(dim_oportunidades_desarrollo_puntaje) as dim_oportunidades_desarrollo,
+                AVG(dim_control_autonomia_puntaje) as dim_control_autonomia,
+                AVG(dim_demandas_ambientales_puntaje) as dim_demandas_ambientales,
+                AVG(dim_demandas_emocionales_puntaje) as dim_demandas_emocionales,
+                AVG(dim_demandas_cuantitativas_puntaje) as dim_demandas_cuantitativas,
+                AVG(dim_influencia_trabajo_entorno_extralaboral_puntaje) as dim_influencia_entorno,
+                AVG(dim_demandas_responsabilidad_puntaje) as dim_demandas_responsabilidad,
+                AVG(dim_demandas_carga_mental_puntaje) as dim_carga_mental,
+                AVG(dim_consistencia_rol_puntaje) as dim_consistencia_rol,
+                AVG(dim_demandas_jornada_trabajo_puntaje) as dim_demandas_jornada,
+                AVG(dim_recompensas_pertenencia_puntaje) as dim_recompensas_pertenencia,
+                AVG(dim_reconocimiento_compensacion_puntaje) as dim_reconocimiento,
+
+                AVG(extralaboral_tiempo_fuera_puntaje) as dim_tiempo_fuera,
+                AVG(extralaboral_relaciones_familiares_puntaje) as dim_relaciones_familiares,
+                AVG(extralaboral_comunicacion_puntaje) as dim_comunicacion,
+                AVG(extralaboral_situacion_economica_puntaje) as dim_situacion_economica,
+                AVG(extralaboral_caracteristicas_vivienda_puntaje) as dim_caracteristicas_vivienda,
+                AVG(extralaboral_influencia_entorno_puntaje) as dim_influencia_entorno_extra,
+                AVG(extralaboral_desplazamiento_puntaje) as dim_desplazamiento
+
             FROM calculated_results
             WHERE battery_service_id = ?
         ", [$batteryServiceId]);
 
-        $results = $query->getResultArray();
-
-        if (empty($results)) {
-            return [];
-        }
-
-        // Separar por forma
-        $resultsA = array_filter($results, fn($r) => $r['intralaboral_form_type'] === 'A');
-        $resultsB = array_filter($results, fn($r) => $r['intralaboral_form_type'] === 'B');
-
-        $hasFormaA = count($resultsA) > 0;
-        $hasFormaB = count($resultsB) > 0;
-        $hasBothForms = $hasFormaA && $hasFormaB;
-
-        // BAREMOS desde librerías autorizadas
-        $baremosA = [
-            'intralaboral_total' => IntralaboralAScoring::getBaremoTotal(),
-            'dom_liderazgo' => IntralaboralAScoring::getBaremoDominio('liderazgo_relaciones_sociales'),
-            'dom_control' => IntralaboralAScoring::getBaremoDominio('control'),
-            'dom_demandas' => IntralaboralAScoring::getBaremoDominio('demandas'),
-            'dom_recompensas' => IntralaboralAScoring::getBaremoDominio('recompensas'),
-            'extralaboral_total' => ExtralaboralScoring::getBaremoTotal('A'),
-            'estres_total' => EstresScoring::getBaremoA(),
-        ];
-
-        $baremosB = [
-            'intralaboral_total' => IntralaboralBScoring::getBaremoTotal(),
-            'dom_liderazgo' => IntralaboralBScoring::getBaremoDominio('liderazgo_relaciones_sociales'),
-            'dom_control' => IntralaboralBScoring::getBaremoDominio('control'),
-            'dom_demandas' => IntralaboralBScoring::getBaremoDominio('demandas'),
-            'dom_recompensas' => IntralaboralBScoring::getBaremoDominio('recompensas'),
-            'extralaboral_total' => ExtralaboralScoring::getBaremoTotal('B'),
-            'estres_total' => EstresScoring::getBaremoB(),
-        ];
-
-        // Mapeo de dimensiones a baremos
-        $dimMapIntra = [
-            'dim_caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
-            'dim_relaciones_sociales' => 'relaciones_sociales_trabajo',
-            'dim_retroalimentacion' => 'retroalimentacion_desempeno',
-            'dim_relacion_colaboradores' => 'relacion_colaboradores',
-            'dim_claridad_rol' => 'claridad_rol',
-            'dim_capacitacion' => 'capacitacion',
-            'dim_participacion_cambio' => 'participacion_manejo_cambio',
-            'dim_oportunidades_desarrollo' => 'oportunidades_desarrollo',
-            'dim_control_autonomia' => 'control_autonomia_trabajo',
-            'dim_demandas_ambientales' => 'demandas_ambientales_esfuerzo_fisico',
-            'dim_demandas_emocionales' => 'demandas_emocionales',
-            'dim_demandas_cuantitativas' => 'demandas_cuantitativas',
-            'dim_influencia_entorno' => 'influencia_trabajo_entorno_extralaboral',
-            'dim_demandas_responsabilidad' => 'exigencias_responsabilidad_cargo',
-            'dim_carga_mental' => 'demandas_carga_mental',
-            'dim_consistencia_rol' => 'consistencia_rol',
-            'dim_demandas_jornada' => 'demandas_jornada_trabajo',
-            'dim_recompensas_pertenencia' => 'recompensas_pertenencia_estabilidad',
-            'dim_reconocimiento' => 'reconocimiento_compensacion',
-        ];
-
-        foreach ($dimMapIntra as $pdfKey => $libKey) {
-            $bA = IntralaboralAScoring::getBaremoDimension($libKey);
-            $bB = IntralaboralBScoring::getBaremoDimension($libKey);
-            if ($bA) $baremosA[$pdfKey] = $bA;
-            if ($bB) $baremosB[$pdfKey] = $bB;
-        }
-
-        $dimMapExtra = [
-            'dim_tiempo_fuera' => 'tiempo_fuera_trabajo',
-            'dim_relaciones_familiares' => 'relaciones_familiares',
-            'dim_comunicacion' => 'comunicacion_relaciones',
-            'dim_situacion_economica' => 'situacion_economica',
-            'dim_caracteristicas_vivienda' => 'caracteristicas_vivienda',
-            'dim_influencia_entorno_extra' => 'influencia_entorno',
-            'dim_desplazamiento' => 'desplazamiento',
-        ];
-
-        foreach ($dimMapExtra as $pdfKey => $libKey) {
-            $b = ExtralaboralScoring::getBaremoDimension($libKey);
-            if ($b) {
-                $baremosA[$pdfKey] = $b;
-                $baremosB[$pdfKey] = $b;
-            }
-        }
-
-        // Orden de riesgo (mayor = peor)
-        $riskOrder = [
-            'sin_riesgo' => 0, 'riesgo_bajo' => 1, 'riesgo_medio' => 2,
-            'riesgo_alto' => 3, 'riesgo_muy_alto' => 4,
-            'muy_bajo' => 0, 'bajo' => 1, 'medio' => 2, 'alto' => 3, 'muy_alto' => 4,
-        ];
-
-        // Función para calcular promedio y nivel de una forma
-        $calcularForma = function($field, $baremo, $datos) use ($riskOrder) {
-            $puntajes = array_filter(array_column($datos, $field), fn($v) => $v !== null && $v !== '');
-            if (empty($puntajes)) return null;
-
-            $promedio = array_sum($puntajes) / count($puntajes);
-            $nivel = 'sin_riesgo';
-
-            if (is_array($baremo)) {
-                foreach ($baremo as $nivelKey => $rango) {
-                    if (is_array($rango) && count($rango) >= 2) {
-                        if ($promedio >= $rango[0] && $promedio <= $rango[1]) {
-                            $nivel = $nivelKey;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            return [
-                'promedio' => round($promedio, 2),
-                'nivel' => $nivel,
-                'nivel_order' => $riskOrder[$nivel] ?? 0,
-            ];
-        };
-
-        // Función para obtener PEOR resultado entre A y B
-        $getWorst = function($field, $baremoA, $baremoB) use ($calcularForma, $resultsA, $resultsB, $hasFormaA, $hasFormaB, $hasBothForms) {
-            $dataA = $hasFormaA && $baremoA ? $calcularForma($field, $baremoA, $resultsA) : null;
-            $dataB = $hasFormaB && $baremoB ? $calcularForma($field, $baremoB, $resultsB) : null;
-
-            if (!$hasBothForms) {
-                $data = $dataA ?? $dataB;
-                return $data ? ['puntaje' => $data['promedio'], 'nivel' => $data['nivel']]
-                             : ['puntaje' => 0, 'nivel' => 'sin_riesgo'];
-            }
-
-            // Ambas formas: seleccionar peor
-            if (!$dataA && !$dataB) return ['puntaje' => 0, 'nivel' => 'sin_riesgo'];
-            if (!$dataA) return ['puntaje' => $dataB['promedio'], 'nivel' => $dataB['nivel']];
-            if (!$dataB) return ['puntaje' => $dataA['promedio'], 'nivel' => $dataA['nivel']];
-
-            $orderA = $dataA['nivel_order'];
-            $orderB = $dataB['nivel_order'];
-
-            if ($orderA === $orderB) {
-                $worst = ($dataA['promedio'] >= $dataB['promedio']) ? $dataA : $dataB;
-            } else {
-                $worst = ($orderA > $orderB) ? $dataA : $dataB;
-            }
-
-            return ['puntaje' => $worst['promedio'], 'nivel' => $worst['nivel']];
-        };
-
-        // Mapeo de campos BD a claves PDF
-        $fieldMap = [
-            'intralaboral_total' => 'intralaboral_total_puntaje',
-            'extralaboral_total' => 'extralaboral_total_puntaje',
-            'estres_total' => 'estres_total_puntaje',
-            'dom_liderazgo' => 'dom_liderazgo_puntaje',
-            'dom_control' => 'dom_control_puntaje',
-            'dom_demandas' => 'dom_demandas_puntaje',
-            'dom_recompensas' => 'dom_recompensas_puntaje',
-            'dim_caracteristicas_liderazgo' => 'dim_caracteristicas_liderazgo_puntaje',
-            'dim_relaciones_sociales' => 'dim_relaciones_sociales_puntaje',
-            'dim_retroalimentacion' => 'dim_retroalimentacion_puntaje',
-            'dim_relacion_colaboradores' => 'dim_relacion_colaboradores_puntaje',
-            'dim_claridad_rol' => 'dim_claridad_rol_puntaje',
-            'dim_capacitacion' => 'dim_capacitacion_puntaje',
-            'dim_participacion_cambio' => 'dim_participacion_manejo_cambio_puntaje',
-            'dim_oportunidades_desarrollo' => 'dim_oportunidades_desarrollo_puntaje',
-            'dim_control_autonomia' => 'dim_control_autonomia_puntaje',
-            'dim_demandas_ambientales' => 'dim_demandas_ambientales_puntaje',
-            'dim_demandas_emocionales' => 'dim_demandas_emocionales_puntaje',
-            'dim_demandas_cuantitativas' => 'dim_demandas_cuantitativas_puntaje',
-            'dim_influencia_entorno' => 'dim_influencia_trabajo_entorno_extralaboral_puntaje',
-            'dim_demandas_responsabilidad' => 'dim_demandas_responsabilidad_puntaje',
-            'dim_carga_mental' => 'dim_demandas_carga_mental_puntaje',
-            'dim_consistencia_rol' => 'dim_consistencia_rol_puntaje',
-            'dim_demandas_jornada' => 'dim_demandas_jornada_trabajo_puntaje',
-            'dim_recompensas_pertenencia' => 'dim_recompensas_pertenencia_puntaje',
-            'dim_reconocimiento' => 'dim_reconocimiento_compensacion_puntaje',
-            'dim_tiempo_fuera' => 'extralaboral_tiempo_fuera_puntaje',
-            'dim_relaciones_familiares' => 'extralaboral_relaciones_familiares_puntaje',
-            'dim_comunicacion' => 'extralaboral_comunicacion_puntaje',
-            'dim_situacion_economica' => 'extralaboral_situacion_economica_puntaje',
-            'dim_caracteristicas_vivienda' => 'extralaboral_caracteristicas_vivienda_puntaje',
-            'dim_influencia_entorno_extra' => 'extralaboral_influencia_entorno_puntaje',
-            'dim_desplazamiento' => 'extralaboral_desplazamiento_puntaje',
-        ];
-
-        // Calcular todos los campos
-        $promedios = [];
-        foreach ($fieldMap as $pdfKey => $dbField) {
-            $promedios[$pdfKey] = $getWorst($dbField, $baremosA[$pdfKey] ?? null, $baremosB[$pdfKey] ?? null);
-        }
-
-        return $promedios;
-    }
-
-    /**
-     * Mapa de Calor Visual General - Todos los dominios y dimensiones en una página
-     * Usa tablas HTML nativas para compatibilidad con DomPDF
-     */
-    protected function renderMapaCalorVisualGeneral()
-    {
-        $batteryServiceId = $this->companyData['battery_service_id'] ?? 1;
-        $promedios = $this->loadPromediosGenerales($batteryServiceId);
-
-        // Helper para extraer puntaje y nivel de la nueva estructura
-        $getPuntaje = function($data) {
-            return is_array($data) ? floatval($data['puntaje'] ?? 0) : floatval($data);
-        };
-        $getNivel = function($data) {
-            return is_array($data) ? ($data['nivel'] ?? 'sin_riesgo') : 'sin_riesgo';
-        };
-
-        // Obtener niveles y colores para totales (ahora con nivel pre-calculado)
-        $puntajeIntra = $getPuntaje($promedios['intralaboral_total'] ?? 0);
-        $nivelIntra = $getNivel($promedios['intralaboral_total'] ?? []);
-        $colorIntra = $this->getColorPorNivel($nivelIntra);
-        $textColorIntra = $this->getTextColorPorNivel($nivelIntra);
-
-        $puntajeExtra = $getPuntaje($promedios['extralaboral_total'] ?? 0);
-        $nivelExtra = $getNivel($promedios['extralaboral_total'] ?? []);
-        $colorExtra = $this->getColorPorNivel($nivelExtra);
-        $textColorExtra = $this->getTextColorPorNivel($nivelExtra);
-
-        $puntajeEstres = $getPuntaje($promedios['estres_total'] ?? 0);
-        $nivelEstres = $getNivel($promedios['estres_total'] ?? []);
-        $colorEstres = $this->getColorPorNivel($nivelEstres);
-        $textColorEstres = $this->getTextColorPorNivel($nivelEstres);
-
-        // Estructura de dominios con dimensiones
-        $dominiosConfig = [
-            [
-                'nombre' => 'LIDERAZGO Y RELACIONES SOCIALES',
-                'key' => 'dom_liderazgo',
-                'dimensiones' => [
-                    ['key' => 'dim_caracteristicas_liderazgo', 'nombre' => 'Características del liderazgo'],
-                    ['key' => 'dim_relaciones_sociales', 'nombre' => 'Relaciones sociales en el trabajo'],
-                    ['key' => 'dim_retroalimentacion', 'nombre' => 'Retroalimentación del desempeño'],
-                    ['key' => 'dim_relacion_colaboradores', 'nombre' => 'Relación con los colaboradores'],
-                ]
-            ],
-            [
-                'nombre' => 'CONTROL SOBRE EL TRABAJO',
-                'key' => 'dom_control',
-                'dimensiones' => [
-                    ['key' => 'dim_claridad_rol', 'nombre' => 'Claridad de rol'],
-                    ['key' => 'dim_capacitacion', 'nombre' => 'Capacitación'],
-                    ['key' => 'dim_participacion_cambio', 'nombre' => 'Participación y manejo del cambio'],
-                    ['key' => 'dim_oportunidades_desarrollo', 'nombre' => 'Oportunidades desarrollo habilidades'],
-                    ['key' => 'dim_control_autonomia', 'nombre' => 'Control y autonomía sobre el trabajo'],
-                ]
-            ],
-            [
-                'nombre' => 'DEMANDAS DEL TRABAJO',
-                'key' => 'dom_demandas',
-                'dimensiones' => [
-                    ['key' => 'dim_demandas_ambientales', 'nombre' => 'Demandas ambientales y esfuerzo físico'],
-                    ['key' => 'dim_demandas_emocionales', 'nombre' => 'Demandas emocionales'],
-                    ['key' => 'dim_demandas_cuantitativas', 'nombre' => 'Demandas cuantitativas'],
-                    ['key' => 'dim_influencia_entorno', 'nombre' => 'Influencia trabajo sobre entorno extra'],
-                    ['key' => 'dim_demandas_responsabilidad', 'nombre' => 'Exigencias de responsabilidad del cargo'],
-                    ['key' => 'dim_carga_mental', 'nombre' => 'Demandas de carga mental'],
-                    ['key' => 'dim_consistencia_rol', 'nombre' => 'Consistencia del rol'],
-                    ['key' => 'dim_demandas_jornada', 'nombre' => 'Demandas de la jornada de trabajo'],
-                ]
-            ],
-            [
-                'nombre' => 'RECOMPENSAS',
-                'key' => 'dom_recompensas',
-                'dimensiones' => [
-                    ['key' => 'dim_recompensas_pertenencia', 'nombre' => 'Recompensas pertenencia organización'],
-                    ['key' => 'dim_reconocimiento', 'nombre' => 'Reconocimiento y compensación'],
-                ]
-            ],
-        ];
-
-        $dimensionesExtra = [
-            ['key' => 'dim_tiempo_fuera', 'nombre' => 'Tiempo fuera del trabajo'],
-            ['key' => 'dim_relaciones_familiares', 'nombre' => 'Relaciones familiares'],
-            ['key' => 'dim_comunicacion', 'nombre' => 'Comunicación y relaciones interpersonales'],
-            ['key' => 'dim_situacion_economica', 'nombre' => 'Situación económica del grupo familiar'],
-            ['key' => 'dim_caracteristicas_vivienda', 'nombre' => 'Características de la vivienda y entorno'],
-            ['key' => 'dim_influencia_entorno_extra', 'nombre' => 'Influencia del entorno extralaboral'],
-            ['key' => 'dim_desplazamiento', 'nombre' => 'Desplazamiento vivienda - trabajo'],
-        ];
-
-        // Contar total de dimensiones intralaborales
-        $totalDimensionesIntra = 0;
-        foreach ($dominiosConfig as $dom) {
-            $totalDimensionesIntra += count($dom['dimensiones']);
-        }
-
-        $html = '
-<!-- PDF_HEATMAP_VERSION: 2025-12-21_SharedCalc_v5 -->
-<h2 style="color: #006699; text-align: center; margin: 0 0 8pt 0; font-size: 12pt; text-decoration: underline;">
-    Mapa de Calor - Riesgo Psicosocial General
-</h2>
-<p style="font-size: 6pt; color: #999; text-align: center; margin: 0 0 4pt 0;">[v7-DirectCalc ' . date('Y-m-d H:i:s') . ' | Intra=' . $puntajeIntra . ']</p>
-
-<!-- Leyenda -->
-<table style="width: 100%; margin-bottom: 6pt; background: #f5f5f5;">
-    <tr>
-        <td style="text-align: center; padding: 4pt; font-size: 7pt;">
-            <span style="display: inline-block; width: 10pt; height: 10pt; background: #4CAF50;"></span> Sin Riesgo
-            &nbsp;&nbsp;
-            <span style="display: inline-block; width: 10pt; height: 10pt; background: #8BC34A;"></span> Bajo
-            &nbsp;&nbsp;
-            <span style="display: inline-block; width: 10pt; height: 10pt; background: #FFC107;"></span> Medio
-            &nbsp;&nbsp;
-            <span style="display: inline-block; width: 10pt; height: 10pt; background: #FF9800;"></span> Alto
-            &nbsp;&nbsp;
-            <span style="display: inline-block; width: 10pt; height: 10pt; background: #F44336;"></span> Muy Alto
-        </td>
-    </tr>
-</table>
-
-<!-- MAPA DE CALOR INTRALABORAL -->
-<table style="width: 100%; border-collapse: collapse; border: 2pt solid #333;">
-    <tr>
-        <!-- Celda Total Intralaboral -->
-        <td rowspan="' . $totalDimensionesIntra . '" style="width: 15%; vertical-align: middle; text-align: center; padding: 6pt; background: ' . $colorIntra . '; color: ' . $textColorIntra . '; border-right: 2pt solid #333; font-weight: bold; font-size: 6pt;">
-            TOTAL GENERAL<br>FACTORES DE<br>RIESGO<br>PSICOSOCIAL<br>INTRALABORAL<br>
-            <span style="font-size: 11pt;">' . number_format($puntajeIntra, 1) . '</span>
-        </td>';
-
-        $firstRow = true;
-        foreach ($dominiosConfig as $dominio) {
-            $dataDom = $promedios[$dominio['key']] ?? [];
-            $puntajeDom = $getPuntaje($dataDom);
-            $nivelDom = $getNivel($dataDom);
-            $colorDom = $this->getColorPorNivel($nivelDom);
-            $textColorDom = $this->getTextColorPorNivel($nivelDom);
-            $numDimensiones = count($dominio['dimensiones']);
-
-            foreach ($dominio['dimensiones'] as $dimIndex => $dim) {
-                $dataDim = $promedios[$dim['key']] ?? [];
-                $puntajeDim = $getPuntaje($dataDim);
-                $nivelDim = $getNivel($dataDim);
-                $colorDim = $this->getColorPorNivel($nivelDim);
-                $textColorDim = $this->getTextColorPorNivel($nivelDim);
-
-                if (!$firstRow) {
-                    $html .= '<tr>';
-                }
-
-                // Primera dimensión del dominio: incluir celda del dominio con rowspan
-                if ($dimIndex === 0) {
-                    $html .= '
-        <td rowspan="' . $numDimensiones . '" style="width: 25%; vertical-align: middle; text-align: center; padding: 4pt; background: ' . $colorDom . '; color: ' . $textColorDom . '; border: 1pt solid #666; font-weight: bold; font-size: 5.5pt;">
-            ' . $dominio['nombre'] . '<br>
-            <span style="font-size: 9pt;">' . number_format($puntajeDom, 1) . '</span>
-        </td>';
-                }
-
-                // Celda de la dimensión
-                $html .= '
-        <td style="width: 45%; padding: 2pt 4pt; background: ' . $colorDim . '; color: ' . $textColorDim . '; border: 1pt solid rgba(0,0,0,0.2); font-size: 6pt;">
-            ' . $dim['nombre'] . '
-        </td>
-        <td style="width: 15%; text-align: center; padding: 2pt; background: ' . $colorDim . '; color: ' . $textColorDim . '; border: 1pt solid rgba(0,0,0,0.2); font-size: 7pt; font-weight: bold;">
-            ' . number_format($puntajeDim, 1) . '
-        </td>';
-
-                if (!$firstRow) {
-                    $html .= '</tr>';
-                } else {
-                    $html .= '</tr>';
-                    $firstRow = false;
-                }
-            }
-        }
-
-        $html .= '
-</table>
-
-<!-- MAPA DE CALOR EXTRALABORAL -->
-<table style="width: 100%; border-collapse: collapse; border: 2pt solid #333; border-top: none;">
-    <tr>
-        <td rowspan="' . count($dimensionesExtra) . '" style="width: 40%; vertical-align: middle; text-align: center; padding: 8pt; background: ' . $colorExtra . '; color: ' . $textColorExtra . '; border-right: 2pt solid #333; font-weight: bold; font-size: 8pt;">
-            FACTORES EXTRALABORALES<br>
-            <span style="font-size: 12pt;">' . number_format($puntajeExtra, 1) . '</span>
-        </td>';
-
-        $firstExtraRow = true;
-        foreach ($dimensionesExtra as $dim) {
-            $dataDim = $promedios[$dim['key']] ?? [];
-            $puntajeDim = $getPuntaje($dataDim);
-            $nivelDim = $getNivel($dataDim);
-            $colorDim = $this->getColorPorNivel($nivelDim);
-            $textColorDim = $this->getTextColorPorNivel($nivelDim);
-
-            if (!$firstExtraRow) {
-                $html .= '<tr>';
-            }
-
-            $html .= '
-        <td style="width: 45%; padding: 3pt 6pt; background: ' . $colorDim . '; color: ' . $textColorDim . '; border: 1pt solid rgba(0,0,0,0.2); font-size: 7pt;">
-            ' . $dim['nombre'] . '
-        </td>
-        <td style="width: 15%; text-align: center; padding: 3pt; background: ' . $colorDim . '; color: ' . $textColorDim . '; border: 1pt solid rgba(0,0,0,0.2); font-size: 8pt; font-weight: bold;">
-            ' . number_format($puntajeDim, 1) . '
-        </td>
-    </tr>';
-            $firstExtraRow = false;
-        }
-
-        $html .= '
-</table>
-
-<!-- ESTRÉS -->
-<table style="width: 100%; border-collapse: collapse; border: 2pt solid #333; border-top: none;">
-    <tr>
-        <td style="text-align: center; padding: 10pt; background: ' . $colorEstres . '; color: ' . $textColorEstres . '; font-weight: bold; font-size: 9pt;">
-            SÍNTOMAS DE ESTRÉS<br>
-            <span style="font-size: 14pt;">' . number_format($puntajeEstres, 1) . '</span>
-        </td>
-    </tr>
-</table>
-
-<p style="font-size: 7pt; color: #666; text-align: center; margin-top: 6pt;">
-    Los valores representan el promedio de puntajes transformados de todos los trabajadores evaluados.
-</p>
-';
-
-        return $html;
+        return $query->getRowArray() ?? [];
     }
 
     /**

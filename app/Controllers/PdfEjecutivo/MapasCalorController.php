@@ -3,6 +3,7 @@
 namespace App\Controllers\PdfEjecutivo;
 
 use App\Libraries\IntralaboralAScoring;
+use App\Libraries\IntralaboralBScoring;
 use App\Libraries\ExtralaboralScoring;
 use App\Libraries\EstresScoring;
 
@@ -563,6 +564,9 @@ class MapasCalorController extends PdfEjecutivoBaseController
         $html .= $this->renderTablaMapaCalor();
         $html .= $this->renderLeyenda();
 
+        // Página 4: Mapa de Calor Visual General (Máximo Riesgo)
+        $html .= '<div class="page-break"></div>';
+        $html .= $this->renderMapaCalorVisualGeneral();
 
         // Página 5: Mapa visual intralaboral Forma A
         if ($this->heatmapData['total_a'] > 0) {
@@ -1535,6 +1539,284 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 </div>
 ';
         }
+
+        return $html;
+    }
+
+    /**
+     * Renderiza Mapa de Calor Visual General usando metodología de Máximo Riesgo
+     * Replica exactamente la vista web de /reports/heatmap/{id}
+     * Usa tablas HTML (no flexbox) para compatibilidad con DomPDF
+     */
+    protected function renderMapaCalorVisualGeneral()
+    {
+        // Usar ReportsController para obtener los mismos cálculos que la vista web
+        $reportsController = new \App\Controllers\ReportsController();
+        $heatmapCalc = $reportsController->calculateHeatmapForPdf($this->detailedData);
+
+        if (empty($heatmapCalc)) {
+            return '<p style="text-align: center; color: #666;">No hay datos disponibles para el mapa de calor.</p>';
+        }
+
+        // Función para obtener color de fondo según nivel
+        $getColor = function($nivel) {
+            $colorMap = [
+                'sin_riesgo' => '#90EE90',
+                'riesgo_bajo' => '#90EE90',
+                'riesgo_medio' => '#FFFF00',
+                'riesgo_alto' => '#FF4444',
+                'riesgo_muy_alto' => '#FF4444',
+                'muy_bajo' => '#90EE90',
+                'bajo' => '#90EE90',
+                'medio' => '#FFFF00',
+                'alto' => '#FF4444',
+                'muy_alto' => '#FF4444',
+            ];
+            return $colorMap[$nivel] ?? '#D3D3D3';
+        };
+
+        // Función para obtener color de texto según fondo
+        $getTextColor = function($nivel) {
+            $darkBg = ['riesgo_alto', 'riesgo_muy_alto', 'alto', 'muy_alto'];
+            return in_array($nivel, $darkBg) ? '#FFFFFF' : '#000000';
+        };
+
+        // Función para formatear puntaje
+        $formatScore = function($data) {
+            if (empty($data) || !isset($data['promedio'])) {
+                return 'N/D';
+            }
+            $promedio = number_format($data['promedio'], 1);
+            $formaOrigen = $data['forma_origen'] ?? null;
+            $soloUnaForma = $data['solo_una_forma'] ?? true;
+
+            if ($soloUnaForma || !$formaOrigen) {
+                return $promedio;
+            }
+            return $promedio . ' (' . $formaOrigen . ')';
+        };
+
+        $countA = $heatmapCalc['count_a'] ?? 0;
+        $countB = $heatmapCalc['count_b'] ?? 0;
+        $hasBothForms = $heatmapCalc['has_both_forms'] ?? false;
+
+        $html = '
+<h2 style="font-size: 14pt; color: #006699; margin: 0 0 10pt 0; padding-bottom: 5pt; border-bottom: 2pt solid #006699;">
+    Mapa de Calor - Visualización Global (Máximo Riesgo)
+</h2>
+
+<div style="font-size: 8pt; background: #f8f9fa; padding: 6pt; margin-bottom: 8pt; border: 1px solid #ddd;">
+    <strong>Metodología:</strong> ';
+
+        if ($hasBothForms) {
+            $html .= 'Muestra el <strong>peor resultado</strong> entre Forma A (n=' . $countA . ') y Forma B (n=' . $countB . '). La forma de origen se indica entre paréntesis.';
+        } elseif ($countA > 0) {
+            $html .= 'Solo Forma A evaluada (n=' . $countA . ' trabajadores - Jefes/Profesionales/Técnicos)';
+        } else {
+            $html .= 'Solo Forma B evaluada (n=' . $countB . ' trabajadores - Auxiliares/Operarios)';
+        }
+
+        $html .= '
+</div>
+
+<!-- Leyenda -->
+<table style="width: 100%; margin-bottom: 8pt; border-collapse: collapse;">
+    <tr>
+        <td style="text-align: center; padding: 4pt;">
+            <span style="display: inline-block; width: 12px; height: 12px; background: #90EE90; border-radius: 50%; vertical-align: middle;"></span>
+            <span style="font-size: 8pt; vertical-align: middle;"> Sin riesgo / Riesgo bajo</span>
+        </td>
+        <td style="text-align: center; padding: 4pt;">
+            <span style="display: inline-block; width: 12px; height: 12px; background: #FFFF00; border-radius: 50%; vertical-align: middle;"></span>
+            <span style="font-size: 8pt; vertical-align: middle;"> Riesgo medio</span>
+        </td>
+        <td style="text-align: center; padding: 4pt;">
+            <span style="display: inline-block; width: 12px; height: 12px; background: #FF4444; border-radius: 50%; vertical-align: middle;"></span>
+            <span style="font-size: 8pt; vertical-align: middle;"> Riesgo alto / Muy alto</span>
+        </td>
+    </tr>
+</table>
+
+<!-- MAPA DE CALOR INTRALABORAL -->
+<table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 0;">
+    <tr>';
+
+        // Columna Total Intralaboral
+        $nivelIntra = $heatmapCalc['intralaboral_total']['nivel'] ?? 'sin_riesgo';
+        $colorIntra = $getColor($nivelIntra);
+        $textColorIntra = $getTextColor($nivelIntra);
+
+        $html .= '
+        <td style="width: 20%; background: ' . $colorIntra . '; color: ' . $textColorIntra . '; text-align: center; vertical-align: middle; padding: 10pt; border-right: 2px solid #000; font-size: 8pt; font-weight: bold;">
+            TOTAL GENERAL FACTORES DE RIESGO PSICOSOCIAL INTRALABORAL<br>
+            <span style="font-size: 11pt;">' . $formatScore($heatmapCalc['intralaboral_total']) . '</span>
+        </td>
+        <td style="width: 80%; padding: 0; vertical-align: top;">';
+
+        // Dominios y dimensiones
+        $dominios = [
+            [
+                'nombre' => 'LIDERAZGO Y RELACIONES SOCIALES EN EL TRABAJO',
+                'key' => 'dom_liderazgo',
+                'dimensiones' => [
+                    ['key' => 'dim_caracteristicas_liderazgo', 'nombre' => 'Características del liderazgo'],
+                    ['key' => 'dim_relaciones_sociales', 'nombre' => 'Relaciones sociales en el trabajo'],
+                    ['key' => 'dim_retroalimentacion', 'nombre' => 'Retroalimentación del desempeño'],
+                    ['key' => 'dim_relacion_colaboradores', 'nombre' => 'Relación con los colaboradores'],
+                ]
+            ],
+            [
+                'nombre' => 'CONTROL SOBRE EL TRABAJO',
+                'key' => 'dom_control',
+                'dimensiones' => [
+                    ['key' => 'dim_claridad_rol', 'nombre' => 'Claridad de rol'],
+                    ['key' => 'dim_capacitacion', 'nombre' => 'Capacitación'],
+                    ['key' => 'dim_participacion_manejo_cambio', 'nombre' => 'Participación y manejo del cambio'],
+                    ['key' => 'dim_oportunidades_desarrollo', 'nombre' => 'Oportunidades desarrollo'],
+                    ['key' => 'dim_control_autonomia', 'nombre' => 'Control y autonomía'],
+                ]
+            ],
+            [
+                'nombre' => 'DEMANDAS DEL TRABAJO',
+                'key' => 'dom_demandas',
+                'dimensiones' => [
+                    ['key' => 'dim_demandas_ambientales', 'nombre' => 'Demandas ambientales'],
+                    ['key' => 'dim_demandas_emocionales', 'nombre' => 'Demandas emocionales'],
+                    ['key' => 'dim_demandas_cuantitativas', 'nombre' => 'Demandas cuantitativas'],
+                    ['key' => 'dim_influencia_trabajo_entorno_extralaboral', 'nombre' => 'Influencia trabajo-extralaboral'],
+                    ['key' => 'dim_demandas_responsabilidad', 'nombre' => 'Exigencias responsabilidad'],
+                    ['key' => 'dim_carga_mental', 'nombre' => 'Demandas carga mental'],
+                    ['key' => 'dim_consistencia_rol', 'nombre' => 'Consistencia del rol'],
+                    ['key' => 'dim_demandas_jornada_trabajo', 'nombre' => 'Demandas jornada trabajo'],
+                ]
+            ],
+            [
+                'nombre' => 'RECOMPENSAS',
+                'key' => 'dom_recompensas',
+                'dimensiones' => [
+                    ['key' => 'dim_recompensas_pertenencia', 'nombre' => 'Recompensas pertenencia'],
+                    ['key' => 'dim_reconocimiento_compensacion', 'nombre' => 'Reconocimiento y compensación'],
+                ]
+            ],
+        ];
+
+        $html .= '<table style="width: 100%; border-collapse: collapse;">';
+
+        foreach ($dominios as $idx => $dominio) {
+            $domData = $heatmapCalc[$dominio['key']] ?? null;
+            $nivelDom = $domData['nivel'] ?? 'sin_riesgo';
+            $colorDom = $getColor($nivelDom);
+            $textColorDom = $getTextColor($nivelDom);
+
+            $borderBottom = ($idx < count($dominios) - 1) ? 'border-bottom: 1px solid #666;' : '';
+
+            $html .= '
+            <tr style="' . $borderBottom . '">
+                <td style="width: 30%; background: ' . $colorDom . '; color: ' . $textColorDom . '; text-align: center; vertical-align: middle; padding: 6pt; border-right: 2px solid #000; font-size: 7pt; font-weight: bold;">
+                    ' . $dominio['nombre'] . '<br>
+                    <span style="font-size: 10pt;">' . $formatScore($domData) . '</span>
+                </td>
+                <td style="width: 70%; padding: 0; vertical-align: top;">';
+
+            // Dimensiones
+            $html .= '<table style="width: 100%; border-collapse: collapse;">';
+            foreach ($dominio['dimensiones'] as $dimIdx => $dim) {
+                $dimData = $heatmapCalc[$dim['key']] ?? null;
+
+                // Algunas dimensiones pueden no existir (ej: relacion_colaboradores solo en Forma A)
+                if (empty($dimData) || !isset($dimData['promedio'])) {
+                    continue;
+                }
+
+                $nivelDim = $dimData['nivel'] ?? 'sin_riesgo';
+                $colorDim = $getColor($nivelDim);
+                $textColorDim = $getTextColor($nivelDim);
+                $dimBorderBottom = ($dimIdx < count($dominio['dimensiones']) - 1) ? 'border-bottom: 1px solid #999;' : '';
+
+                $html .= '
+                <tr style="' . $dimBorderBottom . '">
+                    <td style="background: ' . $colorDim . '; color: ' . $textColorDim . '; text-align: center; vertical-align: middle; padding: 4pt; font-size: 7pt;">
+                        ' . $dim['nombre'] . '<br>
+                        <strong>(' . $formatScore($dimData) . ')</strong>
+                    </td>
+                </tr>';
+            }
+            $html .= '</table>';
+
+            $html .= '</td></tr>';
+        }
+
+        $html .= '</table>';
+        $html .= '</td></tr></table>';
+
+        // EXTRALABORAL
+        $nivelExtra = $heatmapCalc['extralaboral_total']['nivel'] ?? 'sin_riesgo';
+        $colorExtra = $getColor($nivelExtra);
+        $textColorExtra = $getTextColor($nivelExtra);
+
+        $dimExtras = [
+            ['key' => 'dim_tiempo_fuera', 'nombre' => 'Tiempo fuera del trabajo'],
+            ['key' => 'dim_relaciones_familiares_extra', 'nombre' => 'Relaciones familiares'],
+            ['key' => 'dim_comunicacion', 'nombre' => 'Comunicación interpersonal'],
+            ['key' => 'dim_situacion_economica', 'nombre' => 'Situación económica familiar'],
+            ['key' => 'dim_caracteristicas_vivienda', 'nombre' => 'Características vivienda'],
+            ['key' => 'dim_influencia_entorno_extra', 'nombre' => 'Influencia entorno extralaboral'],
+            ['key' => 'dim_desplazamiento', 'nombre' => 'Desplazamiento vivienda-trabajo'],
+        ];
+
+        $html .= '
+<table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none; margin-bottom: 0;">
+    <tr>
+        <td style="width: 50%; background: ' . $colorExtra . '; color: ' . $textColorExtra . '; text-align: center; vertical-align: middle; padding: 10pt; border-right: 2px solid #000; font-size: 8pt; font-weight: bold;">
+            FACTORES EXTRALABORALES<br>
+            <span style="font-size: 11pt;">' . $formatScore($heatmapCalc['extralaboral_total']) . '</span>
+        </td>
+        <td style="width: 50%; padding: 0; vertical-align: top;">
+            <table style="width: 100%; border-collapse: collapse;">';
+
+        foreach ($dimExtras as $dimIdx => $dim) {
+            $dimData = $heatmapCalc[$dim['key']] ?? null;
+            if (empty($dimData) || !isset($dimData['promedio'])) {
+                continue;
+            }
+            $nivelDim = $dimData['nivel'] ?? 'sin_riesgo';
+            $colorDim = $getColor($nivelDim);
+            $textColorDim = $getTextColor($nivelDim);
+            $borderBottom = ($dimIdx < count($dimExtras) - 1) ? 'border-bottom: 1px solid #999;' : '';
+
+            $html .= '
+            <tr style="' . $borderBottom . '">
+                <td style="background: ' . $colorDim . '; color: ' . $textColorDim . '; text-align: center; vertical-align: middle; padding: 4pt; font-size: 7pt;">
+                    ' . $dim['nombre'] . ' <strong>(' . $formatScore($dimData) . ')</strong>
+                </td>
+            </tr>';
+        }
+
+        $html .= '
+            </table>
+        </td>
+    </tr>
+</table>';
+
+        // ESTRÉS
+        $nivelEstres = $heatmapCalc['estres_total']['nivel'] ?? 'sin_riesgo';
+        $colorEstres = $getColor($nivelEstres);
+        $textColorEstres = $getTextColor($nivelEstres);
+
+        $html .= '
+<table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none;">
+    <tr>
+        <td style="width: 100%; background: ' . $colorEstres . '; color: ' . $textColorEstres . '; text-align: center; vertical-align: middle; padding: 10pt; font-size: 8pt; font-weight: bold;">
+            SÍNTOMAS DE ESTRÉS<br>
+            <span style="font-size: 11pt;">' . $formatScore($heatmapCalc['estres_total']) . '</span>
+        </td>
+    </tr>
+</table>
+
+<div style="margin-top: 10pt; padding: 6pt; background: #e3f2fd; border-left: 3pt solid #2196F3; font-size: 7pt;">
+    <strong>Nota metodológica:</strong> Este mapa representa el nivel de riesgo global calculado mediante el <strong>promedio aritmético</strong> de los puntajes transformados, aplicando los baremos oficiales de la Resolución 2404 de 2019. Cuando hay ambas formas evaluadas, se muestra el <strong>peor resultado</strong> entre Forma A y B para garantizar la detección del máximo riesgo presente.
+</div>
+';
 
         return $html;
     }

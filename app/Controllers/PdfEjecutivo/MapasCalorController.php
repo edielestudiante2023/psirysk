@@ -1550,9 +1550,19 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
      */
     protected function renderMapaCalorVisualGeneral()
     {
+        // Combinar datos de Forma A y B en un array plano para calculateHeatmapForPdf
+        $allResults = array_merge(
+            $this->detailedData['A'] ?? [],
+            $this->detailedData['B'] ?? []
+        );
+
+        if (empty($allResults)) {
+            return '<p style="text-align: center; color: #666;">No hay datos disponibles para el mapa de calor.</p>';
+        }
+
         // Usar ReportsController para obtener los mismos cálculos que la vista web
         $reportsController = new \App\Controllers\ReportsController();
-        $heatmapCalc = $reportsController->calculateHeatmapForPdf($this->detailedData);
+        $heatmapCalc = $reportsController->calculateHeatmapForPdf($allResults);
 
         if (empty($heatmapCalc)) {
             return '<p style="text-align: center; color: #666;">No hay datos disponibles para el mapa de calor.</p>';

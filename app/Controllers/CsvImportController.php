@@ -320,6 +320,204 @@ class CsvImportController extends BaseController
     }
 
     /**
+     * Iniciar importación por lotes - Guardar CSV y retornar importId
+     */
+    public function startBatchImport()
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No autorizado']);
+        }
+
+        $validation = \Config\Services::validation();
+        $validation->setRules([
+            'battery_service_id' => 'required|integer',
+            'csv_file' => 'uploaded[csv_file]|max_size[csv_file,10240]|ext_in[csv_file,csv,txt]',
+            'csv_format' => 'required|in_list[vertical,horizontal]',
+            'form_type' => 'required|in_list[A,B]'
+        ]);
+
+        if (!$validation->withRequest($this->request)->run()) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error en validación: ' . implode(', ', $validation->getErrors())
+            ]);
+        }
+
+        $serviceId = $this->request->getPost('battery_service_id');
+        $file = $this->request->getFile('csv_file');
+        $format = $this->request->getPost('csv_format');
+        $formType = $this->request->getPost('form_type');
+
+        if (!$file->isValid()) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Archivo inválido: ' . $file->getErrorString()
+            ]);
+        }
+
+        // Guardar archivo temporalmente
+        $uploadPath = WRITEPATH . 'uploads/csv_imports/';
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+
+        $fileName = uniqid('import_') . '_' . $file->getName();
+        $file->move($uploadPath, $fileName);
+
+        // Crear registro de importación
+        $importId = $this->csvImportModel->insert([
+            'battery_service_id' => $serviceId,
+            'imported_by' => session()->get('id'),
+            'file_name' => $file->getName(),
+            'form_type' => $formType,
+            'status' => 'procesando',
+            'total_rows' => 0,
+            'imported_rows' => 0,
+            'failed_rows' => 0
+        ]);
+
+        // Guardar información en sesión para procesar por lotes
+        session()->set('csv_import_' . $importId, [
+            'file_path' => $uploadPath . $fileName,
+            'service_id' => $serviceId,
+            'format' => $format,
+            'form_type' => $formType,
+            'offset' => 0 // Línea actual del CSV
+        ]);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'importId' => $importId,
+            'message' => 'Importación iniciada'
+        ]);
+    }
+
+    /**
+     * Procesar siguiente lote de 5 filas
+     */
+    public function processBatch($importId)
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No autorizado']);
+        }
+
+        $importData = session()->get('csv_import_' . $importId);
+        if (!$importData) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Sesión de importación no encontrada']);
+        }
+
+        $batchSize = 5;
+        $filePath = $importData['file_path'];
+        $serviceId = $importData['service_id'];
+        $format = $importData['format'];
+        $formType = $importData['form_type'];
+        $offset = $importData['offset'];
+
+        if (!file_exists($filePath)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Archivo CSV no encontrado']);
+        }
+
+        try {
+            $handle = fopen($filePath, 'r');
+
+            // Leer headers
+            $headers = fgetcsv($handle, 0, ';');
+            $headers = array_map(function($h) {
+                return strtolower(trim(str_replace("\xEF\xBB\xBF", '', $h)));
+            }, $headers);
+
+            // Saltar líneas ya procesadas
+            $currentLine = 0;
+            while ($currentLine < $offset && !feof($handle)) {
+                fgetcsv($handle, 0, ';');
+                $currentLine++;
+            }
+
+            // Procesar siguiente lote
+            $batchSuccess = 0;
+            $batchFailed = 0;
+            $batchErrors = [];
+            $linesProcessed = 0;
+            $endOfFile = false;
+
+            while ($linesProcessed < $batchSize && ($row = fgetcsv($handle, 0, ';')) !== false) {
+                $currentLine++;
+                $linesProcessed++;
+                $data = array_combine($headers, $row);
+
+                try {
+                    if ($format === 'horizontal') {
+                        $this->importHorizontalRow($data, $serviceId, $headers, $formType);
+                    } else {
+                        $this->importRow($data, $serviceId);
+                    }
+                    $batchSuccess++;
+                } catch (\Exception $e) {
+                    $batchFailed++;
+                    $batchErrors[] = "Fila " . ($offset + $linesProcessed) . ": " . $e->getMessage();
+                }
+            }
+
+            $endOfFile = feof($handle);
+            fclose($handle);
+
+            // Actualizar registro de importación
+            $import = $this->csvImportModel->find($importId);
+            $totalSuccess = $import['imported_rows'] + $batchSuccess;
+            $totalFailed = $import['failed_rows'] + $batchFailed;
+            $totalRows = $totalSuccess + $totalFailed;
+
+            $updateData = [
+                'total_rows' => $totalRows,
+                'imported_rows' => $totalSuccess,
+                'failed_rows' => $totalFailed
+            ];
+
+            if ($endOfFile) {
+                $updateData['status'] = $totalFailed > 0 ? 'completado_con_errores' : 'completado';
+
+                // Limpiar sesión y archivo temporal
+                session()->remove('csv_import_' . $importId);
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+            } else {
+                // Actualizar offset para el siguiente lote
+                $importData['offset'] = $offset + $linesProcessed;
+                session()->set('csv_import_' . $importId, $importData);
+            }
+
+            $this->csvImportModel->update($importId, $updateData);
+
+            return $this->response->setJSON([
+                'success' => true,
+                'completed' => $endOfFile,
+                'batch' => [
+                    'success' => $batchSuccess,
+                    'failed' => $batchFailed,
+                    'errors' => $batchErrors
+                ],
+                'total' => [
+                    'rows' => $totalRows,
+                    'success' => $totalSuccess,
+                    'failed' => $totalFailed
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            $this->csvImportModel->update($importId, [
+                'status' => 'error',
+                'error_log' => json_encode(['error' => $e->getMessage()])
+            ]);
+
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Obtener el ID del último import del usuario actual
      */
     public function getLatestImportId()

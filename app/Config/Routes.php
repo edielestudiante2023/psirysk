@@ -114,7 +114,9 @@ $routes->group('workers', function($routes) {
 // Rutas de Importación CSV - Módulo de Contingencia
 $routes->group('csv-import', function($routes) {
     $routes->get('/', 'CsvImportController::index'); // Vista principal
-    $routes->post('upload', 'CsvImportController::upload'); // Procesar carga
+    $routes->post('upload', 'CsvImportController::upload'); // Procesar carga (legacy)
+    $routes->post('start-batch', 'CsvImportController::startBatchImport'); // Iniciar importación por lotes
+    $routes->post('process-batch/(:num)', 'CsvImportController::processBatch/$1'); // Procesar siguiente lote
     $routes->delete('delete/(:num)', 'CsvImportController::deleteImport/$1'); // Eliminar importación
     $routes->get('get-latest-import-id', 'CsvImportController::getLatestImportId'); // Obtener ID del último import
     $routes->get('progress/(:num)', 'CsvImportController::getImportProgress/$1'); // Obtener progreso de import

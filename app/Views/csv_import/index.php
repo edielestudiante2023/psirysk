@@ -442,20 +442,148 @@
                 });
         }
 
+        // Procesar siguiente lote de forma recursiva
+        function processNextBatch(importId) {
+            fetch(`<?= base_url('csv-import/process-batch') ?>/${importId}`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Error al procesar lote',
+                        confirmButtonColor: '#dc3545'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                    return;
+                }
+
+                // Actualizar progreso en la UI
+                const total = data.total;
+                const progressText = `
+                    <div class="text-center">
+                        <div class="mb-3">
+                            <i class="fas fa-file-csv fa-3x text-primary"></i>
+                        </div>
+                        <h4>Procesando registros...</h4>
+                        <div class="progress mt-3" style="height: 30px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                 role="progressbar"
+                                 style="width: 100%">
+                                ${total.rows} registros procesados
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <p class="mb-1">
+                                <i class="fas fa-check-circle text-success me-1"></i>
+                                <strong>${total.success}</strong> importados exitosamente
+                            </p>
+                            ${total.failed > 0 ? `
+                                <p class="mb-0">
+                                    <i class="fas fa-exclamation-triangle text-warning me-1"></i>
+                                    <strong>${total.failed}</strong> con errores
+                                </p>
+                            ` : ''}
+                        </div>
+                        ${data.batch.errors && data.batch.errors.length > 0 ? `
+                            <div class="alert alert-warning mt-3 text-start" style="max-height: 150px; overflow-y: auto;">
+                                <strong>Últimos errores:</strong><br>
+                                ${data.batch.errors.slice(-3).join('<br>')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+
+                Swal.update({ html: progressText });
+
+                // Si no está completo, procesar siguiente lote
+                if (!data.completed) {
+                    setTimeout(() => processNextBatch(importId), 500);
+                } else {
+                    // Importación completada
+                    setTimeout(() => {
+                        Swal.fire({
+                            icon: total.failed > 0 ? 'warning' : 'success',
+                            title: '¡Importación completada!',
+                            html: `
+                                <p><strong>${total.success}</strong> trabajadores importados correctamente</p>
+                                ${total.failed > 0 ? `<p class="text-warning"><strong>${total.failed}</strong> registros fallidos</p>` : ''}
+                            `,
+                            confirmButtonColor: '#28a745'
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    }, 500);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'No se pudo conectar con el servidor',
+                    confirmButtonColor: '#dc3545'
+                }).then(() => {
+                    window.location.reload();
+                });
+            });
+        }
+
         // Mostrar loading al enviar formulario
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
             const submitBtn = document.getElementById('submitBtn');
+            const formData = new FormData(this);
+
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Importando...';
 
             Swal.fire({
-                title: 'Procesando...',
-                html: 'Importando datos del CSV. Por favor espere.',
+                title: 'Iniciando importación...',
+                html: '<div class="text-center"><i class="fas fa-spinner fa-spin fa-3x text-primary mb-3"></i><p>Preparando archivo CSV...</p></div>',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
-                didOpen: () => {
-                    Swal.showLoading();
+                showConfirmButton: false
+            });
+
+            // Iniciar importación por lotes
+            fetch('<?= base_url('csv-import/start-batch') ?>', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Comenzar a procesar lotes
+                    processNextBatch(data.importId);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'No se pudo iniciar la importación',
+                        confirmButtonColor: '#dc3545'
+                    });
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Importar CSV';
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al conectar con el servidor',
+                    confirmButtonColor: '#dc3545'
+                });
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Importar CSV';
             });
         });
 

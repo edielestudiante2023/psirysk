@@ -1646,22 +1646,7 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
         </td>
     </tr>
 </table>
-
-<!-- MAPA DE CALOR INTRALABORAL -->
-<table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 0;">
-    <tr>';
-
-        // Columna Total Intralaboral
-        $nivelIntra = $heatmapCalc['intralaboral_total']['nivel'] ?? 'sin_riesgo';
-        $colorIntra = $getColor($nivelIntra);
-        $textColorIntra = $getTextColor($nivelIntra);
-
-        $html .= '
-        <td style="width: 20%; background: ' . $colorIntra . '; color: ' . $textColorIntra . '; text-align: center; vertical-align: middle; padding: 10pt; border-right: 2px solid #000; font-size: 8pt; font-weight: bold;">
-            TOTAL GENERAL FACTORES DE RIESGO PSICOSOCIAL INTRALABORAL<br>
-            <span style="font-size: 11pt;">' . $formatScore($heatmapCalc['intralaboral_total']) . '</span>
-        </td>
-        <td style="width: 80%; padding: 0; vertical-align: top;">';
+';
 
         // Dominios y dimensiones
         $dominios = [
@@ -1710,21 +1695,31 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
             ],
         ];
 
-        // Pre-filtrar dimensiones válidas para cada dominio
+        // Pre-filtrar dimensiones válidas y contar total de filas
+        $totalFilas = 0;
         foreach ($dominios as &$dominio) {
             $dominio['dimensionesValidas'] = [];
             foreach ($dominio['dimensiones'] as $dim) {
                 $dimData = $heatmapCalc[$dim['key']] ?? null;
                 if (!empty($dimData) && isset($dimData['promedio'])) {
                     $dominio['dimensionesValidas'][] = $dim;
+                    $totalFilas++;
                 }
             }
         }
         unset($dominio);
 
-        // Usar una sola tabla con rowspan para evitar espacios en blanco
-        $html .= '<table style="width: 100%; border-collapse: collapse;">';
+        // Datos del Total Intralaboral
+        $nivelIntra = $heatmapCalc['intralaboral_total']['nivel'] ?? 'sin_riesgo';
+        $colorIntra = $getColor($nivelIntra);
+        $textColorIntra = $getTextColor($nivelIntra);
 
+        // UNA SOLA TABLA con rowspan para Total, Dominios y Dimensiones
+        $html .= '
+<!-- MAPA DE CALOR INTRALABORAL -->
+<table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 0;">';
+
+        $filaActual = 0;
         foreach ($dominios as $idx => $dominio) {
             $domData = $heatmapCalc[$dominio['key']] ?? null;
             $nivelDom = $domData['nivel'] ?? 'sin_riesgo';
@@ -1733,7 +1728,7 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
             $dimensionesValidas = $dominio['dimensionesValidas'];
             $totalDimValidas = count($dimensionesValidas);
-            $rowspan = max(1, $totalDimValidas);
+            $rowspanDom = max(1, $totalDimValidas);
 
             $isLastDominio = ($idx === count($dominios) - 1);
 
@@ -1745,6 +1740,8 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
                 $isFirstDim = ($dimIdx === 0);
                 $isLastDim = ($dimIdx === $totalDimValidas - 1);
+                $isFirstRow = ($filaActual === 0);
+                $isLastRow = ($filaActual === $totalFilas - 1);
 
                 // Borde inferior de la fila
                 $rowBorderBottom = '';
@@ -1756,10 +1753,19 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
                 $html .= '<tr style="' . $rowBorderBottom . '">';
 
-                // Celda del dominio solo en la primera dimensión (con rowspan)
+                // Celda Total Intralaboral (solo en la primera fila, con rowspan total)
+                if ($isFirstRow) {
+                    $html .= '
+                    <td rowspan="' . $totalFilas . '" style="width: 20%; background: ' . $colorIntra . '; color: ' . $textColorIntra . '; text-align: center; vertical-align: middle; padding: 10pt; border-right: 2px solid #000; font-size: 8pt; font-weight: bold;">
+                        TOTAL GENERAL FACTORES DE RIESGO PSICOSOCIAL INTRALABORAL<br>
+                        <span style="font-size: 11pt;">' . $formatScore($heatmapCalc['intralaboral_total']) . '</span>
+                    </td>';
+                }
+
+                // Celda del dominio (solo en la primera dimensión del dominio)
                 if ($isFirstDim) {
                     $html .= '
-                    <td rowspan="' . $rowspan . '" style="width: 30%; background: ' . $colorDom . '; color: ' . $textColorDom . '; text-align: center; vertical-align: middle; padding: 6pt; border-right: 2px solid #000; font-size: 7pt; font-weight: bold;">
+                    <td rowspan="' . $rowspanDom . '" style="width: 25%; background: ' . $colorDom . '; color: ' . $textColorDom . '; text-align: center; vertical-align: middle; padding: 6pt; border-right: 2px solid #000; font-size: 7pt; font-weight: bold;">
                         ' . $dominio['nombre'] . '<br>
                         <span style="font-size: 10pt;">' . $formatScore($domData) . '</span>
                     </td>';
@@ -1767,16 +1773,17 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
                 // Celda de la dimensión
                 $html .= '
-                    <td style="width: 70%; background: ' . $colorDim . '; color: ' . $textColorDim . '; text-align: center; vertical-align: middle; padding: 4pt; font-size: 7pt;">
+                    <td style="width: 55%; background: ' . $colorDim . '; color: ' . $textColorDim . '; text-align: center; vertical-align: middle; padding: 4pt; font-size: 7pt;">
                         ' . $dim['nombre'] . '<br>
                         <strong>(' . $formatScore($dimData) . ')</strong>
                     </td>
                 </tr>';
+
+                $filaActual++;
             }
         }
 
         $html .= '</table>';
-        $html .= '</td></tr></table>';
 
         // EXTRALABORAL
         $nivelExtra = $heatmapCalc['extralaboral_total']['nivel'] ?? 'sin_riesgo';

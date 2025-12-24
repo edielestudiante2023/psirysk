@@ -173,6 +173,7 @@ class ReportsController extends BaseController
         $data = [
             'title' => 'Dashboard Intralaboral - ' . $service['service_name'],
             'service' => $service,
+            'serviceId' => $serviceId,
             'results' => $results,
             'segmentadores' => $segmentadores,
             'stats' => $stats,
@@ -280,6 +281,7 @@ class ReportsController extends BaseController
         $data = [
             'title' => 'Dashboard Extralaboral - ' . $service['service_name'],
             'service' => $service,
+            'serviceId' => $serviceId,
             'results' => $results,
             'segmentadores' => $segmentadores,
             'stats' => $stats,
@@ -407,6 +409,7 @@ class ReportsController extends BaseController
         $data = [
             'title' => 'Dashboard Estrés - ' . $service['service_name'],
             'service' => $service,
+            'serviceId' => $serviceId,
             'results' => $results,
             'responsesData' => $responsesData,
             'segmentadores' => $segmentadores,

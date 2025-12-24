@@ -1728,20 +1728,24 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
                 </td>
                 <td style="width: 70%; padding: 0; vertical-align: top;">';
 
-            // Dimensiones
-            $html .= '<table style="width: 100%; border-collapse: collapse;">';
-            foreach ($dominio['dimensiones'] as $dimIdx => $dim) {
+            // Filtrar dimensiones que tienen datos válidos ANTES de renderizar
+            $dimensionesValidas = [];
+            foreach ($dominio['dimensiones'] as $dim) {
                 $dimData = $heatmapCalc[$dim['key']] ?? null;
-
-                // Algunas dimensiones pueden no existir (ej: relacion_colaboradores solo en Forma A)
-                if (empty($dimData) || !isset($dimData['promedio'])) {
-                    continue;
+                if (!empty($dimData) && isset($dimData['promedio'])) {
+                    $dimensionesValidas[] = $dim;
                 }
+            }
 
+            // Renderizar solo las dimensiones válidas
+            $html .= '<table style="width: 100%; border-collapse: collapse;">';
+            $totalDimValidas = count($dimensionesValidas);
+            foreach ($dimensionesValidas as $dimIdx => $dim) {
+                $dimData = $heatmapCalc[$dim['key']];
                 $nivelDim = $dimData['nivel'] ?? 'sin_riesgo';
                 $colorDim = $getColor($nivelDim);
                 $textColorDim = $getTextColor($nivelDim);
-                $dimBorderBottom = ($dimIdx < count($dominio['dimensiones']) - 1) ? 'border-bottom: 1px solid #999;' : '';
+                $dimBorderBottom = ($dimIdx < $totalDimValidas - 1) ? 'border-bottom: 1px solid #999;' : '';
 
                 $html .= '
                 <tr style="' . $dimBorderBottom . '">
@@ -1784,15 +1788,22 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
         <td style="width: 50%; padding: 0; vertical-align: top;">
             <table style="width: 100%; border-collapse: collapse;">';
 
-        foreach ($dimExtras as $dimIdx => $dim) {
+        // Filtrar dimensiones extralaborales válidas
+        $dimExtrasValidas = [];
+        foreach ($dimExtras as $dim) {
             $dimData = $heatmapCalc[$dim['key']] ?? null;
-            if (empty($dimData) || !isset($dimData['promedio'])) {
-                continue;
+            if (!empty($dimData) && isset($dimData['promedio'])) {
+                $dimExtrasValidas[] = $dim;
             }
+        }
+
+        $totalExtrasValidas = count($dimExtrasValidas);
+        foreach ($dimExtrasValidas as $dimIdx => $dim) {
+            $dimData = $heatmapCalc[$dim['key']];
             $nivelDim = $dimData['nivel'] ?? 'sin_riesgo';
             $colorDim = $getColor($nivelDim);
             $textColorDim = $getTextColor($nivelDim);
-            $borderBottom = ($dimIdx < count($dimExtras) - 1) ? 'border-bottom: 1px solid #999;' : '';
+            $borderBottom = ($dimIdx < $totalExtrasValidas - 1) ? 'border-bottom: 1px solid #999;' : '';
 
             $html .= '
             <tr style="' . $borderBottom . '">

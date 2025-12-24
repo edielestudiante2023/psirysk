@@ -32,7 +32,7 @@ class IndividualResultsController extends BaseController
             return redirect()->to('/login');
         }
 
-        $userId = session()->get('user_id');
+        $userId = session()->get('id');
 
         // Check if there's already a pending request
         $existingRequest = $this->requestModel
@@ -81,7 +81,7 @@ class IndividualResultsController extends BaseController
             return redirect()->to('/login');
         }
 
-        $userId = session()->get('user_id');
+        $userId = session()->get('id');
 
         $data = [
             'service_id'        => $this->request->getPost('service_id'),
@@ -119,7 +119,7 @@ class IndividualResultsController extends BaseController
             return redirect()->to('/login');
         }
 
-        $userId = session()->get('user_id');
+        $userId = session()->get('id');
         $request = $this->requestModel->getRequestWithDetails($requestId);
 
         if (!$request || $request['requester_user_id'] != $userId) {
@@ -194,7 +194,7 @@ class IndividualResultsController extends BaseController
             return redirect()->to('/login');
         }
 
-        $userId = session()->get('user_id');
+        $userId = session()->get('id');
         $userRole = session()->get('role');
 
         // Only consultants can access this
@@ -221,7 +221,7 @@ class IndividualResultsController extends BaseController
             return redirect()->to('/login');
         }
 
-        $userId = session()->get('user_id');
+        $userId = session()->get('id');
         $userRole = session()->get('role');
 
         if ($userRole !== 'consultor') {

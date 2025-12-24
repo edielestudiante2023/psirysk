@@ -324,72 +324,111 @@ class CsvImportController extends BaseController
      */
     public function startBatchImport()
     {
-        if (!session()->get('isLoggedIn')) {
-            return $this->response->setJSON(['success' => false, 'message' => 'No autorizado']);
-        }
+        try {
+            if (!session()->get('isLoggedIn')) {
+                return $this->response->setJSON(['success' => false, 'message' => 'No autorizado']);
+            }
 
-        $validation = \Config\Services::validation();
-        $validation->setRules([
-            'battery_service_id' => 'required|integer',
-            'csv_file' => 'uploaded[csv_file]|max_size[csv_file,10240]|ext_in[csv_file,csv,txt]',
-            'csv_format' => 'required|in_list[vertical,horizontal]',
-            'form_type' => 'required|in_list[A,B]'
-        ]);
+            log_message('error', '[BATCH] Iniciando importación por lotes');
+            log_message('error', '[BATCH] Usuario: ' . session()->get('id'));
 
-        if (!$validation->withRequest($this->request)->run()) {
+            $validation = \Config\Services::validation();
+            $validation->setRules([
+                'battery_service_id' => 'required|integer',
+                'csv_file' => 'uploaded[csv_file]|max_size[csv_file,10240]|ext_in[csv_file,csv,txt]',
+                'csv_format' => 'required|in_list[vertical,horizontal]',
+                'form_type' => 'required|in_list[A,B]'
+            ]);
+
+            if (!$validation->withRequest($this->request)->run()) {
+                $errors = implode(', ', $validation->getErrors());
+                log_message('error', '[BATCH] Error de validación: ' . $errors);
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Error en validación: ' . $errors
+                ]);
+            }
+
+            $serviceId = $this->request->getPost('battery_service_id');
+            $file = $this->request->getFile('csv_file');
+            $format = $this->request->getPost('csv_format');
+            $formType = $this->request->getPost('form_type');
+
+            log_message('error', '[BATCH] Servicio: ' . $serviceId);
+            log_message('error', '[BATCH] Formato: ' . $format);
+            log_message('error', '[BATCH] Tipo formulario: ' . $formType);
+
+            if (!$file->isValid()) {
+                $error = $file->getErrorString();
+                log_message('error', '[BATCH] Archivo inválido: ' . $error);
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'Archivo inválido: ' . $error
+                ]);
+            }
+
+            // Guardar archivo temporalmente
+            $uploadPath = WRITEPATH . 'uploads/csv_imports/';
+            if (!is_dir($uploadPath)) {
+                if (!mkdir($uploadPath, 0755, true)) {
+                    log_message('error', '[BATCH] No se pudo crear directorio: ' . $uploadPath);
+                    return $this->response->setJSON([
+                        'success' => false,
+                        'message' => 'No se pudo crear directorio temporal'
+                    ]);
+                }
+            }
+
+            $fileName = uniqid('import_') . '_' . $file->getName();
+            if (!$file->move($uploadPath, $fileName)) {
+                log_message('error', '[BATCH] No se pudo mover archivo a: ' . $uploadPath . $fileName);
+                return $this->response->setJSON([
+                    'success' => false,
+                    'message' => 'No se pudo guardar el archivo'
+                ]);
+            }
+
+            log_message('error', '[BATCH] Archivo guardado en: ' . $uploadPath . $fileName);
+
+            // Crear registro de importación
+            $importId = $this->csvImportModel->insert([
+                'battery_service_id' => $serviceId,
+                'imported_by' => session()->get('id'),
+                'file_name' => $file->getName(),
+                'form_type' => $formType,
+                'status' => 'procesando',
+                'total_rows' => 0,
+                'imported_rows' => 0,
+                'failed_rows' => 0
+            ]);
+
+            log_message('error', '[BATCH] Registro de importación creado: ' . $importId);
+
+            // Guardar información en sesión para procesar por lotes
+            session()->set('csv_import_' . $importId, [
+                'file_path' => $uploadPath . $fileName,
+                'service_id' => $serviceId,
+                'format' => $format,
+                'form_type' => $formType,
+                'offset' => 0 // Línea actual del CSV
+            ]);
+
+            log_message('error', '[BATCH] Importación iniciada exitosamente');
+
+            return $this->response->setJSON([
+                'success' => true,
+                'importId' => $importId,
+                'message' => 'Importación iniciada'
+            ]);
+
+        } catch (\Exception $e) {
+            log_message('error', '[BATCH] Excepción: ' . $e->getMessage());
+            log_message('error', '[BATCH] Stack trace: ' . $e->getTraceAsString());
             return $this->response->setJSON([
                 'success' => false,
-                'message' => 'Error en validación: ' . implode(', ', $validation->getErrors())
+                'message' => 'Error: ' . $e->getMessage()
             ]);
         }
-
-        $serviceId = $this->request->getPost('battery_service_id');
-        $file = $this->request->getFile('csv_file');
-        $format = $this->request->getPost('csv_format');
-        $formType = $this->request->getPost('form_type');
-
-        if (!$file->isValid()) {
-            return $this->response->setJSON([
-                'success' => false,
-                'message' => 'Archivo inválido: ' . $file->getErrorString()
-            ]);
-        }
-
-        // Guardar archivo temporalmente
-        $uploadPath = WRITEPATH . 'uploads/csv_imports/';
-        if (!is_dir($uploadPath)) {
-            mkdir($uploadPath, 0755, true);
-        }
-
-        $fileName = uniqid('import_') . '_' . $file->getName();
-        $file->move($uploadPath, $fileName);
-
-        // Crear registro de importación
-        $importId = $this->csvImportModel->insert([
-            'battery_service_id' => $serviceId,
-            'imported_by' => session()->get('id'),
-            'file_name' => $file->getName(),
-            'form_type' => $formType,
-            'status' => 'procesando',
-            'total_rows' => 0,
-            'imported_rows' => 0,
-            'failed_rows' => 0
-        ]);
-
-        // Guardar información en sesión para procesar por lotes
-        session()->set('csv_import_' . $importId, [
-            'file_path' => $uploadPath . $fileName,
-            'service_id' => $serviceId,
-            'format' => $format,
-            'form_type' => $formType,
-            'offset' => 0 // Línea actual del CSV
-        ]);
-
-        return $this->response->setJSON([
-            'success' => true,
-            'importId' => $importId,
-            'message' => 'Importación iniciada'
-        ]);
     }
 
     /**

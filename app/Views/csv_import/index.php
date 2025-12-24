@@ -556,10 +556,24 @@
             // Iniciar importación por lotes
             fetch('<?= base_url('csv-import/start-batch') ?>', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
+
                 if (data.success) {
                     // Comenzar a procesar lotes
                     processNextBatch(data.importId);
@@ -575,11 +589,11 @@
                 }
             })
             .catch(error => {
-                console.error('Error:', error);
+                console.error('Error completo:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: 'Error al conectar con el servidor',
+                    html: `<p>Error al conectar con el servidor</p><p class="text-muted small">${error.message}</p>`,
                     confirmButtonColor: '#dc3545'
                 });
                 submitBtn.disabled = false;

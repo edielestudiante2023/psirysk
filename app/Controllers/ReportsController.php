@@ -1514,7 +1514,7 @@ class ReportsController extends BaseController
             'caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
             'relaciones_sociales' => 'relaciones_sociales_trabajo',
             'retroalimentacion' => 'retroalimentacion_desempeno',
-            'relacion_colaboradores' => 'relacion_colaboradores',
+            'relacion_colaboradores' => 'relacion_con_colaboradores',
             'claridad_rol' => 'claridad_rol',
             'capacitacion' => 'capacitacion',
             'participacion_cambio' => 'participacion_manejo_cambio',

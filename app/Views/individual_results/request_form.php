@@ -32,8 +32,6 @@
     </style>
 </head>
 <body>
-    <?= view('templates/header') ?>
-
     <div class="container my-5">
         <div class="row justify-content-center">
             <div class="col-lg-8">
@@ -159,8 +157,6 @@
             </div>
         </div>
     </div>
-
-    <?= view('templates/footer') ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>

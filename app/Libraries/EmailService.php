@@ -222,6 +222,98 @@ class EmailService
     }
 
     /**
+     * Send notification to consultant when new access request is submitted
+     *
+     * @param string $toEmail Consultant's email
+     * @param string $consultantName Consultant's name
+     * @param array $request Request details
+     * @return bool Success status
+     */
+    public function sendRequestNotificationToConsultant($toEmail, $consultantName, $request)
+    {
+        $this->email->setTo($toEmail);
+        $this->email->setSubject('Nueva Solicitud de Acceso a Resultados Individuales - ' . $request['company_name']);
+
+        $message = view('emails/request_notification_consultant', [
+            'consultantName' => $consultantName,
+            'request' => $request,
+            'reviewUrl' => base_url("individual-results/review/{$request['id']}"),
+            'approveUrl' => base_url("individual-results/approve/{$request['id']}/{$request['access_token']}")
+        ]);
+
+        $this->email->setMessage($message);
+
+        if ($this->email->send()) {
+            log_message('info', "Request notification sent to consultant: {$toEmail}");
+            return true;
+        } else {
+            log_message('error', "Failed to send request notification to consultant: {$toEmail}");
+            return false;
+        }
+    }
+
+    /**
+     * Send notification to client when request is approved
+     *
+     * @param string $toEmail Client's email
+     * @param string $clientName Client's name
+     * @param array $request Request details
+     * @return bool Success status
+     */
+    public function sendRequestApprovedToClient($toEmail, $clientName, $request)
+    {
+        $this->email->setTo($toEmail);
+        $this->email->setSubject('Solicitud Aprobada - Acceso a Resultados Individuales');
+
+        $message = view('emails/request_approved_client', [
+            'clientName' => $clientName,
+            'request' => $request,
+            'accessUrl' => base_url("individual-results/view/{$request['access_token']}"),
+            'statusUrl' => base_url("individual-results/status/{$request['id']}")
+        ]);
+
+        $this->email->setMessage($message);
+
+        if ($this->email->send()) {
+            log_message('info', "Request approved notification sent to client: {$toEmail}");
+            return true;
+        } else {
+            log_message('error', "Failed to send request approved notification to client: {$toEmail}");
+            return false;
+        }
+    }
+
+    /**
+     * Send notification to client when request is rejected
+     *
+     * @param string $toEmail Client's email
+     * @param string $clientName Client's name
+     * @param array $request Request details
+     * @return bool Success status
+     */
+    public function sendRequestRejectedToClient($toEmail, $clientName, $request)
+    {
+        $this->email->setTo($toEmail);
+        $this->email->setSubject('Solicitud No Aprobada - Acceso a Resultados Individuales');
+
+        $message = view('emails/request_rejected_client', [
+            'clientName' => $clientName,
+            'request' => $request,
+            'statusUrl' => base_url("individual-results/status/{$request['id']}")
+        ]);
+
+        $this->email->setMessage($message);
+
+        if ($this->email->send()) {
+            log_message('info', "Request rejected notification sent to client: {$toEmail}");
+            return true;
+        } else {
+            log_message('error', "Failed to send request rejected notification to client: {$toEmail}");
+            return false;
+        }
+    }
+
+    /**
      * Get last email error
      *
      * @return string Error details

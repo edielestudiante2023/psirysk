@@ -659,8 +659,8 @@ $estresQuestions = [
                                 </span>
                             </td>
                             <td>
-                                <a href="<?= base_url('workers/results/' . $result['worker_id']) ?>"
-                                   class="btn btn-sm btn-primary" title="Ver Resultados">
+                                <a href="<?= base_url("individual-results/request/{$serviceId}/{$result['worker_id']}/estres") ?>"
+                                   class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">
                                     <i class="fas fa-eye"></i>
                                 </a>
                             </td>
@@ -1193,7 +1193,7 @@ function filterTable() {
                 '</span>'
             ))
             .append($('<td>').html(
-                '<a href="<?= base_url("workers/results/") ?>' + r.worker_id + '" class="btn btn-sm btn-primary" title="Ver Resultados">' +
+                '<a href="<?= base_url("individual-results/request/<?= $serviceId ?>/") ?>' + r.worker_id + '/estres" class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">' +
                     '<i class="fas fa-eye"></i>' +
                 '</a>'
             ));

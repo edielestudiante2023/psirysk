@@ -205,6 +205,24 @@ $routes->group('reports', function($routes) {
     $routes->get('export-executive-pdf/(:num)/(:alpha)', 'ReportsController::exportExecutivePDF/$1/$2');
 });
 
+// Rutas de Solicitudes de Acceso a Resultados Individuales
+$routes->group('individual-results', function($routes) {
+    // Request access workflow
+    $routes->get('request/(:num)/(:num)/(intralaboral_a|intralaboral_b|extralaboral|estres)', 'IndividualResultsController::requestAccess/$1/$2/$3');
+    $routes->post('submit', 'IndividualResultsController::submitRequest');
+    $routes->get('status/(:num)', 'IndividualResultsController::showStatus/$1');
+    $routes->get('view/(:segment)', 'IndividualResultsController::viewResults/$1');
+
+    // Management dashboard for consultants
+    $routes->get('management', 'IndividualResultsController::managementDashboard');
+    $routes->get('review/(:num)', 'IndividualResultsController::reviewRequest/$1');
+
+    // Approval/rejection actions
+    $routes->post('approve/(:num)', 'IndividualResultsController::approveRequest/$1');
+    $routes->get('approve/(:num)/(:segment)', 'IndividualResultsController::approveRequest/$1/$2'); // Email link approval
+    $routes->post('reject/(:num)', 'IndividualResultsController::rejectRequest/$1');
+});
+
 // Rutas de Encuesta de Satisfacción
 $routes->group('satisfaction', function($routes) {
     $routes->get('dashboard', 'SatisfactionController::dashboard'); // Dashboard de análisis (admin/comercial)

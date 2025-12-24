@@ -1277,10 +1277,12 @@ function getNivelEstresTexto($nivel) {
                                                 </span>
                                             </td>
                                             <td class="text-center">
-                                                <a href="<?= base_url('workers/results/' . $result['worker_id']) ?>"
+                                                <?php
+                                                    $requestType = strtolower($result['intralaboral_form_type']) === 'a' ? 'intralaboral_a' : 'intralaboral_b';
+                                                ?>
+                                                <a href="<?= base_url("individual-results/request/{$serviceId}/{$result['worker_id']}/{$requestType}") ?>"
                                                    class="btn btn-sm btn-primary"
-                                                   title="Ver resultados individuales"
-                                                   target="_blank">
+                                                   title="Solicitar acceso a resultados individuales">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                             </td>

@@ -445,7 +445,7 @@ class CsvImportController extends BaseController
             return $this->response->setJSON(['success' => false, 'message' => 'Sesión de importación no encontrada']);
         }
 
-        $batchSize = 1; // Procesamos 1 trabajador a la vez para evitar timeout en producción
+        $batchSize = 2; // Procesamos 2 trabajadores a la vez (~44 seg < 60 seg timeout)
         $filePath = $importData['file_path'];
         $serviceId = $importData['service_id'];
         $format = $importData['format'];

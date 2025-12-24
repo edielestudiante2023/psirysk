@@ -1785,7 +1785,7 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
         $html .= '</table>';
 
-        // EXTRALABORAL
+        // EXTRALABORAL - Tabla plana con rowspan
         $nivelExtra = $heatmapCalc['extralaboral_total']['nivel'] ?? 'sin_riesgo';
         $colorExtra = $getColor($nivelExtra);
         $textColorExtra = $getTextColor($nivelExtra);
@@ -1800,16 +1800,6 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
             ['key' => 'dim_desplazamiento', 'nombre' => 'Desplazamiento vivienda-trabajo'],
         ];
 
-        $html .= '
-<table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none; margin-bottom: 0;">
-    <tr>
-        <td style="width: 50%; background: ' . $colorExtra . '; color: ' . $textColorExtra . '; text-align: center; vertical-align: middle; padding: 10pt; border-right: 2px solid #000; font-size: 8pt; font-weight: bold;">
-            FACTORES EXTRALABORALES<br>
-            <span style="font-size: 11pt;">' . $formatScore($heatmapCalc['extralaboral_total']) . '</span>
-        </td>
-        <td style="width: 50%; padding: 0; vertical-align: top;">
-            <table style="width: 100%; border-collapse: collapse;">';
-
         // Filtrar dimensiones extralaborales válidas
         $dimExtrasValidas = [];
         foreach ($dimExtras as $dim) {
@@ -1820,26 +1810,39 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
         }
 
         $totalExtrasValidas = count($dimExtrasValidas);
+
+        $html .= '
+<table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none; margin-bottom: 0;">';
+
         foreach ($dimExtrasValidas as $dimIdx => $dim) {
             $dimData = $heatmapCalc[$dim['key']];
             $nivelDim = $dimData['nivel'] ?? 'sin_riesgo';
             $colorDim = $getColor($nivelDim);
             $textColorDim = $getTextColor($nivelDim);
-            $borderBottom = ($dimIdx < $totalExtrasValidas - 1) ? 'border-bottom: 1px solid #999;' : '';
+
+            $isFirstRow = ($dimIdx === 0);
+            $isLastRow = ($dimIdx === $totalExtrasValidas - 1);
+            $borderBottom = !$isLastRow ? 'border-bottom: 1px solid #999;' : '';
+
+            $html .= '<tr style="' . $borderBottom . '">';
+
+            // Celda Total Extralaboral solo en la primera fila
+            if ($isFirstRow) {
+                $html .= '
+                <td rowspan="' . $totalExtrasValidas . '" style="width: 50%; background: ' . $colorExtra . '; color: ' . $textColorExtra . '; text-align: center; vertical-align: middle; padding: 10pt; border-right: 2px solid #000; font-size: 8pt; font-weight: bold;">
+                    FACTORES EXTRALABORALES<br>
+                    <span style="font-size: 11pt;">' . $formatScore($heatmapCalc['extralaboral_total']) . '</span>
+                </td>';
+            }
 
             $html .= '
-            <tr style="' . $borderBottom . '">
-                <td style="background: ' . $colorDim . '; color: ' . $textColorDim . '; text-align: center; vertical-align: middle; padding: 4pt; font-size: 7pt;">
+                <td style="width: 50%; background: ' . $colorDim . '; color: ' . $textColorDim . '; text-align: center; vertical-align: middle; padding: 4pt; font-size: 7pt;">
                     ' . $dim['nombre'] . ' <strong>(' . $formatScore($dimData) . ')</strong>
                 </td>
             </tr>';
         }
 
-        $html .= '
-            </table>
-        </td>
-    </tr>
-</table>';
+        $html .= '</table>';
 
         // ESTRÉS
         $nivelEstres = $heatmapCalc['estres_total']['nivel'] ?? 'sin_riesgo';

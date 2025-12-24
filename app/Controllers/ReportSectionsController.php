@@ -246,13 +246,22 @@ class ReportSectionsController extends BaseController
         $stats = $this->sectionModel->getApprovalStats($report['id']);
 
         // Niveles disponibles para navegación
-        $levels = [
-            'executive' => 'Resumen Ejecutivo',
-            'total' => 'Totales Generales',
-            'questionnaire' => 'Cuestionarios',
-            'domain' => 'Dominios',
-            'dimension' => 'Dimensiones',
-        ];
+        // Si estamos en questionnaire, domain o dimension, no mostrar executive ni total
+        if (in_array($level, ['questionnaire', 'domain', 'dimension'])) {
+            $levels = [
+                'questionnaire' => 'Cuestionarios',
+                'domain' => 'Dominios',
+                'dimension' => 'Dimensiones',
+            ];
+        } else {
+            $levels = [
+                'executive' => 'Resumen Ejecutivo',
+                'total' => 'Totales Generales',
+                'questionnaire' => 'Cuestionarios',
+                'domain' => 'Dominios',
+                'dimension' => 'Dimensiones',
+            ];
+        }
 
         return view('reports/sections/review', [
             'service' => $service,

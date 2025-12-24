@@ -14,6 +14,8 @@ class WorkerDemographicsModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'worker_id',
+        'consent_accepted',
+        'consent_accepted_at',
         'gender',
         'birth_year',
         'marital_status',

@@ -180,9 +180,14 @@ class AssessmentController extends BaseController
      */
     protected function redirectToCurrentForm($workerId)
     {
-        // 1. Check if demographics completed
+        // 0. Check if consent accepted
         $demographics = $this->demographicsModel->getByWorkerId($workerId);
-        if (!$demographics || !$demographics['completed_at']) {
+        if (!$demographics || !$demographics['consent_accepted']) {
+            return redirect()->to('/assessment/informed-consent');
+        }
+
+        // 1. Check if demographics completed
+        if (!$demographics['completed_at']) {
             return redirect()->to('/assessment/general-data');
         }
 
@@ -208,6 +213,75 @@ class AssessmentController extends BaseController
 
         // All forms completed
         return redirect()->to('/assessment/completed');
+    }
+
+    /**
+     * Display informed consent form
+     */
+    public function informedConsent()
+    {
+        $session = session();
+        $workerId = $session->get('assessment_worker_id');
+
+        if (!$workerId) {
+            return redirect()->to('/assessment/invalid');
+        }
+
+        // Check if consent already accepted
+        $demographics = $this->demographicsModel->getByWorkerId($workerId);
+        if ($demographics && $demographics['consent_accepted']) {
+            return $this->redirectToCurrentForm($workerId);
+        }
+
+        return view('assessment/informed_consent');
+    }
+
+    /**
+     * Process informed consent acceptance
+     */
+    public function acceptConsent()
+    {
+        $session = session();
+        $workerId = $session->get('assessment_worker_id');
+
+        if (!$workerId) {
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Sesión inválida'
+            ]);
+        }
+
+        try {
+            // Check if demographics record exists
+            $demographics = $this->demographicsModel->getByWorkerId($workerId);
+
+            if ($demographics) {
+                // Update existing record
+                $this->demographicsModel->update($demographics['id'], [
+                    'consent_accepted' => true,
+                    'consent_accepted_at' => date('Y-m-d H:i:s')
+                ]);
+            } else {
+                // Create new demographics record with consent
+                $this->demographicsModel->insert([
+                    'worker_id' => $workerId,
+                    'consent_accepted' => true,
+                    'consent_accepted_at' => date('Y-m-d H:i:s')
+                ]);
+            }
+
+            return $this->response->setJSON([
+                'success' => true,
+                'message' => 'Consentimiento registrado exitosamente',
+                'redirect' => base_url('assessment/general-data')
+            ]);
+        } catch (\Exception $e) {
+            log_message('error', 'Error saving consent: ' . $e->getMessage());
+            return $this->response->setJSON([
+                'success' => false,
+                'message' => 'Error al guardar el consentimiento'
+            ]);
+        }
     }
 
     /**

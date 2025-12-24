@@ -118,7 +118,7 @@ $conditionalQuestion2 = IntralaboralA::getConditionalQuestion2();
         }
         .btn-save {
             position: fixed;
-            bottom: 30px;
+            top: 30px;
             right: 30px;
             z-index: 1001;
             padding: 15px 30px;
@@ -239,7 +239,7 @@ $conditionalQuestion2 = IntralaboralA::getConditionalQuestion2();
 
             /* Botón flotante más accesible en móvil */
             .btn-save {
-                bottom: 15px;
+                top: 15px;
                 right: 15px;
                 left: 15px;
                 width: calc(100% - 30px);

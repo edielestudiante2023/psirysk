@@ -46,7 +46,6 @@
             <i class="fas fa-info-circle me-2"></i>
             <strong>Próximos pasos:</strong><br>
             Los resultados serán procesados y tu empresa recibirá el informe correspondiente.
-            El equipo de Seguridad y Salud en el Trabajo te contactará con los resultados.
         </div>
         <p class="text-muted mt-4">
             <small>

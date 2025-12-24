@@ -46,8 +46,37 @@ NUL
 # These should never be under version control,
 # as it poses a security risk.
 .env
+.env.prod
 .vagrant
 Vagrantfile
+
+#-------------------------
+# Database Scripts with Credentials
+#-------------------------
+# Scripts de prueba y migración con credenciales
+check_prod_db.php
+check_prod_service2.php
+clean_conjunto_prod.php
+compare_databases.php
+verify_prod_tabla28.php
+fix_prod_db.php
+prod_db_config.php
+create_max_risk_table_prod.php
+create_table_prod.php
+add_city_column.php
+add_consultant_fields_prod.php
+add_consultant_prompt_column.php
+add_global_conclusion_prod.php
+add_prompt_cols_simple.php
+add_prompt_columns_prod.php
+test_tabla28.php
+verify_tabla28.php
+test_consent_flow.php
+test_max_risk_service.php
+check_puntaje.php
+check_report_sections.php
+diagnose_heatmap.php
+CREDENCIALES.TXT
 
 #-------------------------
 # Temporary Files

@@ -123,6 +123,8 @@ $routes->group('csv-import', function($routes) {
 
 // Rutas de Evaluación (Assessment) - Acceso público con token
 $routes->group('assessment', function($routes) {
+    $routes->get('informed-consent', 'AssessmentController::informedConsent');
+    $routes->post('accept-consent', 'AssessmentController::acceptConsent');
     $routes->get('general-data', 'AssessmentController::generalData');
     $routes->post('general-data', 'AssessmentController::saveGeneralData');
     $routes->post('save-field-general-data', 'AssessmentController::saveFieldGeneralData'); // INLINE EDITING: Auto-guardado campo por campo

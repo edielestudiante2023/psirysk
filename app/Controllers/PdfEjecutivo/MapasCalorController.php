@@ -1710,6 +1710,19 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
             ],
         ];
 
+        // Pre-filtrar dimensiones válidas para cada dominio
+        foreach ($dominios as &$dominio) {
+            $dominio['dimensionesValidas'] = [];
+            foreach ($dominio['dimensiones'] as $dim) {
+                $dimData = $heatmapCalc[$dim['key']] ?? null;
+                if (!empty($dimData) && isset($dimData['promedio'])) {
+                    $dominio['dimensionesValidas'][] = $dim;
+                }
+            }
+        }
+        unset($dominio);
+
+        // Usar una sola tabla con rowspan para evitar espacios en blanco
         $html .= '<table style="width: 100%; border-collapse: collapse;">';
 
         foreach ($dominios as $idx => $dominio) {
@@ -1718,46 +1731,48 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
             $colorDom = $getColor($nivelDom);
             $textColorDom = $getTextColor($nivelDom);
 
-            $borderBottom = ($idx < count($dominios) - 1) ? 'border-bottom: 1px solid #666;' : '';
-
-            $html .= '
-            <tr style="' . $borderBottom . '">
-                <td style="width: 30%; background: ' . $colorDom . '; color: ' . $textColorDom . '; text-align: center; vertical-align: middle; padding: 6pt; border-right: 2px solid #000; font-size: 7pt; font-weight: bold;">
-                    ' . $dominio['nombre'] . '<br>
-                    <span style="font-size: 10pt;">' . $formatScore($domData) . '</span>
-                </td>
-                <td style="width: 70%; padding: 0; vertical-align: top;">';
-
-            // Filtrar dimensiones que tienen datos válidos ANTES de renderizar
-            $dimensionesValidas = [];
-            foreach ($dominio['dimensiones'] as $dim) {
-                $dimData = $heatmapCalc[$dim['key']] ?? null;
-                if (!empty($dimData) && isset($dimData['promedio'])) {
-                    $dimensionesValidas[] = $dim;
-                }
-            }
-
-            // Renderizar solo las dimensiones válidas
-            $html .= '<table style="width: 100%; border-collapse: collapse;">';
+            $dimensionesValidas = $dominio['dimensionesValidas'];
             $totalDimValidas = count($dimensionesValidas);
+            $rowspan = max(1, $totalDimValidas);
+
+            $isLastDominio = ($idx === count($dominios) - 1);
+
             foreach ($dimensionesValidas as $dimIdx => $dim) {
                 $dimData = $heatmapCalc[$dim['key']];
                 $nivelDim = $dimData['nivel'] ?? 'sin_riesgo';
                 $colorDim = $getColor($nivelDim);
                 $textColorDim = $getTextColor($nivelDim);
-                $dimBorderBottom = ($dimIdx < $totalDimValidas - 1) ? 'border-bottom: 1px solid #999;' : '';
 
+                $isFirstDim = ($dimIdx === 0);
+                $isLastDim = ($dimIdx === $totalDimValidas - 1);
+
+                // Borde inferior de la fila
+                $rowBorderBottom = '';
+                if (!$isLastDim) {
+                    $rowBorderBottom = 'border-bottom: 1px solid #999;';
+                } elseif (!$isLastDominio) {
+                    $rowBorderBottom = 'border-bottom: 2px solid #666;';
+                }
+
+                $html .= '<tr style="' . $rowBorderBottom . '">';
+
+                // Celda del dominio solo en la primera dimensión (con rowspan)
+                if ($isFirstDim) {
+                    $html .= '
+                    <td rowspan="' . $rowspan . '" style="width: 30%; background: ' . $colorDom . '; color: ' . $textColorDom . '; text-align: center; vertical-align: middle; padding: 6pt; border-right: 2px solid #000; font-size: 7pt; font-weight: bold;">
+                        ' . $dominio['nombre'] . '<br>
+                        <span style="font-size: 10pt;">' . $formatScore($domData) . '</span>
+                    </td>';
+                }
+
+                // Celda de la dimensión
                 $html .= '
-                <tr style="' . $dimBorderBottom . '">
-                    <td style="background: ' . $colorDim . '; color: ' . $textColorDim . '; text-align: center; vertical-align: middle; padding: 4pt; font-size: 7pt;">
+                    <td style="width: 70%; background: ' . $colorDim . '; color: ' . $textColorDim . '; text-align: center; vertical-align: middle; padding: 4pt; font-size: 7pt;">
                         ' . $dim['nombre'] . '<br>
                         <strong>(' . $formatScore($dimData) . ')</strong>
                     </td>
                 </tr>';
             }
-            $html .= '</table>';
-
-            $html .= '</td></tr>';
         }
 
         $html .= '</table>';

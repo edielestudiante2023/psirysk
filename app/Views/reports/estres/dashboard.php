@@ -1193,7 +1193,7 @@ function filterTable() {
                 '</span>'
             ))
             .append($('<td>').html(
-                '<a href="<?= base_url("individual-results/request/<?= $serviceId ?>/") ?>' + r.worker_id + '/estres" class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">' +
+                '<a href="<?= base_url("individual-results/request/") ?><?= $serviceId ?>/' + r.worker_id + '/estres" class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">' +
                     '<i class="fas fa-eye"></i>' +
                 '</a>'
             ));

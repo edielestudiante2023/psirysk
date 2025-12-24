@@ -59,10 +59,10 @@
                         <div class="info-card">
                             <h6><i class="fas fa-user me-2"></i>Trabajador</h6>
                             <p class="mb-1">
-                                <strong>Nombre:</strong> <?= esc($worker['first_name'] . ' ' . $worker['last_name']) ?>
+                                <strong>Nombre:</strong> <?= esc($worker['name']) ?>
                             </p>
                             <p class="mb-1">
-                                <strong>Documento:</strong> <?= esc($worker['document_number']) ?>
+                                <strong>Documento:</strong> <?= esc($worker['document']) ?>
                             </p>
                             <p class="mb-0">
                                 <strong>Tipo de Evaluación:</strong>

@@ -259,10 +259,16 @@ class CsvImportController extends BaseController
         $format = $this->request->getPost('csv_format');
         $formType = $this->request->getPost('form_type');
 
-        // Verificar que el servicio pertenece al consultor
+        // Verificar que el servicio existe
         $service = $this->batteryServiceModel->find($serviceId);
-        if (!$service || $service['consultant_id'] != session()->get('id')) {
-            return redirect()->back()->with('error', 'Servicio no encontrado o no autorizado');
+        if (!$service) {
+            return redirect()->back()->with('error', 'Servicio no encontrado');
+        }
+
+        // Verificar que el usuario es consultor, superadmin o director comercial
+        $roleName = session()->get('role_name');
+        if (!in_array($roleName, ['consultor', 'superadmin', 'director_comercial'])) {
+            return redirect()->back()->with('error', 'No tienes permisos para importar CSV');
         }
 
         if (!$file->isValid()) {

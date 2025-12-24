@@ -366,6 +366,82 @@
             }
         });
 
+        // Variable para controlar el polling
+        let progressInterval = null;
+
+        // Función para obtener y actualizar el progreso
+        function updateProgress(importId) {
+            fetch(`<?= base_url('csv-import/progress') ?>/${importId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const total = data.total || 0;
+                        const imported = data.imported || 0;
+                        const failed = data.failed || 0;
+                        const processed = imported + failed;
+
+                        // Actualizar el mensaje de SweetAlert
+                        const progressText = total > 0
+                            ? `<div class="text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-file-csv fa-3x text-primary"></i>
+                                </div>
+                                <h4>Procesando registros...</h4>
+                                <div class="progress mt-3" style="height: 25px;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                         role="progressbar"
+                                         style="width: ${(processed/total)*100}%"
+                                         aria-valuenow="${processed}"
+                                         aria-valuemin="0"
+                                         aria-valuemax="${total}">
+                                        ${processed} / ${total}
+                                    </div>
+                                </div>
+                                <p class="mt-3 mb-0">
+                                    <i class="fas fa-check-circle text-success me-1"></i> ${imported} importados
+                                    ${failed > 0 ? `<i class="fas fa-exclamation-triangle text-warning ms-3 me-1"></i> ${failed} fallidos` : ''}
+                                </p>
+                               </div>`
+                            : '<div class="text-center"><h5>Iniciando importación...</h5></div>';
+
+                        Swal.update({
+                            html: progressText
+                        });
+
+                        // Si el estado cambió a completado, detener polling y recargar
+                        if (data.status !== 'procesando') {
+                            clearInterval(progressInterval);
+
+                            setTimeout(() => {
+                                if (data.status === 'completado' || data.status === 'completado_con_errores') {
+                                    Swal.fire({
+                                        icon: data.status === 'completado' ? 'success' : 'warning',
+                                        title: 'Importación completada',
+                                        html: `<p><strong>${imported}</strong> trabajadores importados correctamente</p>
+                                               ${failed > 0 ? `<p class="text-warning">${failed} registros fallidos</p>` : ''}`,
+                                        confirmButtonColor: '#28a745'
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Error en la importación',
+                                        text: 'Ocurrió un error durante el proceso',
+                                        confirmButtonColor: '#dc3545'
+                                    }).then(() => {
+                                        window.location.reload();
+                                    });
+                                }
+                            }, 500);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error obteniendo progreso:', error);
+                });
+        }
+
         // Mostrar loading al enviar formulario
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
             const submitBtn = document.getElementById('submitBtn');
@@ -374,13 +450,33 @@
 
             Swal.fire({
                 title: 'Procesando...',
-                html: 'Importando datos del CSV. Por favor espere.',
+                html: '<div class="text-center"><h5>Iniciando importación...</h5></div>',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
+                showConfirmButton: false,
                 didOpen: () => {
                     Swal.showLoading();
                 }
             });
+
+            // Obtener el último importId (asumiendo que ya se creó) para hacer polling
+            // Hacemos un polling cada 500ms para obtener el progreso
+            setTimeout(() => {
+                // Obtener el ID del último import desde la tabla
+                fetch('<?= base_url('csv-import/get-latest-import-id') ?>')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.importId) {
+                            // Iniciar polling del progreso
+                            progressInterval = setInterval(() => {
+                                updateProgress(data.importId);
+                            }, 500);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error obteniendo importId:', error);
+                    });
+            }, 1000);
         });
 
         // Funcion para eliminar importacion

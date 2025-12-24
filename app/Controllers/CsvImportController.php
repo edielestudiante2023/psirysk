@@ -320,6 +320,55 @@ class CsvImportController extends BaseController
     }
 
     /**
+     * Obtener el ID del último import del usuario actual
+     */
+    public function getLatestImportId()
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No autorizado']);
+        }
+
+        $userId = session()->get('id');
+        $import = $this->csvImportModel
+            ->where('imported_by', $userId)
+            ->where('status', 'procesando')
+            ->orderBy('id', 'DESC')
+            ->first();
+
+        if ($import) {
+            return $this->response->setJSON([
+                'success' => true,
+                'importId' => $import['id']
+            ]);
+        }
+
+        return $this->response->setJSON(['success' => false, 'message' => 'No se encontró importación en proceso']);
+    }
+
+    /**
+     * Obtener progreso de importación en tiempo real
+     */
+    public function getImportProgress($importId)
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No autorizado']);
+        }
+
+        $import = $this->csvImportModel->find($importId);
+        if (!$import) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Importación no encontrada']);
+        }
+
+        return $this->response->setJSON([
+            'success' => true,
+            'status' => $import['status'],
+            'total' => $import['total_rows'] ?? 0,
+            'imported' => $import['imported_rows'] ?? 0,
+            'failed' => $import['failed_rows'] ?? 0
+        ]);
+    }
+
+    /**
      * Eliminar una importación completa (reversión)
      */
     public function deleteImport($importId)
@@ -408,6 +457,15 @@ class CsvImportController extends BaseController
                 $failed++;
                 $errors[] = "Fila {$total}: " . $e->getMessage();
             }
+
+            // Actualizar progreso en tiempo real
+            if ($total % 5 === 0 || $total === 1) {
+                $this->csvImportModel->update($importId, [
+                    'total_rows' => $total,
+                    'imported_rows' => $success,
+                    'failed_rows' => $failed
+                ]);
+            }
         }
 
         fclose($handle);
@@ -490,6 +548,15 @@ class CsvImportController extends BaseController
                 $errors[] = $errorMsg;
                 log_message('error', "❌ ERROR en trabajador #{$total}: " . $e->getMessage());
                 log_message('error', "🔍 Stack trace: " . $e->getTraceAsString());
+            }
+
+            // Actualizar progreso en tiempo real
+            if ($total % 5 === 0 || $total === 1) {
+                $this->csvImportModel->update($importId, [
+                    'total_rows' => $total,
+                    'imported_rows' => $success,
+                    'failed_rows' => $failed
+                ]);
             }
         }
 

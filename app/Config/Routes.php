@@ -116,6 +116,8 @@ $routes->group('csv-import', function($routes) {
     $routes->get('/', 'CsvImportController::index'); // Vista principal
     $routes->post('upload', 'CsvImportController::upload'); // Procesar carga
     $routes->delete('delete/(:num)', 'CsvImportController::deleteImport/$1'); // Eliminar importación
+    $routes->get('get-latest-import-id', 'CsvImportController::getLatestImportId'); // Obtener ID del último import
+    $routes->get('progress/(:num)', 'CsvImportController::getImportProgress/$1'); // Obtener progreso de import
     $routes->get('download-template', 'CsvImportController::downloadTemplate'); // Descargar plantilla (legacy)
     $routes->get('download-template-forma-a', 'CsvImportController::downloadTemplateFormaA'); // Plantilla Forma A
     $routes->get('download-template-forma-b', 'CsvImportController::downloadTemplateFormaB'); // Plantilla Forma B

@@ -450,33 +450,13 @@
 
             Swal.fire({
                 title: 'Procesando...',
-                html: '<div class="text-center"><h5>Iniciando importación...</h5></div>',
+                html: 'Importando datos del CSV. Por favor espere.',
                 allowOutsideClick: false,
                 allowEscapeKey: false,
-                showConfirmButton: false,
                 didOpen: () => {
                     Swal.showLoading();
                 }
             });
-
-            // Obtener el último importId (asumiendo que ya se creó) para hacer polling
-            // Hacemos un polling cada 500ms para obtener el progreso
-            setTimeout(() => {
-                // Obtener el ID del último import desde la tabla
-                fetch('<?= base_url('csv-import/get-latest-import-id') ?>')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success && data.importId) {
-                            // Iniciar polling del progreso
-                            progressInterval = setInterval(() => {
-                                updateProgress(data.importId);
-                            }, 500);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error obteniendo importId:', error);
-                    });
-            }, 1000);
         });
 
         // Funcion para eliminar importacion

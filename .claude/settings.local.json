@@ -46,7 +46,11 @@
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar hooks después del commit de rol\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" add app/Models/IndividualResultRequestModel.php)",
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Permitir que cualquier consultor apruebe solicitudes\n\nModifica getPendingRequestsForConsultant\\(\\) y getPendingCount\\(\\) para que\ncualquier consultor pueda ver y aprobar todas las solicitudes pendientes,\nno solo las de sus propios servicios.\n\nCambios:\n- Elimina filtro por consultant_id en ambos métodos\n- Ahora muestra todas las solicitudes pendientes del sistema\n- Resuelve el problema donde servicios con consultant_id diferente\n  no mostraban solicitudes en el dashboard del consultor\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar hooks\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar hooks\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(powershell -Command \"\\(Get-Content ''c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\app\\\\Views\\\\emails\\\\request_rejected_client.php''\\) -replace \"\"\\\\[''worker_first_name''\\\\] \\\\. '' '' \\\\. \\\\[''worker_last_name''\\\\]\"\", \"\"[''worker_name'']\"\" -replace \"\"\\\\[''requester_first_name''\\\\] \\\\. '' '' \\\\. \\\\[''requester_last_name''\\\\]\"\", \"\"[''requester_name'']\"\" -replace \"\"\\\\[''reviewer_first_name''\\\\] \\\\. '' '' \\\\. \\\\[''reviewer_last_name''\\\\]\"\", \"\"[''reviewer_name'']\"\" | Set-Content ''c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\app\\\\Views\\\\emails\\\\request_rejected_client.php''\")",
+      "Bash(powershell -Command:*)",
+      "Bash(del \"c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\fix_emails.php\")",
+      "Bash(cmd /c \"del c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\fix_emails.php\")"
     ],
     "deny": [],
     "ask": []

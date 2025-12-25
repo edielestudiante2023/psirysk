@@ -837,12 +837,39 @@ function getRiskLabel($nivel) {
                                        target="_blank">
                                         <i class="fas fa-eye"></i> Ver
                                     </a>
-                                <?php else: ?>
-                                    <a href="<?= base_url("individual-results/request/{$serviceId}/{$result['worker_id']}/extralaboral") ?>"
-                                       class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">
-                                        <i class="fas fa-lock"></i> Solicitar
-                                    </a>
-                                <?php endif; ?>
+                                <?php else:
+                                    $requestKey = $result['worker_id'] . '_extralaboral';
+                                    $request = $accessRequests[$requestKey] ?? null;
+
+                                    if (!$request): ?>
+                                        <a href="<?= base_url("individual-results/request/{$serviceId}/{$result['worker_id']}/extralaboral") ?>"
+                                           class="btn btn-sm btn-primary"
+                                           title="Solicitar acceso a resultados individuales">
+                                            <i class="fas fa-lock"></i> Solicitar
+                                        </a>
+                                    <?php elseif ($request['status'] === 'pending'): ?>
+                                        <button class="btn btn-sm btn-warning" disabled title="Solicitud pendiente de aprobación">
+                                            <i class="fas fa-clock"></i> Pendiente
+                                        </button>
+                                    <?php elseif ($request['status'] === 'approved' && strtotime($request['access_granted_until']) > time()): ?>
+                                        <a href="<?= base_url("individual-results/view/{$request['access_token']}") ?>"
+                                           class="btn btn-sm btn-success"
+                                           title="Ver resultados (acceso hasta <?= date('d/m/Y H:i', strtotime($request['access_granted_until'])) ?>)"
+                                           target="_blank">
+                                            <i class="fas fa-lock-open"></i> Ver
+                                        </a>
+                                    <?php elseif ($request['status'] === 'rejected'): ?>
+                                        <button class="btn btn-sm btn-danger" disabled title="Solicitud rechazada">
+                                            <i class="fas fa-times-circle"></i> Rechazado
+                                        </button>
+                                    <?php else: ?>
+                                        <a href="<?= base_url("individual-results/request/{$serviceId}/{$result['worker_id']}/extralaboral") ?>"
+                                           class="btn btn-sm btn-secondary"
+                                           title="Acceso expirado - Solicitar nuevamente">
+                                            <i class="fas fa-redo"></i> Renovar
+                                        </a>
+                                    <?php endif;
+                                endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -865,6 +892,7 @@ function getRiskLabel($nivel) {
 // DATOS GLOBALES
 // ============================================
 const allResults = <?= json_encode($results) ?>;
+const accessRequests = <?= json_encode($accessRequests) ?>;
 const userRole = '<?= session()->get('role_name') ?>';
 const isConsultant = ['superadmin', 'admin', 'consultor'].includes(userRole);
 let filteredResults = [...allResults];
@@ -938,6 +966,71 @@ function getRiskLabel(nivel) {
         'riesgo_muy_alto': 'Riesgo Muy Alto'
     };
     return labels[nivel] || 'N/A';
+}
+
+function getActionButton(workerId) {
+    const serviceId = '<?= $serviceId ?>';
+    const baseUrl = '<?= base_url() ?>';
+
+    if (isConsultant) {
+        return '<a href="' + baseUrl + 'workers/results/' + workerId + '" class="btn btn-sm btn-success" title="Ver resultados individuales" target="_blank">' +
+            '<i class="fas fa-eye"></i> Ver' +
+            '</a>';
+    }
+
+    // Cliente: verificar estado de solicitud
+    const requestKey = workerId + '_extralaboral';
+    const request = accessRequests[requestKey];
+
+    if (!request) {
+        // Sin solicitud
+        return '<a href="' + baseUrl + 'individual-results/request/' + serviceId + '/' + workerId + '/extralaboral" class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">' +
+            '<i class="fas fa-lock"></i> Solicitar' +
+            '</a>';
+    }
+
+    if (request.status === 'pending') {
+        // Pendiente
+        return '<button class="btn btn-sm btn-warning" disabled title="Solicitud pendiente de aprobación">' +
+            '<i class="fas fa-clock"></i> Pendiente' +
+            '</button>';
+    }
+
+    if (request.status === 'approved') {
+        const expiresAt = new Date(request.access_granted_until).getTime();
+        const now = Date.now();
+
+        if (expiresAt > now) {
+            // Aprobado y vigente
+            const expiresFormatted = new Date(request.access_granted_until).toLocaleString('es-CO', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            return '<a href="' + baseUrl + 'individual-results/view/' + request.access_token + '" class="btn btn-sm btn-success" title="Ver resultados (acceso hasta ' + expiresFormatted + ')" target="_blank">' +
+                '<i class="fas fa-lock-open"></i> Ver' +
+                '</a>';
+        } else {
+            // Expirado
+            return '<a href="' + baseUrl + 'individual-results/request/' + serviceId + '/' + workerId + '/extralaboral" class="btn btn-sm btn-secondary" title="Acceso expirado - Solicitar nuevamente">' +
+                '<i class="fas fa-redo"></i> Renovar' +
+                '</a>';
+        }
+    }
+
+    if (request.status === 'rejected') {
+        // Rechazado
+        return '<button class="btn btn-sm btn-danger" disabled title="Solicitud rechazada">' +
+            '<i class="fas fa-times-circle"></i> Rechazado' +
+            '</button>';
+    }
+
+    // Default: sin solicitud
+    return '<a href="' + baseUrl + 'individual-results/request/' + serviceId + '/' + workerId + '/extralaboral" class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">' +
+        '<i class="fas fa-lock"></i> Solicitar' +
+        '</a>';
 }
 
 // ============================================
@@ -1807,15 +1900,7 @@ function filterTable() {
                     getRiskLabel(r.extralaboral_total_nivel || 'sin_riesgo') +
                 '</span>'
             ))
-            .append($('<td>').html(
-                isConsultant ?
-                    '<a href="<?= base_url("workers/results/") ?>' + r.worker_id + '" class="btn btn-sm btn-success" title="Ver resultados individuales" target="_blank">' +
-                        '<i class="fas fa-eye"></i> Ver' +
-                    '</a>' :
-                    '<a href="<?= base_url("individual-results/request/") ?><?= $serviceId ?>/' + r.worker_id + '/extralaboral" class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">' +
-                        '<i class="fas fa-lock"></i> Solicitar' +
-                    '</a>'
-            ));
+            .append($('<td>').html(getActionButton(r.worker_id)));
 
         dataTable.row.add($row);
     });

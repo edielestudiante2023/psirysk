@@ -170,6 +170,23 @@ class ReportsController extends BaseController
         // Calcular estadísticas generales
         $stats = $this->calculateIntralaboralStats($results);
 
+        // Obtener solicitudes de acceso existentes para este servicio
+        $workerIds = array_column($results, 'worker_id');
+        $accessRequests = [];
+        if (!empty($workerIds)) {
+            $requestsBuilder = $db->table('individual_results_requests');
+            $requestsBuilder->select('worker_id, request_type, status, access_granted_until, access_token');
+            $requestsBuilder->where('service_id', $serviceId);
+            $requestsBuilder->whereIn('worker_id', $workerIds);
+            $requestsBuilder->whereIn('request_type', ['intralaboral_a', 'intralaboral_b']);
+            $requests = $requestsBuilder->get()->getResultArray();
+
+            foreach ($requests as $req) {
+                $key = $req['worker_id'] . '_' . $req['request_type'];
+                $accessRequests[$key] = $req;
+            }
+        }
+
         $data = [
             'title' => 'Dashboard Intralaboral - ' . $service['service_name'],
             'service' => $service,
@@ -177,7 +194,8 @@ class ReportsController extends BaseController
             'results' => $results,
             'segmentadores' => $segmentadores,
             'stats' => $stats,
-            'totalWorkers' => count($results)
+            'totalWorkers' => count($results),
+            'accessRequests' => $accessRequests
         ];
 
         return view('reports/intralaboral/dashboard', $data);
@@ -278,6 +296,23 @@ class ReportsController extends BaseController
 
         $stats = $this->calculateExtralaboralStats($results);
 
+        // Obtener solicitudes de acceso existentes para este servicio
+        $workerIds = array_column($results, 'worker_id');
+        $accessRequests = [];
+        if (!empty($workerIds)) {
+            $requestsBuilder = $db->table('individual_results_requests');
+            $requestsBuilder->select('worker_id, request_type, status, access_granted_until, access_token');
+            $requestsBuilder->where('service_id', $serviceId);
+            $requestsBuilder->whereIn('worker_id', $workerIds);
+            $requestsBuilder->where('request_type', 'extralaboral');
+            $requests = $requestsBuilder->get()->getResultArray();
+
+            foreach ($requests as $req) {
+                $key = $req['worker_id'] . '_extralaboral';
+                $accessRequests[$key] = $req;
+            }
+        }
+
         $data = [
             'title' => 'Dashboard Extralaboral - ' . $service['service_name'],
             'service' => $service,
@@ -285,7 +320,8 @@ class ReportsController extends BaseController
             'results' => $results,
             'segmentadores' => $segmentadores,
             'stats' => $stats,
-            'totalWorkers' => count($results)
+            'totalWorkers' => count($results),
+            'accessRequests' => $accessRequests
         ];
 
         return view('reports/extralaboral/dashboard', $data);
@@ -406,6 +442,22 @@ class ReportsController extends BaseController
 
         $stats = $this->calculateEstresStats($results);
 
+        // Obtener solicitudes de acceso existentes para este servicio
+        $accessRequests = [];
+        if (!empty($workerIds)) {
+            $requestsBuilder = $db->table('individual_results_requests');
+            $requestsBuilder->select('worker_id, request_type, status, access_granted_until, access_token');
+            $requestsBuilder->where('service_id', $serviceId);
+            $requestsBuilder->whereIn('worker_id', $workerIds);
+            $requestsBuilder->where('request_type', 'estres');
+            $requests = $requestsBuilder->get()->getResultArray();
+
+            foreach ($requests as $req) {
+                $key = $req['worker_id'] . '_estres';
+                $accessRequests[$key] = $req;
+            }
+        }
+
         $data = [
             'title' => 'Dashboard Estrés - ' . $service['service_name'],
             'service' => $service,
@@ -414,7 +466,8 @@ class ReportsController extends BaseController
             'responsesData' => $responsesData,
             'segmentadores' => $segmentadores,
             'stats' => $stats,
-            'totalWorkers' => count($results)
+            'totalWorkers' => count($results),
+            'accessRequests' => $accessRequests
         ];
 
         return view('reports/estres/dashboard', $data);

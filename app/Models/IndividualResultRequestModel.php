@@ -97,7 +97,7 @@ class IndividualResultRequestModel extends Model
                 requester.email as requester_email,
                 reviewer.name as reviewer_name,
                 services.service_name,
-                companies.company_name
+                companies.name as company_name
             ')
             ->join('workers', 'workers.id = individual_results_requests.worker_id')
             ->join('users as requester', 'requester.id = individual_results_requests.requester_user_id')
@@ -120,7 +120,7 @@ class IndividualResultRequestModel extends Model
                 requester.name as requester_name,
                 requester.email as requester_email,
                 services.service_name,
-                companies.company_name
+                companies.name as company_name
             ')
             ->join('workers', 'workers.id = individual_results_requests.worker_id')
             ->join('users as requester', 'requester.id = individual_results_requests.requester_user_id')

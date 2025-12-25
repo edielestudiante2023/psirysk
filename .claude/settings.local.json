@@ -37,7 +37,11 @@
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" checkout main)",
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar hooks después del último commit\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" merge cycloid)",
-      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar settings.local.json en main\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar settings.local.json en main\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nMerge branch ''cycloid'' into main\n\nIntegra sistema completo de solicitudes de acceso a resultados individuales\ny todas las mejoras recientes del desarrollo en cycloid.\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" push origin main)",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" checkout cycloid)",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar hooks post-merge\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

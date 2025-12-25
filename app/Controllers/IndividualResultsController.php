@@ -164,24 +164,78 @@ class IndividualResultsController extends BaseController
             ]);
         }
 
-        // Redirect to the appropriate results page based on request type
+        // Load data for individual results
         $workerId = $request['worker_id'];
         $serviceId = $request['service_id'];
 
-        switch ($request['request_type']) {
-            case 'intralaboral_a':
-                return redirect()->to("/reports/intralaboral/detail-forma-a/{$serviceId}/{$workerId}");
-            case 'intralaboral_b':
-                return redirect()->to("/reports/intralaboral/detail-forma-b/{$serviceId}/{$workerId}");
-            case 'extralaboral':
-                return redirect()->to("/reports/extralaboral/detail/{$serviceId}/{$workerId}");
-            case 'estres':
-                return redirect()->to("/reports/estres/detail/{$serviceId}/{$workerId}");
-            default:
-                return view('individual_results/access_denied', [
-                    'title' => 'Error',
-                    'message' => 'Tipo de resultado no válido',
-                ]);
+        // Get worker data with service info
+        $worker = $this->workerModel->find($workerId);
+        $service = $this->serviceModel
+            ->select('battery_services.*, companies.name as company_name')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->find($serviceId);
+
+        if (!$worker || !$service) {
+            return view('individual_results/access_denied', [
+                'title' => 'Error',
+                'message' => 'Datos no encontrados',
+            ]);
+        }
+
+        // Get calculated results
+        $calculatedResultModel = new \App\Models\CalculatedResultModel();
+        $results = $calculatedResultModel
+            ->where('worker_id', $workerId)
+            ->where('battery_service_id', $serviceId)
+            ->first();
+
+        // If no results, try to calculate them
+        if (!$results) {
+            try {
+                $calculationService = new \App\Services\CalculationService();
+                $calculationService->calculateAndSaveResults($workerId);
+                $results = $calculatedResultModel
+                    ->where('worker_id', $workerId)
+                    ->where('battery_service_id', $serviceId)
+                    ->first();
+            } catch (\Exception $e) {
+                // Silently fail and show error below
+            }
+        }
+
+        if (!$results) {
+            return view('individual_results/access_denied', [
+                'title' => 'Sin Resultados',
+                'message' => 'No hay resultados disponibles para este trabajador',
+            ]);
+        }
+
+        // Get demographics
+        $demographicsModel = new \App\Models\WorkerDemographicsModel();
+        $demographics = $demographicsModel->getByWorkerId($workerId);
+
+        // Prepare data for view (same structure as WorkerController::results)
+        $data = [
+            'title' => 'Resultados Individuales - ' . $worker['name'],
+            'worker' => $worker,
+            'service' => $service,
+            'results' => $results,
+            'demographics' => $demographics,
+            'accessExpiresAt' => $request['access_granted_until']
+        ];
+
+        // Use the same views as WorkerController based on intralaboral_type
+        $intralaboralType = strtoupper($worker['intralaboral_type']);
+
+        if ($intralaboralType === 'A') {
+            return view('workers/results_forma_a', $data);
+        } elseif ($intralaboralType === 'B') {
+            return view('workers/results_forma_b', $data);
+        } else {
+            return view('individual_results/access_denied', [
+                'title' => 'Error',
+                'message' => 'Tipo de formulario desconocido',
+            ]);
         }
     }
 

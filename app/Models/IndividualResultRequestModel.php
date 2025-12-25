@@ -91,9 +91,8 @@ class IndividualResultRequestModel extends Model
     {
         return $this->select('
                 individual_results_requests.*,
-                workers.first_name as worker_first_name,
-                workers.last_name as worker_last_name,
-                workers.document_number as worker_document,
+                workers.name as worker_name,
+                workers.document as worker_document,
                 requester.first_name as requester_first_name,
                 requester.last_name as requester_last_name,
                 requester.email as requester_email,
@@ -118,9 +117,8 @@ class IndividualResultRequestModel extends Model
     {
         return $this->select('
                 individual_results_requests.*,
-                workers.first_name as worker_first_name,
-                workers.last_name as worker_last_name,
-                workers.document_number as worker_document,
+                workers.name as worker_name,
+                workers.document as worker_document,
                 requester.first_name as requester_first_name,
                 requester.last_name as requester_last_name,
                 requester.email as requester_email,
@@ -144,8 +142,7 @@ class IndividualResultRequestModel extends Model
     {
         return $this->select('
                 individual_results_requests.*,
-                workers.first_name as worker_first_name,
-                workers.last_name as worker_last_name,
+                workers.name as worker_name,
                 requester.first_name as requester_first_name,
                 requester.last_name as requester_last_name
             ')

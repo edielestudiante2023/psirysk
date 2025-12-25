@@ -41,7 +41,8 @@
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nMerge branch ''cycloid'' into main\n\nIntegra sistema completo de solicitudes de acceso a resultados individuales\ny todas las mejoras recientes del desarrollo en cycloid.\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" push origin main)",
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" checkout cycloid)",
-      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar hooks post-merge\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar hooks post-merge\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Corregir nombres de columnas de workers en IndividualResultRequestModel\n\nAjusta las consultas SQL para usar los nombres correctos de columnas:\n- workers.name en lugar de workers.first_name y workers.last_name\n- workers.document en lugar de workers.document_number\n\nActualiza las vistas para mostrar worker_name en lugar de concatenar\nworker_first_name y worker_last_name.\n\nResuelve DatabaseException #1054: Unknown column ''workers.first_name''\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

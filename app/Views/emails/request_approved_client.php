@@ -63,7 +63,7 @@
                 </div>
                 <div class="info-row">
                     <label>Aprobado por:</label>
-                    <value><?= esc($request['reviewer_first_name'] . ' ' . $request['reviewer_last_name']) ?></value>
+                    <value><?= esc($request['reviewer_name']) ?></value>
                 </div>
                 <?php if ($request['review_notes']): ?>
                 <div class="info-row">

@@ -195,7 +195,7 @@ class IndividualResultsController extends BaseController
         }
 
         $userId = session()->get('id');
-        $userRole = session()->get('role');
+        $userRole = session()->get('role_name');
 
         // Only consultants can access this
         if ($userRole !== 'consultor') {
@@ -222,7 +222,7 @@ class IndividualResultsController extends BaseController
         }
 
         $userId = session()->get('id');
-        $userRole = session()->get('role');
+        $userRole = session()->get('role_name');
 
         if ($userRole !== 'consultor') {
             return redirect()->to('/dashboard')->with('error', 'No tiene permisos');
@@ -259,7 +259,7 @@ class IndividualResultsController extends BaseController
             $reviewerId = $request['reviewed_by'] ?? session()->get('user_id');
         } else {
             // Dashboard approval - requires login
-            if (!session()->get('isLoggedIn') || session()->get('role') !== 'consultor') {
+            if (!session()->get('isLoggedIn') || session()->get('role_name') !== 'consultor') {
                 return redirect()->to('/login');
             }
             $reviewerId = session()->get('user_id');
@@ -291,7 +291,7 @@ class IndividualResultsController extends BaseController
      */
     public function rejectRequest($requestId)
     {
-        if (!session()->get('isLoggedIn') || session()->get('role') !== 'consultor') {
+        if (!session()->get('isLoggedIn') || session()->get('role_name') !== 'consultor') {
             return redirect()->to('/login');
         }
 

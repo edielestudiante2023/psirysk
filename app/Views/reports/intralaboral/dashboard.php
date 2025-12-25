@@ -1279,12 +1279,20 @@ function getNivelEstresTexto($nivel) {
                                             <td class="text-center">
                                                 <?php
                                                     $requestType = strtolower($result['intralaboral_form_type']) === 'a' ? 'intralaboral_a' : 'intralaboral_b';
-                                                ?>
-                                                <a href="<?= base_url("individual-results/request/{$serviceId}/{$result['worker_id']}/{$requestType}") ?>"
-                                                   class="btn btn-sm btn-primary"
-                                                   title="Solicitar acceso a resultados individuales">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
+                                                    $userRole = session()->get('role_name');
+                                                    if (in_array($userRole, ['superadmin', 'admin', 'consultor'])): ?>
+                                                        <a href="<?= base_url("workers/results/{$result['worker_id']}") ?>"
+                                                           class="btn btn-sm btn-success" title="Ver resultados individuales"
+                                                           target="_blank">
+                                                            <i class="fas fa-eye"></i> Ver
+                                                        </a>
+                                                    <?php else: ?>
+                                                        <a href="<?= base_url("individual-results/request/{$serviceId}/{$result['worker_id']}/{$requestType}") ?>"
+                                                           class="btn btn-sm btn-primary"
+                                                           title="Solicitar acceso a resultados individuales">
+                                                            <i class="fas fa-lock"></i> Solicitar
+                                                        </a>
+                                                    <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -1327,6 +1335,8 @@ function getNivelEstresTexto($nivel) {
         // Datos para gráficos
         const statsData = <?= json_encode($stats) ?>;
         const allResults = <?= json_encode($results) ?>;
+        const userRole = '<?= session()->get('role_name') ?>';
+        const isConsultant = ['superadmin', 'admin', 'consultor'].includes(userRole);
 
         // Función para mostrar notificaciones toast
         function showToast(message, type = 'info') {

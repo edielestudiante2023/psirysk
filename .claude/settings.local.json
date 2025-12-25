@@ -32,7 +32,10 @@
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" diff .claude/settings.local.json)",
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" log --oneline -10)",
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" log origin/cycloid..HEAD --oneline)",
-      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" add .)"
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" add .)",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar configuración de hooks en settings.local.json\n\nAgrega nuevos comandos de git a la whitelist de hooks aprobados.\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" checkout main)",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar hooks después del último commit\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

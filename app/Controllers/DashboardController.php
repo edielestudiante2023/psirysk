@@ -7,6 +7,7 @@ use App\Models\UserModel;
 use App\Models\CompanyModel;
 use App\Models\BatteryServiceModel;
 use App\Models\WorkerModel;
+use App\Models\IndividualResultRequestModel;
 use CodeIgniter\HTTP\ResponseInterface;
 
 class DashboardController extends BaseController
@@ -66,6 +67,7 @@ class DashboardController extends BaseController
         $companyModel = new CompanyModel();
         $batteryServiceModel = new BatteryServiceModel();
         $workerModel = new WorkerModel();
+        $requestModel = new IndividualResultRequestModel();
 
         $userId = session()->get('id');
 
@@ -73,6 +75,7 @@ class DashboardController extends BaseController
             'title' => 'Dashboard Consultor',
             'totalCompanies' => $companyModel->countAll(),
             'totalServices' => $batteryServiceModel->countAllResults(),
+            'pendingRequestsCount' => $requestModel->getPendingCount($userId),
             'recentServices' => $batteryServiceModel
                 ->select('battery_services.*, companies.name as company_name, COUNT(workers.id) as worker_count')
                 ->join('companies', 'companies.id = battery_services.company_id')

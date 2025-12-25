@@ -28,6 +28,12 @@
 <a class="nav-link" href="<?= base_url('satisfaction/dashboard') ?>" target="_blank">
     <i class="fas fa-star me-2"></i> Encuestas Satisfaccion
 </a>
+<a class="nav-link" href="<?= base_url('individual-results/management') ?>" target="_blank">
+    <i class="fas fa-file-alt me-2"></i> Solicitudes de Acceso
+    <?php if (isset($pendingRequestsCount) && $pendingRequestsCount > 0): ?>
+        <span class="badge bg-danger ms-2"><?= $pendingRequestsCount ?></span>
+    <?php endif; ?>
+</a>
 <?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
@@ -53,7 +59,7 @@
 
 <!-- Statistics Cards -->
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card stat-card bg-primary text-white">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -65,7 +71,7 @@
         </div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="card stat-card bg-success text-white">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -74,6 +80,23 @@
                 </div>
                 <i class="fas fa-clipboard-check icon"></i>
             </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card stat-card <?= $pendingRequestsCount > 0 ? 'bg-warning' : 'bg-secondary' ?> text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-uppercase mb-1">Solicitudes Pendientes</h6>
+                    <h2 class="fw-bold mb-0"><?= $pendingRequestsCount ?? 0 ?></h2>
+                </div>
+                <i class="fas fa-file-alt icon"></i>
+            </div>
+            <?php if ($pendingRequestsCount > 0): ?>
+                <a href="<?= base_url('individual-results/management') ?>" class="btn btn-light btn-sm mt-2" target="_blank">
+                    <i class="fas fa-eye me-1"></i>Revisar Solicitudes
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 </div>

@@ -2958,7 +2958,7 @@ class ReportsController extends BaseController
             'totales' => [
                 'forma_a' => $totalA,
                 'forma_b' => $totalB,
-                'total_general' => $totalGeneral // Solo informativo
+                'conjunto' => $totalGeneral // Total de trabajadores (Forma A + Forma B)
             ],
             'genero' => [
                 'masculino' => count(array_filter($results, fn($r) => $r['gender'] === 'Masculino')),

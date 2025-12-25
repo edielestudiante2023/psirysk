@@ -134,7 +134,7 @@
                                 <tr>
                                     <th>Trabajador</th>
                                     <td>
-                                        <?= esc($request['worker_first_name'] . ' ' . $request['worker_last_name']) ?>
+                                        <?= esc($request['worker_name']) ?>
                                         <br>
                                         <small class="text-muted">Doc: <?= esc($request['worker_document']) ?></small>
                                     </td>

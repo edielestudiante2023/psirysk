@@ -100,7 +100,7 @@
                                 <div class="row mb-3">
                                     <div class="col-6">
                                         <small class="text-muted d-block">Trabajador</small>
-                                        <strong><?= esc($request['worker_first_name'] . ' ' . $request['worker_last_name']) ?></strong>
+                                        <strong><?= esc($request['worker_name']) ?></strong>
                                         <br>
                                         <small><?= esc($request['worker_document']) ?></small>
                                     </div>

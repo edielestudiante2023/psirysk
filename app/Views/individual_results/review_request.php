@@ -43,7 +43,7 @@
                                     <table class="table table-sm table-borderless mb-0">
                                         <tr>
                                             <td class="text-muted" style="width: 40%;">Nombre:</td>
-                                            <td><strong><?= esc($request['worker_first_name'] . ' ' . $request['worker_last_name']) ?></strong></td>
+                                            <td><strong><?= esc($request['worker_name']) ?></strong></td>
                                         </tr>
                                         <tr>
                                             <td class="text-muted">Documento:</td>

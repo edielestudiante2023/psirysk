@@ -12,14 +12,14 @@
 <div class="container-fluid mt-4">
 
 <?php
-// Helper function para obtener colores según nivel de riesgo
+// Helper function para obtener colores según nivel de riesgo (3 colores agrupados)
 function getNivelColor($nivel) {
     $colores = [
-        'sin_riesgo' => '#4CAF50',      // Verde
-        'riesgo_bajo' => '#8BC34A',     // Verde claro
-        'riesgo_medio' => '#FFC107',    // Amarillo
-        'riesgo_alto' => '#FF9800',     // Naranja
-        'riesgo_muy_alto' => '#F44336'  // Rojo
+        'sin_riesgo' => '#28a745',      // Verde - Sin riesgo o riesgo bajo
+        'riesgo_bajo' => '#28a745',     // Verde - Sin riesgo o riesgo bajo
+        'riesgo_medio' => '#ffc107',    // Amarillo - Riesgo medio
+        'riesgo_alto' => '#dc3545',     // Rojo - Riesgo alto y muy alto
+        'riesgo_muy_alto' => '#dc3545'  // Rojo - Riesgo alto y muy alto
     ];
     return $colores[$nivel] ?? '#9E9E9E';
 }

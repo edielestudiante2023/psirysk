@@ -118,7 +118,7 @@
                         </p>
                     </div>
                     <div class="col-md-6 text-end">
-                        <span class="badge bg-primary">Total: <?= $totales['total_general'] ?> trabajadores</span>
+                        <span class="badge bg-primary">Total: <?= $totales['conjunto'] ?> trabajadores</span>
                     </div>
                 </div>
             </div>

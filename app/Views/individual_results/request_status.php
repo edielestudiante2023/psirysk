@@ -170,7 +170,7 @@
                             <div class="border rounded p-3 bg-light mb-3">
                                 <p class="mb-1">
                                     <strong>Revisado por:</strong>
-                                    <?= esc($request['reviewer_first_name'] . ' ' . $request['reviewer_last_name']) ?>
+                                    <?= esc($request['reviewer_name']) ?>
                                 </p>
                                 <p class="mb-1">
                                     <strong>Fecha:</strong>

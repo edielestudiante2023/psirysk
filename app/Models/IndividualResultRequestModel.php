@@ -93,11 +93,9 @@ class IndividualResultRequestModel extends Model
                 individual_results_requests.*,
                 workers.name as worker_name,
                 workers.document as worker_document,
-                requester.first_name as requester_first_name,
-                requester.last_name as requester_last_name,
+                requester.name as requester_name,
                 requester.email as requester_email,
-                reviewer.first_name as reviewer_first_name,
-                reviewer.last_name as reviewer_last_name,
+                reviewer.name as reviewer_name,
                 services.service_name,
                 companies.company_name
             ')
@@ -119,8 +117,7 @@ class IndividualResultRequestModel extends Model
                 individual_results_requests.*,
                 workers.name as worker_name,
                 workers.document as worker_document,
-                requester.first_name as requester_first_name,
-                requester.last_name as requester_last_name,
+                requester.name as requester_name,
                 requester.email as requester_email,
                 services.service_name,
                 companies.company_name
@@ -143,8 +140,7 @@ class IndividualResultRequestModel extends Model
         return $this->select('
                 individual_results_requests.*,
                 workers.name as worker_name,
-                requester.first_name as requester_first_name,
-                requester.last_name as requester_last_name
+                requester.name as requester_name
             ')
             ->join('workers', 'workers.id = individual_results_requests.worker_id')
             ->join('users as requester', 'requester.id = individual_results_requests.requester_user_id')

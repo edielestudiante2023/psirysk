@@ -325,7 +325,7 @@ class IndividualResultsController extends BaseController
         }
 
         // Get consultant info
-        $service = $this->serviceModel->select('users.email, users.first_name, users.last_name')
+        $service = $this->serviceModel->select('users.email, users.name')
             ->join('users', 'users.id = battery_services.consultant_id')
             ->where('battery_services.id', $request['service_id'])
             ->first();
@@ -336,7 +336,7 @@ class IndividualResultsController extends BaseController
 
         return $this->emailService->sendRequestNotificationToConsultant(
             $service['email'],
-            $service['first_name'] . ' ' . $service['last_name'],
+            $service['name'],
             $request
         );
     }
@@ -355,13 +355,13 @@ class IndividualResultsController extends BaseController
         if ($status === 'approved') {
             return $this->emailService->sendRequestApprovedToClient(
                 $request['requester_email'],
-                $request['requester_first_name'] . ' ' . $request['requester_last_name'],
+                $request['requester_name'],
                 $request
             );
         } else {
             return $this->emailService->sendRequestRejectedToClient(
                 $request['requester_email'],
-                $request['requester_first_name'] . ' ' . $request['requester_last_name'],
+                $request['requester_name'],
                 $request
             );
         }

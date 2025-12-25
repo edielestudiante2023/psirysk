@@ -659,10 +659,20 @@ $estresQuestions = [
                                 </span>
                             </td>
                             <td>
-                                <a href="<?= base_url("individual-results/request/{$serviceId}/{$result['worker_id']}/estres") ?>"
-                                   class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">
-                                    <i class="fas fa-eye"></i>
-                                </a>
+                                <?php
+                                $userRole = session()->get('role_name');
+                                if (in_array($userRole, ['superadmin', 'admin', 'consultor'])): ?>
+                                    <a href="<?= base_url("workers/results/{$result['worker_id']}") ?>"
+                                       class="btn btn-sm btn-success" title="Ver resultados individuales"
+                                       target="_blank">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </a>
+                                <?php else: ?>
+                                    <a href="<?= base_url("individual-results/request/{$serviceId}/{$result['worker_id']}/estres") ?>"
+                                       class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">
+                                        <i class="fas fa-lock"></i> Solicitar
+                                    </a>
+                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -686,6 +696,8 @@ $estresQuestions = [
 // ============================================
 const allResults = <?= json_encode($results) ?>;
 const responsesData = <?= json_encode($responsesData) ?>;
+const userRole = '<?= session()->get('role_name') ?>';
+const isConsultant = ['superadmin', 'admin', 'consultor'].includes(userRole);
 let filteredResults = [...allResults];
 
 // Variables para los gráficos
@@ -1193,9 +1205,13 @@ function filterTable() {
                 '</span>'
             ))
             .append($('<td>').html(
-                '<a href="<?= base_url("individual-results/request/") ?><?= $serviceId ?>/' + r.worker_id + '/estres" class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">' +
-                    '<i class="fas fa-eye"></i>' +
-                '</a>'
+                isConsultant ?
+                    '<a href="<?= base_url("workers/results/") ?>' + r.worker_id + '" class="btn btn-sm btn-success" title="Ver resultados individuales" target="_blank">' +
+                        '<i class="fas fa-eye"></i> Ver' +
+                    '</a>' :
+                    '<a href="<?= base_url("individual-results/request/") ?><?= $serviceId ?>/' + r.worker_id + '/estres" class="btn btn-sm btn-primary" title="Solicitar acceso a resultados individuales">' +
+                        '<i class="fas fa-lock"></i> Solicitar' +
+                    '</a>'
             ));
 
         dataTable.row.add($row);

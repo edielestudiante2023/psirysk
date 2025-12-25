@@ -45,7 +45,7 @@
 
                 <div class="info-row">
                     <label>Trabajador:</label>
-                    <value><?= esc($request['worker_first_name'] . ' ' . $request['worker_last_name']) ?></value>
+                    <value><?= esc($request['worker_name']) ?></value>
                 </div>
                 <div class="info-row">
                     <label>Tipo:</label>
@@ -63,7 +63,7 @@
                 </div>
                 <div class="info-row">
                     <label>Revisado por:</label>
-                    <value><?= esc($request['reviewer_first_name'] . ' ' . $request['reviewer_last_name']) ?></value>
+                    <value><?= esc($request['reviewer_name']) ?></value>
                 </div>
                 <div class="info-row">
                     <label>Fecha de revisión:</label>

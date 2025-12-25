@@ -56,7 +56,7 @@
                 </div>
                 <div class="info-row">
                     <label>Trabajador:</label>
-                    <value><?= esc($request['worker_first_name'] . ' ' . $request['worker_last_name']) ?></value>
+                    <value><?= esc($request['worker_name']) ?></value>
                 </div>
                 <div class="info-row">
                     <label>Documento:</label>
@@ -78,7 +78,7 @@
                 </div>
                 <div class="info-row">
                     <label>Solicitado por:</label>
-                    <value><?= esc($request['requester_first_name'] . ' ' . $request['requester_last_name']) ?></value>
+                    <value><?= esc($request['requester_name']) ?></value>
                 </div>
                 <div class="info-row">
                     <label>Email solicitante:</label>

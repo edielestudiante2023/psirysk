@@ -122,7 +122,7 @@
 
                                 <div class="mb-3">
                                     <small class="text-muted d-block">Solicitado por</small>
-                                    <strong><?= esc($request['requester_first_name'] . ' ' . $request['requester_last_name']) ?></strong>
+                                    <strong><?= esc($request['requester_name']) ?></strong>
                                     <br>
                                     <small><?= esc($request['requester_email']) ?></small>
                                 </div>

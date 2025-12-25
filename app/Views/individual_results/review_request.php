@@ -75,7 +75,7 @@
                                     <table class="table table-sm table-borderless mb-0">
                                         <tr>
                                             <td class="text-muted" style="width: 40%;">Nombre:</td>
-                                            <td><strong><?= esc($request['requester_first_name'] . ' ' . $request['requester_last_name']) ?></strong></td>
+                                            <td><strong><?= esc($request['requester_name']) ?></strong></td>
                                         </tr>
                                         <tr>
                                             <td class="text-muted">Email:</td>

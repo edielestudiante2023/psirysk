@@ -109,9 +109,9 @@ class IndividualResultRequestModel extends Model
     }
 
     /**
-     * Get pending requests for a consultant
+     * Get all pending requests (any consultant can approve any request)
      */
-    public function getPendingRequestsForConsultant($consultantId)
+    public function getPendingRequestsForConsultant($consultantId = null)
     {
         return $this->select('
                 individual_results_requests.*,
@@ -126,7 +126,6 @@ class IndividualResultRequestModel extends Model
             ->join('users as requester', 'requester.id = individual_results_requests.requester_user_id')
             ->join('battery_services as services', 'services.id = individual_results_requests.service_id')
             ->join('companies', 'companies.id = services.company_id')
-            ->where('services.consultant_id', $consultantId)
             ->where('individual_results_requests.status', 'pending')
             ->orderBy('individual_results_requests.created_at', 'DESC')
             ->findAll();
@@ -196,13 +195,11 @@ class IndividualResultRequestModel extends Model
     }
 
     /**
-     * Get count of pending requests for consultant
+     * Get count of all pending requests (any consultant can see all)
      */
-    public function getPendingCount($consultantId)
+    public function getPendingCount($consultantId = null)
     {
-        return $this->join('battery_services', 'battery_services.id = individual_results_requests.service_id')
-            ->where('battery_services.consultant_id', $consultantId)
-            ->where('individual_results_requests.status', 'pending')
+        return $this->where('status', 'pending')
             ->countAllResults();
     }
 }

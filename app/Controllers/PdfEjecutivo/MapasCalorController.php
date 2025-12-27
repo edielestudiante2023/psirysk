@@ -1330,25 +1330,118 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
                     }
                 }
                 $promedios[$campo] = $count > 0 ? $suma / $count : 0;
-            } else {
-                // Para niveles, obtener el más frecuente
-                $niveles = [];
-                foreach ($data as $row) {
-                    if (isset($row[$campo]) && !empty($row[$campo])) {
-                        $niveles[] = $row[$campo];
-                    }
-                }
-                if (!empty($niveles)) {
-                    $frecuencias = array_count_values($niveles);
-                    arsort($frecuencias);
-                    $promedios[$campo] = array_key_first($frecuencias);
-                } else {
-                    $promedios[$campo] = 'sin_riesgo';
-                }
             }
         }
 
+        // Calcular niveles a partir de los promedios de puntajes usando baremos oficiales
+        $promedios = $this->calcularNivelesDesdeBaremos($promedios, $forma);
+
         return $promedios;
+    }
+
+    /**
+     * Calcula niveles de riesgo usando baremos oficiales
+     */
+    protected function calcularNivelesDesdeBaremos($promedios, $forma)
+    {
+        // Determinar qué scoring usar
+        $intralaboralScoring = $forma === 'A' ? IntralaboralAScoring::class : IntralaboralBScoring::class;
+
+        // Total intralaboral
+        if (isset($promedios['intralaboral_total_puntaje'])) {
+            $baremo = $intralaboralScoring::getBaremoTotal();
+            $promedios['intralaboral_total_nivel'] = $this->aplicarBaremo($promedios['intralaboral_total_puntaje'], $baremo);
+        }
+
+        // Dominios intralaborales
+        $mapaDominios = [
+            'dom_liderazgo' => 'liderazgo',
+            'dom_control' => 'control',
+            'dom_demandas' => 'demandas',
+            'dom_recompensas' => 'recompensas',
+        ];
+
+        foreach ($mapaDominios as $key => $baremoKey) {
+            if (isset($promedios[$key . '_puntaje'])) {
+                $baremo = $intralaboralScoring::getBaremoDominio($baremoKey);
+                $promedios[$key . '_nivel'] = $this->aplicarBaremo($promedios[$key . '_puntaje'], $baremo);
+            }
+        }
+
+        // Dimensiones intralaborales
+        $mapaDimensiones = [
+            'dim_caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
+            'dim_relaciones_sociales' => 'relaciones_sociales',
+            'dim_retroalimentacion' => 'retroalimentacion',
+            'dim_relacion_colaboradores' => 'relacion_colaboradores',
+            'dim_claridad_rol' => 'claridad_rol',
+            'dim_capacitacion' => 'capacitacion',
+            'dim_participacion_manejo_cambio' => 'participacion_manejo_cambio',
+            'dim_oportunidades_desarrollo' => 'oportunidades_desarrollo',
+            'dim_control_autonomia' => 'control_autonomia',
+            'dim_demandas_ambientales' => 'demandas_ambientales',
+            'dim_demandas_emocionales' => 'demandas_emocionales',
+            'dim_demandas_cuantitativas' => 'demandas_cuantitativas',
+            'dim_influencia_trabajo_entorno_extralaboral' => 'influencia_trabajo_entorno_extralaboral',
+            'dim_demandas_responsabilidad' => 'exigencias_responsabilidad',
+            'dim_demandas_carga_mental' => 'demandas_carga_mental',
+            'dim_consistencia_rol' => 'consistencia_rol',
+            'dim_demandas_jornada_trabajo' => 'demandas_jornada_trabajo',
+            'dim_recompensas_pertenencia' => 'recompensas_pertenencia',
+            'dim_reconocimiento_compensacion' => 'reconocimiento_compensacion',
+        ];
+
+        foreach ($mapaDimensiones as $key => $baremoKey) {
+            if (isset($promedios[$key . '_puntaje'])) {
+                $baremo = $intralaboralScoring::getBaremoDimension($baremoKey);
+                $promedios[$key . '_nivel'] = $this->aplicarBaremo($promedios[$key . '_puntaje'], $baremo);
+            }
+        }
+
+        // Total extralaboral
+        if (isset($promedios['extralaboral_total_puntaje'])) {
+            $baremo = ExtralaboralScoring::getBaremoTotal();
+            $promedios['extralaboral_total_nivel'] = $this->aplicarBaremo($promedios['extralaboral_total_puntaje'], $baremo);
+        }
+
+        // Dimensiones extralaborales
+        $mapaDimensionesExtra = [
+            'extralaboral_tiempo_fuera' => 'tiempo_fuera_trabajo',
+            'extralaboral_relaciones_familiares' => 'relaciones_familiares',
+            'extralaboral_comunicacion' => 'comunicacion_relaciones_interpersonales',
+            'extralaboral_situacion_economica' => 'situacion_economica_grupo_familiar',
+            'extralaboral_caracteristicas_vivienda' => 'caracteristicas_vivienda_entorno',
+            'extralaboral_influencia_entorno' => 'influencia_entorno_extralaboral',
+            'extralaboral_desplazamiento' => 'desplazamiento_vivienda_trabajo',
+        ];
+
+        foreach ($mapaDimensionesExtra as $key => $baremoKey) {
+            if (isset($promedios[$key . '_puntaje'])) {
+                $baremo = ExtralaboralScoring::getBaremoDimension($baremoKey);
+                $promedios[$key . '_nivel'] = $this->aplicarBaremo($promedios[$key . '_puntaje'], $baremo);
+            }
+        }
+
+        // Total estrés
+        if (isset($promedios['estres_total_puntaje'])) {
+            $baremo = EstresScoring::getBaremoTotal();
+            $promedios['estres_total_nivel'] = $this->aplicarBaremo($promedios['estres_total_puntaje'], $baremo);
+        }
+
+        return $promedios;
+    }
+
+    /**
+     * Aplica un baremo a un puntaje
+     */
+    protected function aplicarBaremo($puntaje, $baremo)
+    {
+        foreach ($baremo as $nivel => $rango) {
+            if ($puntaje >= $rango['min'] && $puntaje <= $rango['max']) {
+                return $nivel;
+            }
+        }
+        return 'sin_riesgo';
     }
 
     /**

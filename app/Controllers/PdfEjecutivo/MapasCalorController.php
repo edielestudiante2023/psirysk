@@ -28,11 +28,11 @@ class MapasCalorController extends PdfEjecutivoBaseController
      * Colores para estrés (nomenclatura diferente)
      */
     protected $stressColors = [
-        'muy_bajo'  => '#4CAF50',
-        'bajo'      => '#8BC34A',
-        'medio'     => '#FFC107',
-        'alto'      => '#FF9800',
-        'muy_alto'  => '#F44336',
+        'muy_bajo'  => '#5FE330',  // Verde - Sin riesgo o riesgo bajo
+        'bajo'      => '#5FE330',  // Verde - Sin riesgo o riesgo bajo
+        'medio'     => '#F5F74A',  // Amarillo - Riesgo medio
+        'alto'      => '#FF4444',  // Rojo - Riesgo alto y muy alto
+        'muy_alto'  => '#FF4444',  // Rojo - Riesgo alto y muy alto
     ];
 
     /**
@@ -886,18 +886,18 @@ Se sugiere realizar una nueva medición dentro de <strong>' . $periodicidadEstre
     protected function getColorPorNivel($nivel)
     {
         $colores = [
-            'sin_riesgo' => '#4CAF50',
-            'riesgo_bajo' => '#8BC34A',
-            'riesgo_medio' => '#FFC107',
-            'riesgo_alto' => '#FF9800',
-            'riesgo_muy_alto' => '#F44336',
-            'muy_bajo' => '#4CAF50',
-            'bajo' => '#8BC34A',
-            'medio' => '#FFC107',
-            'alto' => '#FF9800',
-            'muy_alto' => '#F44336',
+            'sin_riesgo' => '#5FE330',      // Verde - Sin riesgo o riesgo bajo
+            'riesgo_bajo' => '#5FE330',     // Verde - Sin riesgo o riesgo bajo
+            'riesgo_medio' => '#F5F74A',    // Amarillo - Riesgo medio
+            'riesgo_alto' => '#FF4444',     // Rojo - Riesgo alto y muy alto
+            'riesgo_muy_alto' => '#FF4444', // Rojo - Riesgo alto y muy alto
+            'muy_bajo' => '#5FE330',        // Verde - Sin riesgo o riesgo bajo
+            'bajo' => '#5FE330',            // Verde - Sin riesgo o riesgo bajo
+            'medio' => '#F5F74A',           // Amarillo - Riesgo medio
+            'alto' => '#FF4444',            // Rojo - Riesgo alto y muy alto
+            'muy_alto' => '#FF4444',        // Rojo - Riesgo alto y muy alto
         ];
-        return $colores[$nivel] ?? '#4CAF50';
+        return $colores[$nivel] ?? '#5FE330';
     }
 
     /**
@@ -1458,7 +1458,7 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
         $promedios = $this->calcularPromediosForma($forma);
         $estresNivel = $promedios['estres_total_nivel'] ?? 'muy_bajo';
         $estresPuntaje = number_format($promedios['estres_total_puntaje'] ?? 0, 1);
-        $estresColor = $this->stressColors[$estresNivel] ?? '#4CAF50';
+        $estresColor = $this->stressColors[$estresNivel] ?? '#5FE330';
         $estresTextColor = $estresNivel === 'medio' ? '#333' : '#fff';
 
         $html = '
@@ -1534,7 +1534,7 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
         // Interpretación según nivel
         if (in_array($estresNivel, ['alto', 'muy_alto'])) {
             $html .= '
-<div style="margin-top: 10pt; padding: 8pt; background: #ffebee; border-left: 3pt solid #F44336; font-size: 8pt;">
+<div style="margin-top: 10pt; padding: 8pt; background: #ffebee; border-left: 3pt solid #FF4444; font-size: 8pt;">
     <strong style="color: #c62828;">Alerta:</strong> El nivel de síntomas de estrés detectado es <strong>' . strtoupper($this->stressNames[$estresNivel]) . '</strong>. Se requiere intervención inmediata en el marco de un programa de vigilancia epidemiológica. Los trabajadores presentan alta probabilidad de asociación con efectos negativos en la salud física y mental.
 </div>
 ';

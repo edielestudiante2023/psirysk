@@ -14,18 +14,9 @@
  * 7. Desplazamiento vivienda-trabajo-vivienda
  */
 
-// Helper function para badges de riesgo con colores oficiales
-function getBadgeClass($nivel) {
-    $styles = [
-        'sin_riesgo' => 'background-color: #28a745; color: white;',      // Verde oscuro
-        'riesgo_bajo' => 'background-color: #28a745; color: white;',     // Verde oscuro
-        'riesgo_medio' => 'background-color: #ffc107; color: #333;',     // Amarillo
-        'riesgo_alto' => 'background-color: #dc3545; color: white;',     // Rojo intenso
-        'riesgo_muy_alto' => 'background-color: #dc3545; color: white;'  // Rojo intenso
-    ];
-    return $styles[$nivel] ?? 'background-color: #6c757d; color: white;';
-}
-
+/**
+ * Función helper para obtener el label del nivel de riesgo
+ */
 function getRiskLabel($nivel) {
     $labels = [
         'sin_riesgo' => 'Sin Riesgo',
@@ -34,7 +25,97 @@ function getRiskLabel($nivel) {
         'riesgo_alto' => 'Riesgo Alto',
         'riesgo_muy_alto' => 'Riesgo Muy Alto'
     ];
-    return $labels[$nivel] ?? 'N/A';
+    return $labels[$nivel] ?? 'Sin datos';
+}
+
+/**
+ * Función helper para obtener la clase de color del badge según nivel de riesgo
+ */
+function getBadgeClass($nivel) {
+    $styles = [
+        'sin_riesgo' => 'background-color: #28a745; color: white;',
+        'riesgo_bajo' => 'background-color: #28a745; color: white;',
+        'riesgo_medio' => 'background-color: #ffc107; color: #333;',
+        'riesgo_alto' => 'background-color: #dc3545; color: white;',
+        'riesgo_muy_alto' => 'background-color: #dc3545; color: white;'
+    ];
+    return $styles[$nivel] ?? 'background-color: #6c757d; color: white;';
+}
+
+/**
+ * Función helper para obtener la clase de color del card según nivel de riesgo
+ */
+function getCardColorClass($nivel) {
+    switch($nivel) {
+        case 'sin_riesgo':
+        case 'riesgo_bajo':
+            return 'bg-success'; // Verde
+        case 'riesgo_medio':
+            return 'bg-warning'; // Amarillo
+        case 'riesgo_alto':
+        case 'riesgo_muy_alto':
+            return 'bg-danger'; // Rojo
+        default:
+            return 'bg-secondary'; // Gris
+    }
+}
+
+/**
+ * Función helper para obtener el color de texto apropiado según el fondo
+ */
+function getCardTextClass($nivel) {
+    switch($nivel) {
+        case 'riesgo_medio':
+            return 'text-dark'; // Texto oscuro para fondo amarillo
+        default:
+            return 'text-white'; // Texto blanco para otros fondos
+    }
+}
+
+/**
+ * Función helper para obtener el gradiente del card Total según nivel de riesgo
+ */
+function getTotalCardGradient($nivel) {
+    switch($nivel) {
+        case 'sin_riesgo':
+        case 'riesgo_bajo':
+            return 'background: linear-gradient(135deg, #28a745 0%, #20c997 100%);'; // Verde
+        case 'riesgo_medio':
+            return 'background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);'; // Amarillo/Naranja
+        case 'riesgo_alto':
+            return 'background: linear-gradient(135deg, #fd7e14 0%, #dc3545 100%);'; // Naranja/Rojo
+        case 'riesgo_muy_alto':
+            return 'background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);'; // Rojo oscuro
+        default:
+            return 'background: linear-gradient(135deg, #6c757d 0%, #495057 100%);'; // Gris
+    }
+}
+
+/**
+ * Función helper para formatear datos MAX RISK con HTML
+ */
+function formatMaxRiskHTML($data, $showOtherForm = false) {
+    if (empty($data) || !isset($data['promedio'])) {
+        return 'N/D';
+    }
+
+    $html = number_format($data['promedio'], 1);
+
+    // Si hay forma de origen, mostrarla
+    if (isset($data['forma_origen']) && $data['forma_origen'] !== null) {
+        $html .= ' <span style="font-size: 0.85em; opacity: 0.9;">(Forma ' . $data['forma_origen'] . ')</span>';
+    }
+
+    // Opcionalmente mostrar el valor de la otra forma
+    if ($showOtherForm && isset($data['data_a']) && isset($data['data_b'])) {
+        $otraForma = $data['forma_origen'] === 'A' ? 'B' : 'A';
+        $dataOtra = $data['forma_origen'] === 'A' ? $data['data_b'] : $data['data_a'];
+        if ($dataOtra && isset($dataOtra['promedio'])) {
+            $html .= '<br><small class="text-muted" style="opacity: 0.8;">Forma ' . $otraForma . ': ' . number_format($dataOtra['promedio'], 1) . '</small>';
+        }
+    }
+
+    return $html;
 }
 ?>
 <!DOCTYPE html>
@@ -493,22 +574,24 @@ function getRiskLabel($nivel) {
     <!-- Estadísticas Generales - Total Extralaboral -->
     <div class="row mb-3">
         <div class="col-12">
-            <div class="card stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <?php
+            $nivelTotalExtralaboral = $stats['maxRisk']['extralaboral_total']['nivel'] ?? 'sin_riesgo';
+            $textClass = $nivelTotalExtralaboral === 'riesgo_medio' ? 'text-dark' : 'text-white';
+            ?>
+            <div class="card stat-card" style="<?= getTotalCardGradient($nivelTotalExtralaboral) ?> color: white;">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.9;">Total Extralaboral</h6>
-                        <h2 class="fw-bold mb-0"
-                            data-bs-toggle="tooltip"
-                            data-bs-placement="top"
-                            title="Puntaje: <?= number_format($stats['extralaboralTotal'], 1) ?>"
-                            style="cursor: help;">
-                            <?= $stats['extralaboralTotalLabel'] ?? 'Sin datos' ?>
+                    <div class="<?= $textClass ?>">
+                        <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.9;">Total Extralaboral (MAX RISK)</h6>
+                        <h2 class="fw-bold mb-0">
+                            <?= getRiskLabel($nivelTotalExtralaboral) ?>
                         </h2>
+                        <p class="mb-0 small mt-1" style="opacity: 0.8;">
+                            <i class="fas fa-chart-line me-1"></i><?= formatMaxRiskHTML($stats['maxRisk']['extralaboral_total'] ?? [], true) ?>
+                        </p>
                         <p class="mb-0 small mt-1" style="opacity: 0.8;">
                             <i class="fas fa-users me-1"></i><?= $totalWorkers ?> trabajadores evaluados
                         </p>
                     </div>
-                    <i class="fas fa-home" style="font-size: 3rem; opacity: 0.6;"></i>
                 </div>
             </div>
         </div>

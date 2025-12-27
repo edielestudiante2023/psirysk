@@ -1103,10 +1103,10 @@ class ReportsController extends BaseController
         if (empty($results)) {
             return [
                 'riskDistribution' => [],
-                'dimensionAverages' => [],
-                'dimensionLevels' => [],
-                'extralaboralTotal' => 0,
-                'genderDistribution' => []
+                'maxRisk' => [],
+                'genderDistribution' => [],
+                'has_forma_a' => false,
+                'has_forma_b' => false
             ];
         }
 
@@ -1121,107 +1121,143 @@ class ReportsController extends BaseController
             'dim_desplazamiento_vivienda_trabajo' => 'extralaboral_desplazamiento'
         ];
 
-        $stats = [
-            'riskDistribution' => [
-                'sin_riesgo' => 0,
-                'riesgo_bajo' => 0,
-                'riesgo_medio' => 0,
-                'riesgo_alto' => 0,
-                'riesgo_muy_alto' => 0
-            ],
-            'dimensionAverages' => [
-                'dim_tiempo_fuera_trabajo' => 0,
-                'dim_relaciones_familiares' => 0,
-                'dim_comunicacion_relaciones_interpersonales' => 0,
-                'dim_situacion_economica_grupo_familiar' => 0,
-                'dim_caracteristicas_vivienda_entorno' => 0,
-                'dim_influencia_entorno_extralaboral' => 0,
-                'dim_desplazamiento_vivienda_trabajo' => 0
-            ],
-            'extralaboralTotal' => 0,
-            'genderDistribution' => []
+        // Separar resultados por forma (Forma A = intralaboral_form_type 'A', Forma B = 'B')
+        $resultsA = array_filter($results, fn($r) => ($r['intralaboral_form_type'] ?? '') === 'A');
+        $resultsB = array_filter($results, fn($r) => ($r['intralaboral_form_type'] ?? '') === 'B');
+
+        $hasFormaA = !empty($resultsA);
+        $hasFormaB = !empty($resultsB);
+
+        // Baremos oficiales para cada forma
+        $baremosA = ExtralaboralScoring::getBaremosDimensionesA();
+        $baremosB = ExtralaboralScoring::getBaremosDimensionesB();
+
+        // Función helper para calcular promedio y nivel de una forma
+        $calculateForma = function($field, $baremo, $formResults) {
+            if (empty($formResults)) {
+                return null;
+            }
+            $sum = 0;
+            $count = 0;
+            foreach ($formResults as $r) {
+                if (isset($r[$field]) && $r[$field] !== null && $r[$field] !== '') {
+                    $sum += floatval($r[$field]);
+                    $count++;
+                }
+            }
+            if ($count === 0) {
+                return null;
+            }
+            $promedio = round($sum / $count, 1);
+            $nivel = $this->aplicarBaremo($promedio, $baremo);
+            return [
+                'promedio' => $promedio,
+                'nivel' => $nivel,
+                'count' => $count
+            ];
+        };
+
+        // Función para obtener el PEOR resultado entre Forma A y B
+        $getWorstResult = function($field, $baremoA, $baremoB) use ($calculateForma, $resultsA, $resultsB, $hasFormaA, $hasFormaB) {
+            $dataA = $hasFormaA ? $calculateForma($field, $baremoA, $resultsA) : null;
+            $dataB = $hasFormaB ? $calculateForma($field, $baremoB, $resultsB) : null;
+
+            // Si solo hay una forma, retornar esa
+            if ($dataA && !$dataB) {
+                return array_merge($dataA, ['forma_origen' => 'A', 'data_a' => $dataA, 'data_b' => null]);
+            }
+            if ($dataB && !$dataA) {
+                return array_merge($dataB, ['forma_origen' => 'B', 'data_a' => null, 'data_b' => $dataB]);
+            }
+            if (!$dataA && !$dataB) {
+                return ['promedio' => 0, 'nivel' => 'sin_riesgo', 'forma_origen' => null, 'data_a' => null, 'data_b' => null];
+            }
+
+            // Comparar niveles (mayor = peor)
+            $riskOrder = ['sin_riesgo' => 1, 'riesgo_bajo' => 2, 'riesgo_medio' => 3, 'riesgo_alto' => 4, 'riesgo_muy_alto' => 5];
+            $orderA = $riskOrder[$dataA['nivel']] ?? 0;
+            $orderB = $riskOrder[$dataB['nivel']] ?? 0;
+
+            // Determinar cuál es peor
+            if ($orderA === $orderB) {
+                // Mismo nivel, usar el promedio más alto
+                $worst = ($dataA['promedio'] >= $dataB['promedio']) ? $dataA : $dataB;
+                $formaOrigen = ($dataA['promedio'] >= $dataB['promedio']) ? 'A' : 'B';
+            } else {
+                $worst = ($orderA > $orderB) ? $dataA : $dataB;
+                $formaOrigen = ($orderA > $orderB) ? 'A' : 'B';
+            }
+
+            return array_merge($worst, [
+                'forma_origen' => $formaOrigen,
+                'data_a' => $dataA,
+                'data_b' => $dataB
+            ]);
+        };
+
+        // Calcular MAX RISK para total extralaboral
+        $maxRisk = [
+            'extralaboral_total' => $getWorstResult('extralaboral_total_puntaje', $baremosA['total'], $baremosB['total'])
         ];
 
-        // Totales para promedios
-        $totals = [
-            'extralaboral_total' => 0
+        // Calcular MAX RISK para las 7 dimensiones
+        $dimensionKeys = [
+            'tiempo_fuera_trabajo' => 'extralaboral_tiempo_fuera_puntaje',
+            'relaciones_familiares' => 'extralaboral_relaciones_familiares_puntaje',
+            'comunicacion_relaciones' => 'extralaboral_comunicacion_puntaje',
+            'situacion_economica' => 'extralaboral_situacion_economica_puntaje',
+            'caracteristicas_vivienda' => 'extralaboral_caracteristicas_vivienda_puntaje',
+            'influencia_entorno' => 'extralaboral_influencia_entorno_puntaje',
+            'desplazamiento' => 'extralaboral_desplazamiento_puntaje'
         ];
-        $dimensionTotals = [];
-        foreach (array_keys($stats['dimensionAverages']) as $dim) {
-            $dimensionTotals[$dim] = 0;
+
+        foreach ($dimensionKeys as $dimKey => $puntajeField) {
+            $maxRisk[$dimKey] = $getWorstResult($puntajeField, $baremosA[$dimKey], $baremosB[$dimKey]);
         }
 
-        $count = count($results);
+        // Agregar también con el formato de vista (dim_*)
+        foreach ($dimensionMapping as $viewKey => $dbKey) {
+            $cleanKey = str_replace('extralaboral_', '', $dbKey);
+            if (isset($maxRisk[$cleanKey])) {
+                $maxRisk[$viewKey] = $maxRisk[$cleanKey];
+            }
+        }
+
+        // Distribución de riesgo (basado en datos individuales)
+        $riskDistribution = [
+            'sin_riesgo' => 0,
+            'riesgo_bajo' => 0,
+            'riesgo_medio' => 0,
+            'riesgo_alto' => 0,
+            'riesgo_muy_alto' => 0
+        ];
 
         foreach ($results as $result) {
-            // Distribución de riesgo
             if (!empty($result['extralaboral_total_nivel'])) {
                 $nivel = $result['extralaboral_total_nivel'];
-                if (isset($stats['riskDistribution'][$nivel])) {
-                    $stats['riskDistribution'][$nivel]++;
+                if (isset($riskDistribution[$nivel])) {
+                    $riskDistribution[$nivel]++;
                 }
             }
+        }
 
-            // Total extralaboral
-            $totals['extralaboral_total'] += $result['extralaboral_total_puntaje'] ?? 0;
-
-            // Promedios de dimensiones - USAR MAPEO
-            foreach (array_keys($dimensionTotals) as $dim) {
-                $dbColumnName = $dimensionMapping[$dim];
-                $puntajeKey = $dbColumnName . '_puntaje';
-                $dimensionTotals[$dim] += $result[$puntajeKey] ?? 0;
-            }
-
-            // Distribución por género
+        // Distribución por género
+        $genderDistribution = [];
+        foreach ($results as $result) {
             $gender = $result['gender'] ?? 'No especificado';
-            if (!isset($stats['genderDistribution'][$gender])) {
-                $stats['genderDistribution'][$gender] = 0;
+            if (!isset($genderDistribution[$gender])) {
+                $genderDistribution[$gender] = 0;
             }
-            $stats['genderDistribution'][$gender]++;
+            $genderDistribution[$gender]++;
         }
 
-        // Calcular promedios
-        if ($count > 0) {
-            $stats['extralaboralTotal'] = round($totals['extralaboral_total'] / $count, 1);
-
-            // Calcular promedios de dimensiones
-            foreach (array_keys($dimensionTotals) as $dim) {
-                $stats['dimensionAverages'][$dim] = round($dimensionTotals[$dim] / $count, 1);
-            }
-
-            // Determinar tipo de cargo predominante para baremos
-            $jefesProfesionales = 0;
-            $auxiliaresOperarios = 0;
-            foreach ($results as $result) {
-                $positionType = strtolower($result['position_type'] ?? '');
-                if (strpos($positionType, 'jefe') !== false ||
-                    strpos($positionType, 'profesional') !== false ||
-                    strpos($positionType, 'tecnico') !== false ||
-                    strpos($positionType, 'técnico') !== false) {
-                    $jefesProfesionales++;
-                } else {
-                    $auxiliaresOperarios++;
-                }
-            }
-            $baremoType = $jefesProfesionales >= $auxiliaresOperarios ? 'jefes' : 'auxiliares';
-
-            // Calcular nivel de riesgo para total
-            $totalRisk = $this->getExtralaboralRiskLevel($stats['extralaboralTotal'], 'total', $baremoType);
-            $stats['extralaboralTotalNivel'] = $totalRisk['nivel'];
-            $stats['extralaboralTotalLabel'] = $totalRisk['label'];
-
-            // Calcular niveles de riesgo para cada dimensión
-            $stats['dimensionLevels'] = [];
-            foreach (array_keys($dimensionTotals) as $dim) {
-                $stats['dimensionLevels'][$dim] = $this->getExtralaboralRiskLevel(
-                    $stats['dimensionAverages'][$dim],
-                    $dim,
-                    $baremoType
-                );
-            }
-        }
-
-        return $stats;
+        return [
+            'maxRisk' => $maxRisk,
+            'riskDistribution' => $riskDistribution,
+            'genderDistribution' => $genderDistribution,
+            'has_forma_a' => $hasFormaA,
+            'has_forma_b' => $hasFormaB
+        ];
     }
 
     /**

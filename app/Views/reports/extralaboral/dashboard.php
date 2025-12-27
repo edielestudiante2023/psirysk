@@ -296,23 +296,6 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
             <i class="fas fa-arrow-left"></i> Volver
         </a>
         <h5 class="mb-0"><i class="fas fa-home me-2 text-primary"></i><?= $title ?></h5>
-        <div class="ms-auto">
-            <button class="btn btn-success btn-sm me-2" onclick="window.print()">
-                <i class="fas fa-print me-1"></i>Imprimir
-            </button>
-            <button class="btn btn-primary btn-sm me-2"
-                data-download-type="excel"
-                data-service-id="<?= $service['id'] ?>"
-                data-url="<?= base_url('reports/export-excel/' . $service['id'] . '/extralaboral') ?>">
-                <i class="fas fa-file-excel me-1"></i>Excel
-            </button>
-            <a href="<?= base_url('reports/export-pdf/' . $service['id'] . '/extralaboral') ?>" class="btn btn-danger btn-sm me-2">
-                <i class="fas fa-file-pdf me-1"></i>PDF Completo
-            </a>
-            <a href="<?= base_url('reports/extralaboral/executive/' . $service['id']) ?>" class="btn btn-warning btn-sm">
-                <i class="fas fa-bolt me-1"></i>Informe Ejecutivo
-            </a>
-        </div>
     </div>
 </nav>
 

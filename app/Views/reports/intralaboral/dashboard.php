@@ -2633,6 +2633,13 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
             ];
             riskChart.update();
 
+            // Actualizar cards de distribución de riesgo
+            document.querySelector('[data-stat-risk="sin_riesgo"]').textContent = riskDistribution.sin_riesgo;
+            document.querySelector('[data-stat-risk="riesgo_bajo"]').textContent = riskDistribution.riesgo_bajo;
+            document.querySelector('[data-stat-risk="riesgo_medio"]').textContent = riskDistribution.riesgo_medio;
+            document.querySelector('[data-stat-risk="riesgo_alto"]').textContent = riskDistribution.riesgo_alto;
+            document.querySelector('[data-stat-risk="riesgo_muy_alto"]').textContent = riskDistribution.riesgo_muy_alto;
+
             // Actualizar gráfico de dominios con niveles - filtrar por dominio seleccionado
             const allDomains = [
                 { key: 'liderazgo', label: 'Liderazgo', nivel: newStats.maxRisk?.liderazgo?.nivel || 'sin_riesgo', puntaje: newStats.maxRisk?.liderazgo?.promedio || 0 },

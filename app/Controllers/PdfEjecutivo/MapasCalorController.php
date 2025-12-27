@@ -1404,15 +1404,15 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
             $promedios['extralaboral_total_nivel'] = $this->aplicarBaremo($promedios['extralaboral_total_puntaje'], $baremo);
         }
 
-        // Dimensiones extralaborales
+        // Dimensiones extralaborales - corregir claves según ExtralaboralScoring
         $mapaDimensionesExtra = [
             'extralaboral_tiempo_fuera' => 'tiempo_fuera_trabajo',
             'extralaboral_relaciones_familiares' => 'relaciones_familiares',
-            'extralaboral_comunicacion' => 'comunicacion_relaciones_interpersonales',
-            'extralaboral_situacion_economica' => 'situacion_economica_grupo_familiar',
-            'extralaboral_caracteristicas_vivienda' => 'caracteristicas_vivienda_entorno',
-            'extralaboral_influencia_entorno' => 'influencia_entorno_extralaboral',
-            'extralaboral_desplazamiento' => 'desplazamiento_vivienda_trabajo',
+            'extralaboral_comunicacion' => 'comunicacion_relaciones',
+            'extralaboral_situacion_economica' => 'situacion_economica',
+            'extralaboral_caracteristicas_vivienda' => 'caracteristicas_vivienda',
+            'extralaboral_influencia_entorno' => 'influencia_entorno',
+            'extralaboral_desplazamiento' => 'desplazamiento',
         ];
 
         foreach ($mapaDimensionesExtra as $key => $baremoKey) {

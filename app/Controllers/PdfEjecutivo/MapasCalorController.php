@@ -1433,12 +1433,22 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
     /**
      * Aplica un baremo a un puntaje
+     * Los baremos tienen la estructura: ['sin_riesgo' => [0.0, 3.8], 'riesgo_bajo' => [3.9, 15.4], ...]
      */
     protected function aplicarBaremo($puntaje, $baremo)
     {
+        if (!$baremo || !is_array($baremo)) {
+            return 'sin_riesgo';
+        }
+
         foreach ($baremo as $nivel => $rango) {
-            if ($puntaje >= $rango['min'] && $puntaje <= $rango['max']) {
-                return $nivel;
+            // $rango es un array [min, max]
+            if (is_array($rango) && count($rango) >= 2) {
+                $min = $rango[0];
+                $max = $rango[1];
+                if ($puntaje >= $min && $puntaje <= $max) {
+                    return $nivel;
+                }
             }
         }
         return 'sin_riesgo';

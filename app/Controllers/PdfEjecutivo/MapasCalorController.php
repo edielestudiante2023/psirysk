@@ -1353,9 +1353,9 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
             $promedios['intralaboral_total_nivel'] = $this->aplicarBaremo($promedios['intralaboral_total_puntaje'], $baremo);
         }
 
-        // Dominios intralaborales
+        // Dominios intralaborales - corregir claves según IntralaboralAScoring
         $mapaDominios = [
-            'dom_liderazgo' => 'liderazgo',
+            'dom_liderazgo' => 'liderazgo_relaciones_sociales',
             'dom_control' => 'control',
             'dom_demandas' => 'demandas',
             'dom_recompensas' => 'recompensas',
@@ -1368,26 +1368,26 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
             }
         }
 
-        // Dimensiones intralaborales
+        // Dimensiones intralaborales - corregir claves según IntralaboralAScoring
         $mapaDimensiones = [
             'dim_caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
-            'dim_relaciones_sociales' => 'relaciones_sociales',
-            'dim_retroalimentacion' => 'retroalimentacion',
-            'dim_relacion_colaboradores' => 'relacion_colaboradores',
+            'dim_relaciones_sociales' => 'relaciones_sociales_trabajo',
+            'dim_retroalimentacion' => 'retroalimentacion_desempeno',
+            'dim_relacion_colaboradores' => 'relacion_con_colaboradores',
             'dim_claridad_rol' => 'claridad_rol',
             'dim_capacitacion' => 'capacitacion',
             'dim_participacion_manejo_cambio' => 'participacion_manejo_cambio',
             'dim_oportunidades_desarrollo' => 'oportunidades_desarrollo',
-            'dim_control_autonomia' => 'control_autonomia',
-            'dim_demandas_ambientales' => 'demandas_ambientales',
+            'dim_control_autonomia' => 'control_autonomia_trabajo',
+            'dim_demandas_ambientales' => 'demandas_ambientales_esfuerzo_fisico',
             'dim_demandas_emocionales' => 'demandas_emocionales',
             'dim_demandas_cuantitativas' => 'demandas_cuantitativas',
             'dim_influencia_trabajo_entorno_extralaboral' => 'influencia_trabajo_entorno_extralaboral',
-            'dim_demandas_responsabilidad' => 'exigencias_responsabilidad',
+            'dim_demandas_responsabilidad' => 'exigencias_responsabilidad_cargo',
             'dim_demandas_carga_mental' => 'demandas_carga_mental',
             'dim_consistencia_rol' => 'consistencia_rol',
             'dim_demandas_jornada_trabajo' => 'demandas_jornada_trabajo',
-            'dim_recompensas_pertenencia' => 'recompensas_pertenencia',
+            'dim_recompensas_pertenencia' => 'recompensas_pertenencia_estabilidad',
             'dim_reconocimiento_compensacion' => 'reconocimiento_compensacion',
         ];
 

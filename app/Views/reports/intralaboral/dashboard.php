@@ -44,6 +44,47 @@ function getNivelEstresTexto($nivel) {
     ];
     return $textos[$nivel] ?? 'N/A';
 }
+
+/**
+ * Función helper para obtener el label del nivel de riesgo
+ */
+function getRiskLabel($nivel) {
+    $labels = [
+        'sin_riesgo' => 'Sin Riesgo',
+        'riesgo_bajo' => 'Riesgo Bajo',
+        'riesgo_medio' => 'Riesgo Medio',
+        'riesgo_alto' => 'Riesgo Alto',
+        'riesgo_muy_alto' => 'Riesgo Muy Alto'
+    ];
+    return $labels[$nivel] ?? 'Sin datos';
+}
+
+/**
+ * Función helper para formatear datos MAX RISK mostrando forma de origen
+ */
+function formatMaxRisk($data, $showOtherForm = false) {
+    if (empty($data) || !isset($data['promedio'])) {
+        return 'N/D';
+    }
+
+    $html = number_format($data['promedio'], 1);
+
+    // Si hay forma de origen, mostrarla
+    if (isset($data['forma_origen']) && $data['forma_origen'] !== null) {
+        $html .= ' <span style="font-size: 0.85em; opacity: 0.9;">(Forma ' . $data['forma_origen'] . ')</span>';
+    }
+
+    // Opcionalmente mostrar el valor de la otra forma
+    if ($showOtherForm && isset($data['data_a']) && isset($data['data_b'])) {
+        $otraForma = $data['forma_origen'] === 'A' ? 'B' : 'A';
+        $dataOtra = $data['forma_origen'] === 'A' ? $data['data_b'] : $data['data_a'];
+        if ($dataOtra && isset($dataOtra['promedio'])) {
+            $html .= '<br><small style="opacity: 0.7;">Forma ' . $otraForma . ': ' . number_format($dataOtra['promedio'], 1) . '</small>';
+        }
+    }
+
+    return $html;
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -218,14 +259,17 @@ function getNivelEstresTexto($nivel) {
                 <div class="card stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.9;">Total Intralaboral</h6>
+                            <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.9;">Total Intralaboral (MAX RISK)</h6>
                             <h2 class="fw-bold mb-0"
                                 data-bs-toggle="tooltip"
                                 data-bs-placement="top"
-                                title="Puntaje: <?= number_format($stats['intralaboralTotal'], 1) ?>"
+                                title="Puntaje: <?= formatMaxRisk($stats['maxRisk']['intralaboral_total'] ?? []) ?>"
                                 style="cursor: help;">
-                                <?= $stats['intralaboralTotalLabel'] ?? 'Sin datos' ?>
+                                <?= getRiskLabel($stats['maxRisk']['intralaboral_total']['nivel'] ?? 'sin_riesgo') ?>
                             </h2>
+                            <p class="mb-0 small mt-1" style="opacity: 0.8;">
+                                <i class="fas fa-chart-line me-1"></i><?= formatMaxRisk($stats['maxRisk']['intralaboral_total'] ?? [], true) ?>
+                            </p>
                             <p class="mb-0 small mt-1" style="opacity: 0.8;">
                                 <i class="fas fa-users me-1"></i><?= $totalWorkers ?> trabajadores evaluados
                             </p>
@@ -244,14 +288,17 @@ function getNivelEstresTexto($nivel) {
                     <div class="card-header bg-primary text-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div style="flex: 1;">
-                                <h6 class="mb-0" style="font-size: 0.85rem;">LIDERAZGO</h6>
+                                <h6 class="mb-0" style="font-size: 0.85rem;">LIDERAZGO (MAX RISK)</h6>
                                 <h4 class="fw-bold mb-0 mt-1"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top"
-                                    title="Puntaje: <?= number_format($stats['domainAverages']['liderazgo'], 1) ?>"
+                                    title="<?= formatMaxRisk($stats['maxRisk']['liderazgo'] ?? [], true) ?>"
                                     style="cursor: help; font-size: 1.1rem;">
-                                    <?= $stats['domainLevels']['liderazgo']['label'] ?? 'Sin datos' ?>
+                                    <?= getRiskLabel($stats['maxRisk']['liderazgo']['nivel'] ?? 'sin_riesgo') ?>
                                 </h4>
+                                <p class="mb-0 small mt-1" style="opacity: 0.9; font-size: 0.75rem;">
+                                    <?= formatMaxRisk($stats['maxRisk']['liderazgo'] ?? []) ?>
+                                </p>
                             </div>
                             <i class="fas fa-user-tie" style="font-size: 2rem; opacity: 0.7;"></i>
                         </div>
@@ -322,14 +369,17 @@ function getNivelEstresTexto($nivel) {
                     <div class="card-header bg-success text-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div style="flex: 1;">
-                                <h6 class="mb-0" style="font-size: 0.85rem;">CONTROL</h6>
+                                <h6 class="mb-0" style="font-size: 0.85rem;">CONTROL (MAX RISK)</h6>
                                 <h4 class="fw-bold mb-0 mt-1"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top"
-                                    title="Puntaje: <?= number_format($stats['domainAverages']['control'], 1) ?>"
+                                    title="<?= formatMaxRisk($stats['maxRisk']['control'] ?? [], true) ?>"
                                     style="cursor: help; font-size: 1.1rem;">
-                                    <?= $stats['domainLevels']['control']['label'] ?? 'Sin datos' ?>
+                                    <?= getRiskLabel($stats['maxRisk']['control']['nivel'] ?? 'sin_riesgo') ?>
                                 </h4>
+                                <p class="mb-0 small mt-1" style="opacity: 0.9; font-size: 0.75rem;">
+                                    <?= formatMaxRisk($stats['maxRisk']['control'] ?? []) ?>
+                                </p>
                             </div>
                             <i class="fas fa-sliders-h" style="font-size: 2rem; opacity: 0.7;"></i>
                         </div>
@@ -410,14 +460,17 @@ function getNivelEstresTexto($nivel) {
                     <div class="card-header bg-warning text-dark">
                         <div class="d-flex justify-content-between align-items-center">
                             <div style="flex: 1;">
-                                <h6 class="mb-0" style="font-size: 0.85rem;">DEMANDAS</h6>
+                                <h6 class="mb-0" style="font-size: 0.85rem;">DEMANDAS (MAX RISK)</h6>
                                 <h4 class="fw-bold mb-0 mt-1"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top"
-                                    title="Puntaje: <?= number_format($stats['domainAverages']['demandas'], 1) ?>"
+                                    title="<?= formatMaxRisk($stats['maxRisk']['demandas'] ?? [], true) ?>"
                                     style="cursor: help; font-size: 1.1rem;">
-                                    <?= $stats['domainLevels']['demandas']['label'] ?? 'Sin datos' ?>
+                                    <?= getRiskLabel($stats['maxRisk']['demandas']['nivel'] ?? 'sin_riesgo') ?>
                                 </h4>
+                                <p class="mb-0 small mt-1" style="font-size: 0.75rem;">
+                                    <?= formatMaxRisk($stats['maxRisk']['demandas'] ?? []) ?>
+                                </p>
                             </div>
                             <i class="fas fa-exclamation-triangle" style="font-size: 2rem; opacity: 0.7;"></i>
                         </div>
@@ -528,14 +581,17 @@ function getNivelEstresTexto($nivel) {
                     <div class="card-header bg-info text-white">
                         <div class="d-flex justify-content-between align-items-center">
                             <div style="flex: 1;">
-                                <h6 class="mb-0" style="font-size: 0.85rem;">RECOMPENSAS</h6>
+                                <h6 class="mb-0" style="font-size: 0.85rem;">RECOMPENSAS (MAX RISK)</h6>
                                 <h4 class="fw-bold mb-0 mt-1"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top"
-                                    title="Puntaje: <?= number_format($stats['domainAverages']['recompensas'], 1) ?>"
+                                    title="<?= formatMaxRisk($stats['maxRisk']['recompensas'] ?? [], true) ?>"
                                     style="cursor: help; font-size: 1.1rem;">
-                                    <?= $stats['domainLevels']['recompensas']['label'] ?? 'Sin datos' ?>
+                                    <?= getRiskLabel($stats['maxRisk']['recompensas']['nivel'] ?? 'sin_riesgo') ?>
                                 </h4>
+                                <p class="mb-0 small mt-1" style="opacity: 0.9; font-size: 0.75rem;">
+                                    <?= formatMaxRisk($stats['maxRisk']['recompensas'] ?? []) ?>
+                                </p>
                             </div>
                             <i class="fas fa-award" style="font-size: 2rem; opacity: 0.7;"></i>
                         </div>

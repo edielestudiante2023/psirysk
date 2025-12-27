@@ -829,157 +829,175 @@ class ReportsController extends BaseController
     /**
      * Calcular estadísticas intralaboral
      */
+    /**
+     * Calcular estadísticas intralaborales usando lógica MAX RISK
+     * Muestra el PEOR resultado entre Forma A y B (jurídicamente correcto)
+     */
     private function calculateIntralaboralStats($results)
     {
         if (empty($results)) {
             return [
                 'riskDistribution' => [],
-                'domainAverages' => [],
-                'dimensionAverages' => [],
-                'intralaboralTotal' => 0,
+                'maxRisk' => [],
                 'genderDistribution' => [],
                 'formTypeDistribution' => []
             ];
         }
 
-        $stats = [
-            'riskDistribution' => [
-                'sin_riesgo' => 0,
-                'riesgo_bajo' => 0,
-                'riesgo_medio' => 0,
-                'riesgo_alto' => 0,
-                'riesgo_muy_alto' => 0
-            ],
-            'domainAverages' => [
-                'liderazgo' => 0,
-                'control' => 0,
-                'demandas' => 0,
-                'recompensas' => 0
-            ],
-            'dimensionAverages' => [
-                // Dominio Liderazgo
-                'dim_caracteristicas_liderazgo' => 0,
-                'dim_relaciones_sociales' => 0,
-                'dim_retroalimentacion' => 0,
-                'dim_relacion_colaboradores' => 0,
-                // Dominio Control
-                'dim_claridad_rol' => 0,
-                'dim_capacitacion' => 0,
-                'dim_participacion_manejo_cambio' => 0,
-                'dim_oportunidades_desarrollo' => 0,
-                'dim_control_autonomia' => 0,
-                // Dominio Demandas
-                'dim_demandas_ambientales' => 0,
-                'dim_demandas_emocionales' => 0,
-                'dim_demandas_cuantitativas' => 0,
-                'dim_influencia_trabajo_entorno_extralaboral' => 0,
-                'dim_demandas_responsabilidad' => 0,
-                'dim_demandas_carga_mental' => 0,
-                'dim_consistencia_rol' => 0,
-                'dim_demandas_jornada_trabajo' => 0,
-                // Dominio Recompensas
-                'dim_recompensas_pertenencia' => 0,
-                'dim_reconocimiento_compensacion' => 0
-            ],
-            'intralaboralTotal' => 0,
-            'genderDistribution' => [],
-            'formTypeDistribution' => ['A' => 0, 'B' => 0]
+        // Separar resultados por forma
+        $resultsA = array_filter($results, fn($r) => $r['intralaboral_form_type'] === 'A');
+        $resultsB = array_filter($results, fn($r) => $r['intralaboral_form_type'] === 'B');
+
+        $countA = count($resultsA);
+        $countB = count($resultsB);
+        $hasFormaA = $countA > 0;
+        $hasFormaB = $countB > 0;
+        $hasBothForms = $hasFormaA && $hasFormaB;
+
+        // Baremos oficiales para cada forma
+        $baremosA = [
+            'intralaboral_total' => IntralaboralAScoring::getBaremoTotal(),
+            'liderazgo' => IntralaboralAScoring::getBaremoDominio('liderazgo_relaciones_sociales'),
+            'control' => IntralaboralAScoring::getBaremoDominio('control'),
+            'demandas' => IntralaboralAScoring::getBaremoDominio('demandas'),
+            'recompensas' => IntralaboralAScoring::getBaremoDominio('recompensas'),
         ];
 
-        // Totales para promedios
-        $totals = [
-            'liderazgo' => 0,
-            'control' => 0,
-            'demandas' => 0,
-            'recompensas' => 0,
-            'intralaboral_total' => 0
+        $baremosB = [
+            'intralaboral_total' => IntralaboralBScoring::getBaremoTotal(),
+            'liderazgo' => IntralaboralBScoring::getBaremoDominio('liderazgo_relaciones_sociales'),
+            'control' => IntralaboralBScoring::getBaremoDominio('control'),
+            'demandas' => IntralaboralBScoring::getBaremoDominio('demandas'),
+            'recompensas' => IntralaboralBScoring::getBaremoDominio('recompensas'),
         ];
 
-        // Totales para dimensiones
-        $dimensionTotals = [];
-        foreach (array_keys($stats['dimensionAverages']) as $dim) {
-            $dimensionTotals[$dim] = 0;
-        }
+        // Orden de niveles de riesgo
+        $riskOrder = [
+            'sin_riesgo' => 0,
+            'riesgo_bajo' => 1,
+            'riesgo_medio' => 2,
+            'riesgo_alto' => 3,
+            'riesgo_muy_alto' => 4,
+        ];
 
-        $count = count($results);
+        // Función para calcular datos de UNA forma
+        $calculateForma = function($field, $baremo, $resultados) use ($riskOrder) {
+            $puntajes = array_filter(array_column($resultados, $field), function($v) {
+                return $v !== null && $v !== '';
+            });
 
-        foreach ($results as $result) {
-            // Distribución de riesgo
-            if (!empty($result['intralaboral_total_nivel'])) {
-                $nivel = $result['intralaboral_total_nivel'];
-                if (isset($stats['riskDistribution'][$nivel])) {
-                    $stats['riskDistribution'][$nivel]++;
+            if (empty($puntajes)) {
+                return null;
+            }
+
+            $promedio = array_sum($puntajes) / count($puntajes);
+            $nivel = 'sin_riesgo';
+
+            foreach ($baremo as $nivelKey => $rango) {
+                if ($promedio >= $rango[0] && $promedio <= $rango[1]) {
+                    $nivel = $nivelKey;
+                    break;
                 }
             }
 
-            // Promedios de dominios
-            $totals['liderazgo'] += $result['dom_liderazgo_puntaje'] ?? 0;
-            $totals['control'] += $result['dom_control_puntaje'] ?? 0;
-            $totals['demandas'] += $result['dom_demandas_puntaje'] ?? 0;
-            $totals['recompensas'] += $result['dom_recompensas_puntaje'] ?? 0;
-            $totals['intralaboral_total'] += $result['intralaboral_total_puntaje'] ?? 0;
-
-            // Promedios de dimensiones
-            foreach (array_keys($dimensionTotals) as $dim) {
-                $puntajeKey = $dim . '_puntaje';
-                $dimensionTotals[$dim] += $result[$puntajeKey] ?? 0;
-            }
-
-            // Distribución por género
-            $gender = $result['gender'] ?? 'No especificado';
-            if (!isset($stats['genderDistribution'][$gender])) {
-                $stats['genderDistribution'][$gender] = 0;
-            }
-            $stats['genderDistribution'][$gender]++;
-
-            // Distribución por tipo de formulario
-            $formType = $result['intralaboral_form_type'] ?? '';
-            if (isset($stats['formTypeDistribution'][$formType])) {
-                $stats['formTypeDistribution'][$formType]++;
-            }
-        }
-
-        // Calcular promedios
-        if ($count > 0) {
-            $stats['domainAverages']['liderazgo'] = round($totals['liderazgo'] / $count, 1);
-            $stats['domainAverages']['control'] = round($totals['control'] / $count, 1);
-            $stats['domainAverages']['demandas'] = round($totals['demandas'] / $count, 1);
-            $stats['domainAverages']['recompensas'] = round($totals['recompensas'] / $count, 1);
-            $stats['intralaboralTotal'] = round($totals['intralaboral_total'] / $count, 1);
-
-            // Calcular promedios de dimensiones
-            foreach (array_keys($dimensionTotals) as $dim) {
-                $stats['dimensionAverages'][$dim] = round($dimensionTotals[$dim] / $count, 1);
-            }
-
-            // Determinar tipo de formulario predominante para clasificar niveles
-            $formType = $stats['formTypeDistribution']['A'] >= $stats['formTypeDistribution']['B'] ? 'A' : 'B';
-
-            // Calcular niveles de riesgo para total y dominios
-            $totalRisk = $this->getIntralaboralRiskLevel($stats['intralaboralTotal'], 'total', $formType);
-            $stats['intralaboralTotalNivel'] = $totalRisk['nivel'];
-            $stats['intralaboralTotalLabel'] = $totalRisk['label'];
-
-            // Calcular niveles de riesgo para cada dominio
-            $stats['domainLevels'] = [
-                'liderazgo' => $this->getIntralaboralRiskLevel($stats['domainAverages']['liderazgo'], 'liderazgo', $formType),
-                'control' => $this->getIntralaboralRiskLevel($stats['domainAverages']['control'], 'control', $formType),
-                'demandas' => $this->getIntralaboralRiskLevel($stats['domainAverages']['demandas'], 'demandas', $formType),
-                'recompensas' => $this->getIntralaboralRiskLevel($stats['domainAverages']['recompensas'], 'recompensas', $formType)
+            return [
+                'promedio' => round($promedio, 1),
+                'nivel' => $nivel,
+                'nivel_order' => $riskOrder[$nivel] ?? 0,
+                'cantidad' => count($puntajes),
             ];
+        };
 
-            // Calcular niveles de riesgo para cada dimensión
-            $stats['dimensionLevels'] = [];
-            foreach (array_keys($dimensionTotals) as $dim) {
-                $stats['dimensionLevels'][$dim] = $this->getDimensionRiskLevel(
-                    $stats['dimensionAverages'][$dim],
-                    $dim,
-                    $formType
-                );
+        // Función para obtener el PEOR resultado entre Forma A y B
+        $getWorstResult = function($field, $baremoA, $baremoB) use ($calculateForma, $resultsA, $resultsB, $hasFormaA, $hasFormaB, $hasBothForms) {
+            $dataA = $hasFormaA ? $calculateForma($field, $baremoA, $resultsA) : null;
+            $dataB = $hasFormaB ? $calculateForma($field, $baremoB, $resultsB) : null;
+
+            // Si solo hay una forma, devolver esa
+            if (!$hasBothForms) {
+                $data = $dataA ?? $dataB;
+                if ($data === null) {
+                    return [
+                        'promedio' => 0,
+                        'nivel' => 'sin_riesgo',
+                        'forma_origen' => null,
+                        'data_a' => null,
+                        'data_b' => null,
+                    ];
+                }
+                $forma = $dataA ? 'A' : 'B';
+                return array_merge($data, [
+                    'forma_origen' => $forma,
+                    'data_a' => $dataA,
+                    'data_b' => $dataB,
+                ]);
+            }
+
+            // Hay ambas formas: determinar cuál es peor
+            $orderA = $dataA['nivel_order'] ?? 0;
+            $orderB = $dataB['nivel_order'] ?? 0;
+
+            if ($orderA === $orderB) {
+                $worst = ($dataA['promedio'] ?? 0) >= ($dataB['promedio'] ?? 0) ? $dataA : $dataB;
+                $formaOrigen = ($dataA['promedio'] ?? 0) >= ($dataB['promedio'] ?? 0) ? 'A' : 'B';
+            } else {
+                $worst = $orderA > $orderB ? $dataA : $dataB;
+                $formaOrigen = $orderA > $orderB ? 'A' : 'B';
+            }
+
+            return array_merge($worst, [
+                'forma_origen' => $formaOrigen,
+                'data_a' => $dataA,
+                'data_b' => $dataB,
+            ]);
+        };
+
+        // Calcular MAX RISK para Total y Dominios
+        $maxRisk = [
+            'intralaboral_total' => $getWorstResult('intralaboral_total_puntaje', $baremosA['intralaboral_total'], $baremosB['intralaboral_total']),
+            'liderazgo' => $getWorstResult('dom_liderazgo_puntaje', $baremosA['liderazgo'], $baremosB['liderazgo']),
+            'control' => $getWorstResult('dom_control_puntaje', $baremosA['control'], $baremosB['control']),
+            'demandas' => $getWorstResult('dom_demandas_puntaje', $baremosA['demandas'], $baremosB['demandas']),
+            'recompensas' => $getWorstResult('dom_recompensas_puntaje', $baremosA['recompensas'], $baremosB['recompensas']),
+        ];
+
+        // Distribución de riesgo (basada en niveles individuales de trabajadores)
+        $riskDistribution = [
+            'sin_riesgo' => 0,
+            'riesgo_bajo' => 0,
+            'riesgo_medio' => 0,
+            'riesgo_alto' => 0,
+            'riesgo_muy_alto' => 0
+        ];
+
+        foreach ($results as $result) {
+            if (!empty($result['intralaboral_total_nivel'])) {
+                $nivel = $result['intralaboral_total_nivel'];
+                if (isset($riskDistribution[$nivel])) {
+                    $riskDistribution[$nivel]++;
+                }
             }
         }
 
-        return $stats;
+        // Distribución por género
+        $genderDistribution = [];
+        foreach ($results as $result) {
+            $gender = $result['gender'] ?? 'No especificado';
+            if (!isset($genderDistribution[$gender])) {
+                $genderDistribution[$gender] = 0;
+            }
+            $genderDistribution[$gender]++;
+        }
+
+        return [
+            'riskDistribution' => $riskDistribution,
+            'maxRisk' => $maxRisk,
+            'genderDistribution' => $genderDistribution,
+            'formTypeDistribution' => ['A' => $countA, 'B' => $countB],
+            'has_forma_a' => $hasFormaA,
+            'has_forma_b' => $hasFormaB,
+            'has_both_forms' => $hasBothForms,
+        ];
     }
 
     /**

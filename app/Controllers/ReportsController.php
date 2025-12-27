@@ -952,6 +952,39 @@ class ReportsController extends BaseController
             ]);
         };
 
+        // Mapeo de dimensiones intralaborales
+        $mapDimensionesIntra = [
+            'caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
+            'relaciones_sociales' => 'relaciones_sociales_trabajo',
+            'retroalimentacion' => 'retroalimentacion_desempeno',
+            'relacion_colaboradores' => 'relacion_con_colaboradores',
+            'claridad_rol' => 'claridad_rol',
+            'capacitacion' => 'capacitacion',
+            'participacion_cambio' => 'participacion_manejo_cambio',
+            'oportunidades_desarrollo' => 'oportunidades_desarrollo',
+            'control_autonomia' => 'control_autonomia_trabajo',
+            'demandas_ambientales' => 'demandas_ambientales_esfuerzo_fisico',
+            'demandas_emocionales' => 'demandas_emocionales',
+            'demandas_cuantitativas' => 'demandas_cuantitativas',
+            'influencia_entorno' => 'influencia_trabajo_entorno_extralaboral',
+            'exigencias_responsabilidad' => 'exigencias_responsabilidad_cargo',
+            'carga_mental' => 'demandas_carga_mental',
+            'consistencia_rol' => 'consistencia_rol',
+            'demandas_jornada' => 'demandas_jornada_trabajo',
+            'recompensas_pertenencia' => 'recompensas_pertenencia_estabilidad',
+            'reconocimiento_compensacion' => 'reconocimiento_compensacion',
+        ];
+
+        // Cargar baremos de dimensiones para cada forma
+        $baremosA['dimensiones'] = [];
+        $baremosB['dimensiones'] = [];
+        foreach ($mapDimensionesIntra as $codigoCorto => $codigoLibreria) {
+            $baremoA = IntralaboralAScoring::getBaremoDimension($codigoLibreria);
+            $baremoB = IntralaboralBScoring::getBaremoDimension($codigoLibreria);
+            if ($baremoA !== null) $baremosA['dimensiones'][$codigoCorto] = $baremoA;
+            if ($baremoB !== null) $baremosB['dimensiones'][$codigoCorto] = $baremoB;
+        }
+
         // Calcular MAX RISK para Total y Dominios
         $maxRisk = [
             'intralaboral_total' => $getWorstResult('intralaboral_total_puntaje', $baremosA['intralaboral_total'], $baremosB['intralaboral_total']),
@@ -960,6 +993,65 @@ class ReportsController extends BaseController
             'demandas' => $getWorstResult('dom_demandas_puntaje', $baremosA['demandas'], $baremosB['demandas']),
             'recompensas' => $getWorstResult('dom_recompensas_puntaje', $baremosA['recompensas'], $baremosB['recompensas']),
         ];
+
+        // Calcular MAX RISK para todas las dimensiones
+        $maxRisk['dim_caracteristicas_liderazgo'] = $getWorstResult('dim_caracteristicas_liderazgo_puntaje',
+            $baremosA['dimensiones']['caracteristicas_liderazgo'] ?? [],
+            $baremosB['dimensiones']['caracteristicas_liderazgo'] ?? []);
+        $maxRisk['dim_relaciones_sociales'] = $getWorstResult('dim_relaciones_sociales_puntaje',
+            $baremosA['dimensiones']['relaciones_sociales'] ?? [],
+            $baremosB['dimensiones']['relaciones_sociales'] ?? []);
+        $maxRisk['dim_retroalimentacion'] = $getWorstResult('dim_retroalimentacion_puntaje',
+            $baremosA['dimensiones']['retroalimentacion'] ?? [],
+            $baremosB['dimensiones']['retroalimentacion'] ?? []);
+        $maxRisk['dim_relacion_colaboradores'] = $getWorstResult('dim_relacion_colaboradores_puntaje',
+            $baremosA['dimensiones']['relacion_colaboradores'] ?? [],
+            $baremosB['dimensiones']['relacion_colaboradores'] ?? []);
+        $maxRisk['dim_claridad_rol'] = $getWorstResult('dim_claridad_rol_puntaje',
+            $baremosA['dimensiones']['claridad_rol'] ?? [],
+            $baremosB['dimensiones']['claridad_rol'] ?? []);
+        $maxRisk['dim_capacitacion'] = $getWorstResult('dim_capacitacion_puntaje',
+            $baremosA['dimensiones']['capacitacion'] ?? [],
+            $baremosB['dimensiones']['capacitacion'] ?? []);
+        $maxRisk['dim_participacion_manejo_cambio'] = $getWorstResult('dim_participacion_manejo_cambio_puntaje',
+            $baremosA['dimensiones']['participacion_cambio'] ?? [],
+            $baremosB['dimensiones']['participacion_cambio'] ?? []);
+        $maxRisk['dim_oportunidades_desarrollo'] = $getWorstResult('dim_oportunidades_desarrollo_puntaje',
+            $baremosA['dimensiones']['oportunidades_desarrollo'] ?? [],
+            $baremosB['dimensiones']['oportunidades_desarrollo'] ?? []);
+        $maxRisk['dim_control_autonomia'] = $getWorstResult('dim_control_autonomia_puntaje',
+            $baremosA['dimensiones']['control_autonomia'] ?? [],
+            $baremosB['dimensiones']['control_autonomia'] ?? []);
+        $maxRisk['dim_demandas_ambientales'] = $getWorstResult('dim_demandas_ambientales_puntaje',
+            $baremosA['dimensiones']['demandas_ambientales'] ?? [],
+            $baremosB['dimensiones']['demandas_ambientales'] ?? []);
+        $maxRisk['dim_demandas_emocionales'] = $getWorstResult('dim_demandas_emocionales_puntaje',
+            $baremosA['dimensiones']['demandas_emocionales'] ?? [],
+            $baremosB['dimensiones']['demandas_emocionales'] ?? []);
+        $maxRisk['dim_demandas_cuantitativas'] = $getWorstResult('dim_demandas_cuantitativas_puntaje',
+            $baremosA['dimensiones']['demandas_cuantitativas'] ?? [],
+            $baremosB['dimensiones']['demandas_cuantitativas'] ?? []);
+        $maxRisk['dim_influencia_trabajo_entorno_extralaboral'] = $getWorstResult('dim_influencia_trabajo_entorno_extralaboral_puntaje',
+            $baremosA['dimensiones']['influencia_entorno'] ?? [],
+            $baremosB['dimensiones']['influencia_entorno'] ?? []);
+        $maxRisk['dim_demandas_responsabilidad'] = $getWorstResult('dim_demandas_responsabilidad_puntaje',
+            $baremosA['dimensiones']['exigencias_responsabilidad'] ?? [],
+            $baremosB['dimensiones']['exigencias_responsabilidad'] ?? []);
+        $maxRisk['dim_demandas_carga_mental'] = $getWorstResult('dim_demandas_carga_mental_puntaje',
+            $baremosA['dimensiones']['carga_mental'] ?? [],
+            $baremosB['dimensiones']['carga_mental'] ?? []);
+        $maxRisk['dim_consistencia_rol'] = $getWorstResult('dim_consistencia_rol_puntaje',
+            $baremosA['dimensiones']['consistencia_rol'] ?? [],
+            $baremosB['dimensiones']['consistencia_rol'] ?? []);
+        $maxRisk['dim_demandas_jornada_trabajo'] = $getWorstResult('dim_demandas_jornada_trabajo_puntaje',
+            $baremosA['dimensiones']['demandas_jornada'] ?? [],
+            $baremosB['dimensiones']['demandas_jornada'] ?? []);
+        $maxRisk['dim_recompensas_pertenencia'] = $getWorstResult('dim_recompensas_pertenencia_puntaje',
+            $baremosA['dimensiones']['recompensas_pertenencia'] ?? [],
+            $baremosB['dimensiones']['recompensas_pertenencia'] ?? []);
+        $maxRisk['dim_reconocimiento_compensacion'] = $getWorstResult('dim_reconocimiento_compensacion_puntaje',
+            $baremosA['dimensiones']['reconocimiento_compensacion'] ?? [],
+            $baremosB['dimensiones']['reconocimiento_compensacion'] ?? []);
 
         // Distribución de riesgo (basada en niveles individuales de trabajadores)
         $riskDistribution = [

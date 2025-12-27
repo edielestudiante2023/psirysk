@@ -60,9 +60,58 @@ function getRiskLabel($nivel) {
 }
 
 /**
- * Función helper para formatear datos MAX RISK mostrando forma de origen
+ * Función helper para obtener la clase de color del card según nivel de riesgo
  */
-function formatMaxRisk($data, $showOtherForm = false) {
+function getCardColorClass($nivel) {
+    switch($nivel) {
+        case 'sin_riesgo':
+        case 'riesgo_bajo':
+            return 'bg-success'; // Verde
+        case 'riesgo_medio':
+            return 'bg-warning'; // Amarillo
+        case 'riesgo_alto':
+        case 'riesgo_muy_alto':
+            return 'bg-danger'; // Rojo
+        default:
+            return 'bg-secondary'; // Gris
+    }
+}
+
+/**
+ * Función helper para obtener el color de texto apropiado según el fondo
+ */
+function getCardTextClass($nivel) {
+    switch($nivel) {
+        case 'riesgo_medio':
+            return 'text-dark'; // Texto oscuro para fondo amarillo
+        default:
+            return 'text-white'; // Texto blanco para otros fondos
+    }
+}
+
+/**
+ * Función helper para obtener el gradiente del card Total según nivel de riesgo
+ */
+function getTotalCardGradient($nivel) {
+    switch($nivel) {
+        case 'sin_riesgo':
+        case 'riesgo_bajo':
+            return 'background: linear-gradient(135deg, #28a745 0%, #20c997 100%);'; // Verde
+        case 'riesgo_medio':
+            return 'background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);'; // Amarillo/Naranja
+        case 'riesgo_alto':
+            return 'background: linear-gradient(135deg, #fd7e14 0%, #dc3545 100%);'; // Naranja/Rojo
+        case 'riesgo_muy_alto':
+            return 'background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);'; // Rojo oscuro
+        default:
+            return 'background: linear-gradient(135deg, #6c757d 0%, #495057 100%);'; // Gris
+    }
+}
+
+/**
+ * Función helper para formatear datos MAX RISK con HTML
+ */
+function formatMaxRiskHTML($data, $showOtherForm = false) {
     if (empty($data) || !isset($data['promedio'])) {
         return 'N/D';
     }
@@ -256,25 +305,24 @@ function formatMaxRisk($data, $showOtherForm = false) {
         <!-- Estadísticas Generales - Total Intralaboral -->
         <div class="row mb-3">
             <div class="col-12">
-                <div class="card stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <?php
+                $nivelTotalIntralaboral = $stats['maxRisk']['intralaboral_total']['nivel'] ?? 'sin_riesgo';
+                $textClass = $nivelTotalIntralaboral === 'riesgo_medio' ? 'text-dark' : 'text-white';
+                ?>
+                <div class="card stat-card" style="<?= getTotalCardGradient($nivelTotalIntralaboral) ?> color: white;">
                     <div class="d-flex justify-content-between align-items-center">
-                        <div>
+                        <div class="<?= $textClass ?>">
                             <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.9;">Total Intralaboral (MAX RISK)</h6>
-                            <h2 class="fw-bold mb-0"
-                                data-bs-toggle="tooltip"
-                                data-bs-placement="top"
-                                title="Puntaje: <?= formatMaxRisk($stats['maxRisk']['intralaboral_total'] ?? []) ?>"
-                                style="cursor: help;">
-                                <?= getRiskLabel($stats['maxRisk']['intralaboral_total']['nivel'] ?? 'sin_riesgo') ?>
+                            <h2 class="fw-bold mb-0">
+                                <?= getRiskLabel($nivelTotalIntralaboral) ?>
                             </h2>
                             <p class="mb-0 small mt-1" style="opacity: 0.8;">
-                                <i class="fas fa-chart-line me-1"></i><?= formatMaxRisk($stats['maxRisk']['intralaboral_total'] ?? [], true) ?>
+                                <i class="fas fa-chart-line me-1"></i><?= formatMaxRiskHTML($stats['maxRisk']['intralaboral_total'] ?? [], true) ?>
                             </p>
                             <p class="mb-0 small mt-1" style="opacity: 0.8;">
                                 <i class="fas fa-users me-1"></i><?= $totalWorkers ?> trabajadores evaluados
                             </p>
                         </div>
-                        <i class="fas fa-briefcase" style="font-size: 3rem; opacity: 0.6;"></i>
                     </div>
                 </div>
             </div>
@@ -284,23 +332,19 @@ function formatMaxRisk($data, $showOtherForm = false) {
         <div class="row mb-3">
             <!-- DOMINIO 1: LIDERAZGO -->
             <div class="col-md-6 col-lg-3 mb-3">
+                <?php $nivelLiderazgo = $stats['maxRisk']['liderazgo']['nivel'] ?? 'sin_riesgo'; ?>
                 <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header <?= getCardColorClass($nivelLiderazgo) ?> <?= getCardTextClass($nivelLiderazgo) ?>">
                         <div class="d-flex justify-content-between align-items-center">
                             <div style="flex: 1;">
-                                <h6 class="mb-0" style="font-size: 0.85rem;">LIDERAZGO (MAX RISK)</h6>
-                                <h4 class="fw-bold mb-0 mt-1"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    title="<?= formatMaxRisk($stats['maxRisk']['liderazgo'] ?? [], true) ?>"
-                                    style="cursor: help; font-size: 1.1rem;">
-                                    <?= getRiskLabel($stats['maxRisk']['liderazgo']['nivel'] ?? 'sin_riesgo') ?>
+                                <h6 class="mb-0" style="font-size: 0.75rem;">Liderazgo y relaciones sociales en el trabajo</h6>
+                                <h4 class="fw-bold mb-0 mt-1" style="font-size: 1.1rem;">
+                                    <?= getRiskLabel($nivelLiderazgo) ?>
                                 </h4>
                                 <p class="mb-0 small mt-1" style="opacity: 0.9; font-size: 0.75rem;">
-                                    <?= formatMaxRisk($stats['maxRisk']['liderazgo'] ?? []) ?>
+                                    <?= formatMaxRiskHTML($stats['maxRisk']['liderazgo'] ?? []) ?>
                                 </p>
                             </div>
-                            <i class="fas fa-user-tie" style="font-size: 2rem; opacity: 0.7;"></i>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -316,42 +360,26 @@ function formatMaxRisk($data, $showOtherForm = false) {
                                         <ul class="list-group list-group-flush small">
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Características del liderazgo</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_caracteristicas_liderazgo']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_caracteristicas_liderazgo'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_caracteristicas_liderazgo']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_caracteristicas_liderazgo']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_caracteristicas_liderazgo']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Relaciones sociales</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_relaciones_sociales']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_relaciones_sociales'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_relaciones_sociales']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_relaciones_sociales']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_relaciones_sociales']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Retroalimentación</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_retroalimentacion']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_retroalimentacion'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_retroalimentacion']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_retroalimentacion']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_retroalimentacion']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Relación con colaboradores</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_relacion_colaboradores']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_relacion_colaboradores'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_relacion_colaboradores']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_relacion_colaboradores']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_relacion_colaboradores']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                         </ul>
@@ -365,23 +393,19 @@ function formatMaxRisk($data, $showOtherForm = false) {
 
             <!-- DOMINIO 2: CONTROL -->
             <div class="col-md-6 col-lg-3 mb-3">
+                <?php $nivelControl = $stats['maxRisk']['control']['nivel'] ?? 'sin_riesgo'; ?>
                 <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-success text-white">
+                    <div class="card-header <?= getCardColorClass($nivelControl) ?> <?= getCardTextClass($nivelControl) ?>">
                         <div class="d-flex justify-content-between align-items-center">
                             <div style="flex: 1;">
-                                <h6 class="mb-0" style="font-size: 0.85rem;">CONTROL (MAX RISK)</h6>
-                                <h4 class="fw-bold mb-0 mt-1"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    title="<?= formatMaxRisk($stats['maxRisk']['control'] ?? [], true) ?>"
-                                    style="cursor: help; font-size: 1.1rem;">
-                                    <?= getRiskLabel($stats['maxRisk']['control']['nivel'] ?? 'sin_riesgo') ?>
+                                <h6 class="mb-0" style="font-size: 0.75rem;">Control sobre el trabajo</h6>
+                                <h4 class="fw-bold mb-0 mt-1" style="font-size: 1.1rem;">
+                                    <?= getRiskLabel($nivelControl) ?>
                                 </h4>
                                 <p class="mb-0 small mt-1" style="opacity: 0.9; font-size: 0.75rem;">
-                                    <?= formatMaxRisk($stats['maxRisk']['control'] ?? []) ?>
+                                    <?= formatMaxRiskHTML($stats['maxRisk']['control'] ?? []) ?>
                                 </p>
                             </div>
-                            <i class="fas fa-sliders-h" style="font-size: 2rem; opacity: 0.7;"></i>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -397,52 +421,32 @@ function formatMaxRisk($data, $showOtherForm = false) {
                                         <ul class="list-group list-group-flush small">
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Claridad de rol</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_claridad_rol']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_claridad_rol'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_claridad_rol']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_claridad_rol']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_claridad_rol']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Capacitación</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_capacitacion']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_capacitacion'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_capacitacion']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_capacitacion']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_capacitacion']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Participación y cambio</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_participacion_manejo_cambio']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_participacion_manejo_cambio'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_participacion_manejo_cambio']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_participacion_manejo_cambio']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_participacion_manejo_cambio']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Oportunidades desarrollo</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_oportunidades_desarrollo']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_oportunidades_desarrollo'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_oportunidades_desarrollo']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_oportunidades_desarrollo']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_oportunidades_desarrollo']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Control y autonomía</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_control_autonomia']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_control_autonomia'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_control_autonomia']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_control_autonomia']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_control_autonomia']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                         </ul>
@@ -456,23 +460,19 @@ function formatMaxRisk($data, $showOtherForm = false) {
 
             <!-- DOMINIO 3: DEMANDAS -->
             <div class="col-md-6 col-lg-3 mb-3">
+                <?php $nivelDemandas = $stats['maxRisk']['demandas']['nivel'] ?? 'sin_riesgo'; ?>
                 <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-warning text-dark">
+                    <div class="card-header <?= getCardColorClass($nivelDemandas) ?> <?= getCardTextClass($nivelDemandas) ?>">
                         <div class="d-flex justify-content-between align-items-center">
                             <div style="flex: 1;">
-                                <h6 class="mb-0" style="font-size: 0.85rem;">DEMANDAS (MAX RISK)</h6>
-                                <h4 class="fw-bold mb-0 mt-1"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    title="<?= formatMaxRisk($stats['maxRisk']['demandas'] ?? [], true) ?>"
-                                    style="cursor: help; font-size: 1.1rem;">
-                                    <?= getRiskLabel($stats['maxRisk']['demandas']['nivel'] ?? 'sin_riesgo') ?>
+                                <h6 class="mb-0" style="font-size: 0.75rem;">Demandas del trabajo</h6>
+                                <h4 class="fw-bold mb-0 mt-1" style="font-size: 1.1rem;">
+                                    <?= getRiskLabel($nivelDemandas) ?>
                                 </h4>
                                 <p class="mb-0 small mt-1" style="font-size: 0.75rem;">
-                                    <?= formatMaxRisk($stats['maxRisk']['demandas'] ?? []) ?>
+                                    <?= formatMaxRiskHTML($stats['maxRisk']['demandas'] ?? []) ?>
                                 </p>
                             </div>
-                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; opacity: 0.7;"></i>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -488,82 +488,50 @@ function formatMaxRisk($data, $showOtherForm = false) {
                                         <ul class="list-group list-group-flush small">
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Demandas ambientales</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_demandas_ambientales']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_demandas_ambientales'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_demandas_ambientales']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_demandas_ambientales']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_demandas_ambientales']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Demandas emocionales</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_demandas_emocionales']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_demandas_emocionales'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_demandas_emocionales']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_demandas_emocionales']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_demandas_emocionales']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Demandas cuantitativas</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_demandas_cuantitativas']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_demandas_cuantitativas'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_demandas_cuantitativas']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_demandas_cuantitativas']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_demandas_cuantitativas']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Influencia del entorno</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_influencia_trabajo_entorno_extralaboral']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_influencia_trabajo_entorno_extralaboral'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_influencia_trabajo_entorno_extralaboral']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_influencia_trabajo_entorno_extralaboral']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_influencia_trabajo_entorno_extralaboral']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Exigencias responsabilidad</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_demandas_responsabilidad']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_demandas_responsabilidad'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_demandas_responsabilidad']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_demandas_responsabilidad']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_demandas_responsabilidad']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Demandas carga mental</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_demandas_carga_mental']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_demandas_carga_mental'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_demandas_carga_mental']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_demandas_carga_mental']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_demandas_carga_mental']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Consistencia del rol</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_consistencia_rol']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_consistencia_rol'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_consistencia_rol']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_consistencia_rol']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_consistencia_rol']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Demandas de la jornada</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_demandas_jornada_trabajo']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_demandas_jornada_trabajo'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_demandas_jornada_trabajo']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_demandas_jornada_trabajo']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_demandas_jornada_trabajo']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                         </ul>
@@ -577,23 +545,19 @@ function formatMaxRisk($data, $showOtherForm = false) {
 
             <!-- DOMINIO 4: RECOMPENSAS -->
             <div class="col-md-6 col-lg-3 mb-3">
+                <?php $nivelRecompensas = $stats['maxRisk']['recompensas']['nivel'] ?? 'sin_riesgo'; ?>
                 <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-info text-white">
+                    <div class="card-header <?= getCardColorClass($nivelRecompensas) ?> <?= getCardTextClass($nivelRecompensas) ?>">
                         <div class="d-flex justify-content-between align-items-center">
                             <div style="flex: 1;">
-                                <h6 class="mb-0" style="font-size: 0.85rem;">RECOMPENSAS (MAX RISK)</h6>
-                                <h4 class="fw-bold mb-0 mt-1"
-                                    data-bs-toggle="tooltip"
-                                    data-bs-placement="top"
-                                    title="<?= formatMaxRisk($stats['maxRisk']['recompensas'] ?? [], true) ?>"
-                                    style="cursor: help; font-size: 1.1rem;">
-                                    <?= getRiskLabel($stats['maxRisk']['recompensas']['nivel'] ?? 'sin_riesgo') ?>
+                                <h6 class="mb-0" style="font-size: 0.75rem;">Recompensas</h6>
+                                <h4 class="fw-bold mb-0 mt-1" style="font-size: 1.1rem;">
+                                    <?= getRiskLabel($nivelRecompensas) ?>
                                 </h4>
                                 <p class="mb-0 small mt-1" style="opacity: 0.9; font-size: 0.75rem;">
-                                    <?= formatMaxRisk($stats['maxRisk']['recompensas'] ?? []) ?>
+                                    <?= formatMaxRiskHTML($stats['maxRisk']['recompensas'] ?? []) ?>
                                 </p>
                             </div>
-                            <i class="fas fa-award" style="font-size: 2rem; opacity: 0.7;"></i>
                         </div>
                     </div>
                     <div class="card-body p-0">
@@ -609,22 +573,14 @@ function formatMaxRisk($data, $showOtherForm = false) {
                                         <ul class="list-group list-group-flush small">
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Reconocimiento y compensación</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_reconocimiento_compensacion']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_reconocimiento_compensacion'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_reconocimiento_compensacion']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_reconocimiento_compensacion']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_reconocimiento_compensacion']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                             <li class="list-group-item d-flex justify-content-between align-items-center py-1 px-2">
                                                 <span style="font-size: 0.75rem;">Recompensas pertenencia</span>
-                                                <span class="badge <?= getBadgeClass($stats['dimensionLevels']['dim_recompensas_pertenencia']['nivel'] ?? '') ?>"
-                                                      data-bs-toggle="tooltip"
-                                                      data-bs-placement="left"
-                                                      title="Puntaje: <?= number_format($stats['dimensionAverages']['dim_recompensas_pertenencia'], 1) ?>"
-                                                      style="cursor: help; font-size: 0.65rem;">
-                                                    <?= $stats['dimensionLevels']['dim_recompensas_pertenencia']['label'] ?? 'Sin datos' ?>
+                                                <span class="badge <?= getBadgeClass($stats['maxRisk']['dim_recompensas_pertenencia']['nivel'] ?? '') ?>" style=" font-size: 0.65rem;">
+                                                    <?= getRiskLabel($stats['maxRisk']['dim_recompensas_pertenencia']['nivel'] ?? 'sin_riesgo') ?? 'Sin datos' ?>
                                                 </span>
                                             </li>
                                         </ul>
@@ -1018,22 +974,28 @@ function formatMaxRisk($data, $showOtherForm = false) {
         ?>
 
         <div class="accordion mb-4" id="accordionDimensiones">
-            <!-- Forma A -->
+            <!-- MAX RISK - Todas las Dimensiones -->
             <div class="accordion-item">
-                <h2 class="accordion-header" id="headingFormaA">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFormaA" aria-expanded="true" aria-controls="collapseFormaA">
-                        <i class="fas fa-th-large me-2 text-primary"></i>
-                        <strong>Dimensiones Intralaborales - Forma A</strong>
-                        <span class="badge bg-primary ms-2">19 dimensiones</span>
-                        <span class="badge bg-secondary ms-2"><?= $countFormaA ?> trabajadores</span>
+                <h2 class="accordion-header" id="headingMaxRisk">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMaxRisk" aria-expanded="true" aria-controls="collapseMaxRisk">
+                        <i class="fas fa-exclamation-triangle me-2 text-danger"></i>
+                        <strong>Dimensiones Intralaborales (MAX RISK)</strong>
+                        <span class="badge bg-danger ms-2">Peor escenario entre Formas A y B</span>
+                        <span class="badge bg-secondary ms-2"><?= $totalWorkers ?> trabajadores evaluados</span>
                     </button>
                 </h2>
-                <div id="collapseFormaA" class="accordion-collapse collapse show" aria-labelledby="headingFormaA" data-bs-parent="#accordionDimensiones">
+                <div id="collapseMaxRisk" class="accordion-collapse collapse show" aria-labelledby="headingMaxRisk" data-bs-parent="#accordionDimensiones">
                     <div class="accordion-body">
-                        <?php if ($countFormaA > 0): ?>
+                        <?php if ($totalWorkers > 0): ?>
+                        <div class="alert alert-warning mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>MAX RISK:</strong> Se muestra el peor resultado entre Forma A y Forma B para cada dimensión, aplicando los baremos oficiales correspondientes.
+                        </div>
                         <div class="row">
                             <?php foreach ($dimensionesFormaA as $dim):
-                                $calc = calcularDimension($results, $dim['db_key'], 'A');
+                                $dimKey = $dim['db_key'];
+                                $maxRiskData = $stats['maxRisk'][$dimKey] ?? null;
+                                if (!$maxRiskData || !isset($maxRiskData['promedio'])) continue;
                             ?>
                             <div class="col-lg-3 col-md-6 mb-3">
                                 <div class="card dimension-card">
@@ -1041,12 +1003,21 @@ function formatMaxRisk($data, $showOtherForm = false) {
                                         <div class="dimension-label">
                                             <i class="fas fa-<?= $dim['icon'] ?> me-2"></i><?= $dim['label'] ?>
                                         </div>
-                                        <div class="dimension-value text-primary">
-                                            <?= number_format($calc['promedio'], 1) ?>
+                                        <div class="dimension-value text-danger">
+                                            <?= number_format($maxRiskData['promedio'], 1) ?>
+                                            <?php if (isset($maxRiskData['forma_origen'])): ?>
+                                                <small class="text-muted">(<?= $maxRiskData['forma_origen'] ?>)</small>
+                                            <?php endif; ?>
                                         </div>
-                                        <span class="risk-badge-dim" style="<?= getDimBadgeStyle($calc['nivel']) ?>">
-                                            <?= getDimRiskLabel($calc['nivel']) ?>
+                                        <span class="risk-badge-dim" style="<?= getDimBadgeStyle($maxRiskData['nivel'] ?? 'sin_riesgo') ?>">
+                                            <?= getDimRiskLabel($maxRiskData['nivel'] ?? 'sin_riesgo') ?>
                                         </span>
+                                        <?php if (isset($maxRiskData['data_a']) && isset($maxRiskData['data_b'])): ?>
+                                            <div class="mt-2 small text-muted">
+                                                <div>Forma A: <?= number_format($maxRiskData['data_a']['promedio'], 1) ?></div>
+                                                <div>Forma B: <?= number_format($maxRiskData['data_b']['promedio'], 1) ?></div>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -1054,50 +1025,7 @@ function formatMaxRisk($data, $showOtherForm = false) {
                         </div>
                         <?php else: ?>
                         <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>No hay trabajadores evaluados con Forma A
-                        </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Forma B -->
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="headingFormaB">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFormaB" aria-expanded="false" aria-controls="collapseFormaB">
-                        <i class="fas fa-th-large me-2 text-warning"></i>
-                        <strong>Dimensiones Intralaborales - Forma B</strong>
-                        <span class="badge bg-warning text-dark ms-2">16 dimensiones</span>
-                        <span class="badge bg-secondary ms-2"><?= $countFormaB ?> trabajadores</span>
-                    </button>
-                </h2>
-                <div id="collapseFormaB" class="accordion-collapse collapse" aria-labelledby="headingFormaB" data-bs-parent="#accordionDimensiones">
-                    <div class="accordion-body">
-                        <?php if ($countFormaB > 0): ?>
-                        <div class="row">
-                            <?php foreach ($dimensionesFormaB as $dim):
-                                $calc = calcularDimension($results, $dim['db_key'], 'B');
-                            ?>
-                            <div class="col-lg-3 col-md-6 mb-3">
-                                <div class="card dimension-card">
-                                    <div class="card-body">
-                                        <div class="dimension-label">
-                                            <i class="fas fa-<?= $dim['icon'] ?> me-2"></i><?= $dim['label'] ?>
-                                        </div>
-                                        <div class="dimension-value text-warning">
-                                            <?= number_format($calc['promedio'], 1) ?>
-                                        </div>
-                                        <span class="risk-badge-dim" style="<?= getDimBadgeStyle($calc['nivel']) ?>">
-                                            <?= getDimRiskLabel($calc['nivel']) ?>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <?php else: ?>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle me-2"></i>No hay trabajadores evaluados con Forma B
+                            <i class="fas fa-info-circle me-2"></i>No hay trabajadores evaluados
                         </div>
                         <?php endif; ?>
                     </div>
@@ -1673,23 +1601,23 @@ function formatMaxRisk($data, $showOtherForm = false) {
         const domainData = [
             {
                 label: 'Liderazgo',
-                nivel: statsData.domainLevels?.liderazgo?.nivel || 'sin_riesgo',
-                puntaje: statsData.domainAverages.liderazgo
+                nivel: statsData.maxRisk?.liderazgo?.nivel || 'sin_riesgo',
+                puntaje: statsData.maxRisk?.liderazgo?.promedio || 0
             },
             {
                 label: 'Control',
-                nivel: statsData.domainLevels?.control?.nivel || 'sin_riesgo',
-                puntaje: statsData.domainAverages.control
+                nivel: statsData.maxRisk?.control?.nivel || 'sin_riesgo',
+                puntaje: statsData.maxRisk?.control?.promedio || 0
             },
             {
                 label: 'Demandas',
-                nivel: statsData.domainLevels?.demandas?.nivel || 'sin_riesgo',
-                puntaje: statsData.domainAverages.demandas
+                nivel: statsData.maxRisk?.demandas?.nivel || 'sin_riesgo',
+                puntaje: statsData.maxRisk?.demandas?.promedio || 0
             },
             {
                 label: 'Recompensas',
-                nivel: statsData.domainLevels?.recompensas?.nivel || 'sin_riesgo',
-                puntaje: statsData.domainAverages.recompensas
+                nivel: statsData.maxRisk?.recompensas?.nivel || 'sin_riesgo',
+                puntaje: statsData.maxRisk?.recompensas?.promedio || 0
             }
         ];
 
@@ -1825,8 +1753,8 @@ function formatMaxRisk($data, $showOtherForm = false) {
         // Recopilar todas las dimensiones con sus datos
         Object.entries(dimensionsData).forEach(([domainName, dimensions]) => {
             dimensions.forEach(dim => {
-                const dimLevel = statsData.dimensionLevels?.[dim.key]?.nivel || 'sin_riesgo';
-                const dimScore = statsData.dimensionAverages?.[dim.key] || 0;
+                const dimLevel = statsData.maxRisk?.[dim.key]?.nivel || 'sin_riesgo';
+                const dimScore = statsData.maxRisk?.[dim.key]?.promedio || 0;
 
                 allDimensions.push({
                     name: dim.name,
@@ -1844,8 +1772,8 @@ function formatMaxRisk($data, $showOtherForm = false) {
 
         Object.entries(dimensionsData).forEach(([domainName, dimensions]) => {
             dimensions.forEach((dim, idx) => {
-                const dimLevel = statsData.dimensionLevels?.[dim.key]?.nivel || 'sin_riesgo';
-                const dimScore = statsData.dimensionAverages?.[dim.key] || 0;
+                const dimLevel = statsData.maxRisk?.[dim.key]?.nivel || 'sin_riesgo';
+                const dimScore = statsData.maxRisk?.[dim.key]?.promedio || 0;
 
                 // Crear array de datos con valores solo para este dominio
                 const data = labels.map((label, labelIdx) => {
@@ -2707,10 +2635,10 @@ function formatMaxRisk($data, $showOtherForm = false) {
 
             // Actualizar gráfico de dominios con niveles - filtrar por dominio seleccionado
             const allDomains = [
-                { key: 'liderazgo', label: 'Liderazgo', nivel: getDomainRiskLevel(newStats.domainAverages.liderazgo, 'liderazgo'), puntaje: newStats.domainAverages.liderazgo },
-                { key: 'control', label: 'Control', nivel: getDomainRiskLevel(newStats.domainAverages.control, 'control'), puntaje: newStats.domainAverages.control },
-                { key: 'demandas', label: 'Demandas', nivel: getDomainRiskLevel(newStats.domainAverages.demandas, 'demandas'), puntaje: newStats.domainAverages.demandas },
-                { key: 'recompensas', label: 'Recompensas', nivel: getDomainRiskLevel(newStats.domainAverages.recompensas, 'recompensas'), puntaje: newStats.domainAverages.recompensas }
+                { key: 'liderazgo', label: 'Liderazgo', nivel: newStats.maxRisk?.liderazgo?.nivel || 'sin_riesgo', puntaje: newStats.maxRisk?.liderazgo?.promedio || 0 },
+                { key: 'control', label: 'Control', nivel: newStats.maxRisk?.control?.nivel || 'sin_riesgo', puntaje: newStats.maxRisk?.control?.promedio || 0 },
+                { key: 'demandas', label: 'Demandas', nivel: newStats.maxRisk?.demandas?.nivel || 'sin_riesgo', puntaje: newStats.maxRisk?.demandas?.promedio || 0 },
+                { key: 'recompensas', label: 'Recompensas', nivel: newStats.maxRisk?.recompensas?.nivel || 'sin_riesgo', puntaje: newStats.maxRisk?.recompensas?.promedio || 0 }
             ];
 
             // Filtrar dominios si hay un dominio seleccionado
@@ -2774,7 +2702,7 @@ function formatMaxRisk($data, $showOtherForm = false) {
 
             Object.entries(filteredDimensionsData).forEach(([domainName, dimensions]) => {
                 dimensions.forEach((dim) => {
-                    const dimScore = newStats.dimensionAverages[dim.key] || 0;
+                    const dimScore = newStats.maxRisk[dim.key]?.promedio || 0;
                     const dimLevel = getDomainRiskLevel(dimScore, dim.domain);
 
                     const data = newLabels.map((label) => {
@@ -2902,53 +2830,63 @@ function formatMaxRisk($data, $showOtherForm = false) {
             };
         }
 
-        // Función para calcular estadísticas
+        // Función para calcular estadísticas con MAX RISK
         function calculateStats(results) {
             const stats = {
                 riskDistribution: { sin_riesgo: 0, riesgo_bajo: 0, riesgo_medio: 0, riesgo_alto: 0, riesgo_muy_alto: 0 },
-                domainAverages: { liderazgo: 0, control: 0, demandas: 0, recompensas: 0 },
-                dimensionAverages: {},
+                maxRisk: {},
                 genderDistribution: {}
             };
 
-            let totalLiderazgo = 0, totalControl = 0, totalDemandas = 0, totalRecompensas = 0;
-            const count = results.length;
+            // Separar por forma
+            const resultsA = results.filter(r => r.intralaboral_form_type === 'A');
+            const resultsB = results.filter(r => r.intralaboral_form_type === 'B');
 
-            // Inicializar acumuladores de dimensiones
-            const dimensionTotals = {};
+            // Función helper para calcular promedio de un campo
+            const calcAvg = (arr, field) => {
+                if (arr.length === 0) return 0;
+                const sum = arr.reduce((acc, r) => acc + parseFloat(r[field] || 0), 0);
+                return parseFloat((sum / arr.length).toFixed(2));
+            };
+
+            // Función helper para obtener el peor resultado entre A y B
+            const getMaxRisk = (fieldA, fieldB, domainKey) => {
+                const avgA = calcAvg(resultsA, fieldA);
+                const avgB = calcAvg(resultsB, fieldB);
+                const nivelA = getDomainRiskLevel(avgA, domainKey);
+                const nivelB = getDomainRiskLevel(avgB, domainKey);
+
+                // Comparar niveles (mayor = peor)
+                const riskOrder = { sin_riesgo: 1, riesgo_bajo: 2, riesgo_medio: 3, riesgo_alto: 4, riesgo_muy_alto: 5 };
+                const orderA = riskOrder[nivelA] || 0;
+                const orderB = riskOrder[nivelB] || 0;
+
+                if (orderA >= orderB) {
+                    return { promedio: avgA, nivel: nivelA, forma_origen: 'A' };
+                } else {
+                    return { promedio: avgB, nivel: nivelB, forma_origen: 'B' };
+                }
+            };
+
+            // Calcular MAX RISK para dominios
+            stats.maxRisk.liderazgo = getMaxRisk('dom_liderazgo_puntaje', 'dom_liderazgo_puntaje', 'liderazgo');
+            stats.maxRisk.control = getMaxRisk('dom_control_puntaje', 'dom_control_puntaje', 'control');
+            stats.maxRisk.demandas = getMaxRisk('dom_demandas_puntaje', 'dom_demandas_puntaje', 'demandas');
+            stats.maxRisk.recompensas = getMaxRisk('dom_recompensas_puntaje', 'dom_recompensas_puntaje', 'recompensas');
+
+            // Calcular MAX RISK para dimensiones
             Object.values(dimensionsData).flat().forEach(dim => {
-                dimensionTotals[dim.key] = 0;
+                stats.maxRisk[dim.key] = getMaxRisk(dim.key + '_puntaje', dim.key + '_puntaje', dim.domain);
             });
 
+            // Distribución de riesgo y género
             results.forEach(r => {
                 if (r.intralaboral_total_nivel && stats.riskDistribution[r.intralaboral_total_nivel] !== undefined) {
                     stats.riskDistribution[r.intralaboral_total_nivel]++;
                 }
-                totalLiderazgo += parseFloat(r.dom_liderazgo_puntaje || 0);
-                totalControl += parseFloat(r.dom_control_puntaje || 0);
-                totalDemandas += parseFloat(r.dom_demandas_puntaje || 0);
-                totalRecompensas += parseFloat(r.dom_recompensas_puntaje || 0);
-
-                // Acumular dimensiones
-                Object.keys(dimensionTotals).forEach(dimKey => {
-                    dimensionTotals[dimKey] += parseFloat(r[dimKey + '_puntaje'] || 0);
-                });
-
                 const gender = r.gender || 'No especificado';
                 stats.genderDistribution[gender] = (stats.genderDistribution[gender] || 0) + 1;
             });
-
-            if (count > 0) {
-                stats.domainAverages.liderazgo = parseFloat((totalLiderazgo / count).toFixed(2));
-                stats.domainAverages.control = parseFloat((totalControl / count).toFixed(2));
-                stats.domainAverages.demandas = parseFloat((totalDemandas / count).toFixed(2));
-                stats.domainAverages.recompensas = parseFloat((totalRecompensas / count).toFixed(2));
-
-                // Calcular promedios de dimensiones
-                Object.keys(dimensionTotals).forEach(dimKey => {
-                    stats.dimensionAverages[dimKey] = parseFloat((dimensionTotals[dimKey] / count).toFixed(2));
-                });
-            }
 
             return stats;
         }
@@ -3065,18 +3003,6 @@ function formatMaxRisk($data, $showOtherForm = false) {
         function exportToExcel() {
             alert('Funcionalidad de exportación a Excel en desarrollo');
         }
-
-        // Inicializar tooltips de Bootstrap
-        document.addEventListener('DOMContentLoaded', function() {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl, {
-                    trigger: 'hover',
-                    html: false,
-                    placement: 'top'
-                });
-            });
-        });
     </script>
 </body>
 </html>

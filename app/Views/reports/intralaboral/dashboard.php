@@ -986,7 +986,7 @@ function getNivelEstresTexto($nivel) {
                                             <i class="fas fa-<?= $dim['icon'] ?> me-2"></i><?= $dim['label'] ?>
                                         </div>
                                         <div class="dimension-value text-primary">
-                                            <?= number_format($calc['promedio'], 1) ?>%
+                                            <?= number_format($calc['promedio'], 1) ?>
                                         </div>
                                         <span class="risk-badge-dim" style="<?= getDimBadgeStyle($calc['nivel']) ?>">
                                             <?= getDimRiskLabel($calc['nivel']) ?>
@@ -1029,7 +1029,7 @@ function getNivelEstresTexto($nivel) {
                                             <i class="fas fa-<?= $dim['icon'] ?> me-2"></i><?= $dim['label'] ?>
                                         </div>
                                         <div class="dimension-value text-warning">
-                                            <?= number_format($calc['promedio'], 1) ?>%
+                                            <?= number_format($calc['promedio'], 1) ?>
                                         </div>
                                         <span class="risk-badge-dim" style="<?= getDimBadgeStyle($calc['nivel']) ?>">
                                             <?= getDimRiskLabel($calc['nivel']) ?>

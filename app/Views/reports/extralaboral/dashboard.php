@@ -626,7 +626,7 @@ function getRiskLabel($nivel) {
                                         <i class="fas fa-<?= $dim['icon'] ?> me-2"></i><?= $dim['label'] ?>
                                     </div>
                                     <div class="dimension-value text-primary">
-                                        <?= number_format($calc['promedio'], 1) ?>%
+                                        <?= number_format($calc['promedio'], 1) ?>
                                     </div>
                                     <span class="risk-badge" style="<?= getBadgeClass($calc['nivel']) ?>">
                                         <?= getRiskLabel($calc['nivel']) ?>
@@ -669,7 +669,7 @@ function getRiskLabel($nivel) {
                                         <i class="fas fa-<?= $dim['icon'] ?> me-2"></i><?= $dim['label'] ?>
                                     </div>
                                     <div class="dimension-value text-warning">
-                                        <?= number_format($calc['promedio'], 1) ?>%
+                                        <?= number_format($calc['promedio'], 1) ?>
                                     </div>
                                     <span class="risk-badge" style="<?= getBadgeClass($calc['nivel']) ?>">
                                         <?= getRiskLabel($calc['nivel']) ?>
@@ -822,7 +822,7 @@ function getRiskLabel($nivel) {
                             <td><?= esc($result['department'] ?? 'N/A') ?></td>
                             <td><?= esc($result['position'] ?? 'N/A') ?></td>
                             <td><?= esc($result['position_type'] ?? 'N/A') ?></td>
-                            <td><strong><?= number_format($result['extralaboral_total_puntaje'] ?? 0, 1) ?>%</strong></td>
+                            <td><strong><?= number_format($result['extralaboral_total_puntaje'] ?? 0, 1) ?></strong></td>
                             <td>
                                 <span class="risk-badge" style="<?= getBadgeClass($result['extralaboral_total_nivel'] ?? 'sin_riesgo') ?>">
                                     <?= getRiskLabel($result['extralaboral_total_nivel'] ?? 'sin_riesgo') ?>
@@ -1770,7 +1770,7 @@ function updateStats(data) {
             // Actualizar puntaje
             const elemPuntaje = document.querySelector(`[data-dimension="${dim}"]`);
             if (elemPuntaje) {
-                elemPuntaje.textContent = avgScore.toFixed(1) + '%';
+                elemPuntaje.textContent = avgScore.toFixed(1);
             }
 
             // Actualizar nivel de riesgo (badge)
@@ -1894,7 +1894,7 @@ function filterTable() {
             .append($('<td>').text(r.department || 'N/A'))
             .append($('<td>').text(r.position || 'N/A'))
             .append($('<td>').text(r.position_type || 'N/A'))
-            .append($('<td>').html('<strong>' + parseFloat(r.extralaboral_total_puntaje || 0).toFixed(1) + '%</strong>'))
+            .append($('<td>').html('<strong>' + parseFloat(r.extralaboral_total_puntaje || 0).toFixed(1) + '</strong>'))
             .append($('<td>').html(
                 '<span class="risk-badge" style="' + getBadgeClass(r.extralaboral_total_nivel || 'sin_riesgo') + '">' +
                     getRiskLabel(r.extralaboral_total_nivel || 'sin_riesgo') +

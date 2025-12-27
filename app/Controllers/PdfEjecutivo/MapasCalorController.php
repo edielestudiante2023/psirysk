@@ -1571,16 +1571,16 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
         // Función para obtener color de fondo según nivel
         $getColor = function($nivel) {
             $colorMap = [
-                'sin_riesgo' => '#90EE90',
-                'riesgo_bajo' => '#90EE90',
-                'riesgo_medio' => '#FFFF00',
-                'riesgo_alto' => '#FF4444',
-                'riesgo_muy_alto' => '#FF4444',
-                'muy_bajo' => '#90EE90',
-                'bajo' => '#90EE90',
-                'medio' => '#FFFF00',
-                'alto' => '#FF4444',
-                'muy_alto' => '#FF4444',
+                'sin_riesgo' => '#5FE330',      // Verde - Sin riesgo o riesgo bajo
+                'riesgo_bajo' => '#5FE330',     // Verde - Sin riesgo o riesgo bajo
+                'riesgo_medio' => '#F5F74A',    // Amarillo - Riesgo medio
+                'riesgo_alto' => '#FF4444',     // Rojo - Riesgo alto y muy alto
+                'riesgo_muy_alto' => '#FF4444', // Rojo - Riesgo alto y muy alto
+                'muy_bajo' => '#5FE330',        // Verde - Sin riesgo o riesgo bajo
+                'bajo' => '#5FE330',            // Verde - Sin riesgo o riesgo bajo
+                'medio' => '#F5F74A',           // Amarillo - Riesgo medio
+                'alto' => '#FF4444',            // Rojo - Riesgo alto y muy alto
+                'muy_alto' => '#FF4444',        // Rojo - Riesgo alto y muy alto
             ];
             return $colorMap[$nivel] ?? '#D3D3D3';
         };
@@ -1633,11 +1633,11 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 <table style="width: 100%; margin-bottom: 8pt; border-collapse: collapse;">
     <tr>
         <td style="text-align: center; padding: 4pt;">
-            <span style="display: inline-block; width: 12px; height: 12px; background: #90EE90; border-radius: 50%; vertical-align: middle;"></span>
+            <span style="display: inline-block; width: 12px; height: 12px; background: #5FE330; border-radius: 50%; vertical-align: middle;"></span>
             <span style="font-size: 8pt; vertical-align: middle;"> Sin riesgo / Riesgo bajo</span>
         </td>
         <td style="text-align: center; padding: 4pt;">
-            <span style="display: inline-block; width: 12px; height: 12px; background: #FFFF00; border-radius: 50%; vertical-align: middle;"></span>
+            <span style="display: inline-block; width: 12px; height: 12px; background: #F5F74A; border-radius: 50%; vertical-align: middle;"></span>
             <span style="font-size: 8pt; vertical-align: middle;"> Riesgo medio</span>
         </td>
         <td style="text-align: center; padding: 4pt;">

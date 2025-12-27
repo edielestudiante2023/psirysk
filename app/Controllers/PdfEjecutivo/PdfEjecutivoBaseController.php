@@ -21,11 +21,11 @@ class PdfEjecutivoBaseController extends BaseController
      * Colores por nivel de riesgo (Resolución 2404/2019)
      */
     protected $riskColors = [
-        'sin_riesgo'      => '#4CAF50',  // Verde
-        'riesgo_bajo'     => '#8BC34A',  // Verde claro
-        'riesgo_medio'    => '#FFEB3B',  // Amarillo
-        'riesgo_alto'     => '#FF9800',  // Naranja
-        'riesgo_muy_alto' => '#F44336',  // Rojo
+        'sin_riesgo'      => '#5FE330',  // Verde - Sin riesgo o riesgo bajo
+        'riesgo_bajo'     => '#5FE330',  // Verde - Sin riesgo o riesgo bajo
+        'riesgo_medio'    => '#F5F74A',  // Amarillo - Riesgo medio
+        'riesgo_alto'     => '#FF4444',  // Rojo - Riesgo alto y muy alto
+        'riesgo_muy_alto' => '#FF4444',  // Rojo - Riesgo alto y muy alto
     ];
 
     /**

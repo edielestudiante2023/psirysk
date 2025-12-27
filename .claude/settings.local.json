@@ -51,7 +51,10 @@
       "Bash(powershell -Command:*)",
       "Bash(del \"c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\fix_emails.php\")",
       "Bash(cmd /c \"del c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\fix_emails.php\")",
-      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" diff app/Views/reports/intralaboral/dashboard.php app/Views/reports/extralaboral/dashboard.php)"
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" diff app/Views/reports/intralaboral/dashboard.php app/Views/reports/extralaboral/dashboard.php)",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Eliminar símbolo % de puntajes decimales en dashboards\n\nCorrige la visualización de puntajes en dashboards de intralaboral y\nextralaboral. Los valores decimales ya no muestran el símbolo %.\n\nCambios:\n- Dashboard intralaboral: dimensiones Forma A y B sin %\n- Dashboard extralaboral: dimensiones Forma A y B sin %\n- Tabla de trabajadores: puntaje total sin %\n- JavaScript updateStats y filterTable: valores dinámicos sin %\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" add .claude/settings.local.json)",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"$\\(cat <<''EOF''\nfix: Actualizar hooks después del commit\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

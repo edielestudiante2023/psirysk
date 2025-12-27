@@ -15,11 +15,11 @@
 // Helper function para obtener colores según nivel de riesgo (3 colores agrupados)
 function getNivelColor($nivel) {
     $colores = [
-        'sin_riesgo' => '#28a745',      // Verde - Sin riesgo o riesgo bajo
-        'riesgo_bajo' => '#28a745',     // Verde - Sin riesgo o riesgo bajo
-        'riesgo_medio' => '#ffc107',    // Amarillo - Riesgo medio
-        'riesgo_alto' => '#dc3545',     // Rojo - Riesgo alto y muy alto
-        'riesgo_muy_alto' => '#dc3545'  // Rojo - Riesgo alto y muy alto
+        'sin_riesgo' => '#5FE330',      // Verde - Sin riesgo o riesgo bajo
+        'riesgo_bajo' => '#5FE330',     // Verde - Sin riesgo o riesgo bajo
+        'riesgo_medio' => '#F5F74A',    // Amarillo - Riesgo medio
+        'riesgo_alto' => '#FF4444',     // Rojo - Riesgo alto y muy alto
+        'riesgo_muy_alto' => '#FF4444'  // Rojo - Riesgo alto y muy alto
     ];
     return $colores[$nivel] ?? '#9E9E9E';
 }

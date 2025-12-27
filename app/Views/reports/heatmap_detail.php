@@ -132,8 +132,8 @@
         }
 
         /* Colores */
-        .bg-success-light { background-color: #90EE90 !important; }
-        .bg-warning { background-color: #FFFF00 !important; color: #000 !important; }
+        .bg-success-light { background-color: #5FE330 !important; color: #333 !important; }
+        .bg-warning { background-color: #F5F74A !important; color: #333 !important; }
         .bg-danger { background-color: #FF4444 !important; color: white !important; }
         .bg-secondary { background-color: #D3D3D3 !important; }
 
@@ -397,11 +397,11 @@
                             <!-- Leyenda -->
                             <div class="heatmap-legend">
                                 <span class="legend-item">
-                                    <span class="legend-dot" style="background-color: #90EE90;"></span>
+                                    <span class="legend-dot" style="background-color: #5FE330;"></span>
                                     Riesgo bajo y sin riesgo
                                 </span>
                                 <span class="legend-item">
-                                    <span class="legend-dot" style="background-color: #FFFF00;"></span>
+                                    <span class="legend-dot" style="background-color: #F5F74A;"></span>
                                     Riesgo medio
                                 </span>
                                 <span class="legend-item">

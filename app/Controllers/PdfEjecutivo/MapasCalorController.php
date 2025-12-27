@@ -1014,11 +1014,11 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
         <tr>
             <th style="background-color: #006699; color: white; padding: 4pt; border: 1pt solid #333; text-align: center; width: 15%;">Cuestionario</th>
             <th style="background-color: #006699; color: white; padding: 4pt; border: 1pt solid #333; text-align: center; width: 10%;">Forma</th>
-            <th style="background-color: #4CAF50; color: white; padding: 4pt; border: 1pt solid #333; text-align: center; width: 13%;">Sin Riesgo</th>
-            <th style="background-color: #8BC34A; color: white; padding: 4pt; border: 1pt solid #333; text-align: center; width: 13%;">Bajo</th>
-            <th style="background-color: #FFC107; color: #333; padding: 4pt; border: 1pt solid #333; text-align: center; width: 13%;">Medio</th>
-            <th style="background-color: #FF9800; color: white; padding: 4pt; border: 1pt solid #333; text-align: center; width: 13%;">Alto</th>
-            <th style="background-color: #F44336; color: white; padding: 4pt; border: 1pt solid #333; text-align: center; width: 13%;">Muy Alto</th>
+            <th style="background-color: #5FE330; color: #333; padding: 4pt; border: 1pt solid #333; text-align: center; width: 13%;">Sin Riesgo</th>
+            <th style="background-color: #5FE330; color: #333; padding: 4pt; border: 1pt solid #333; text-align: center; width: 13%;">Bajo</th>
+            <th style="background-color: #F5F74A; color: #333; padding: 4pt; border: 1pt solid #333; text-align: center; width: 13%;">Medio</th>
+            <th style="background-color: #FF4444; color: white; padding: 4pt; border: 1pt solid #333; text-align: center; width: 13%;">Alto</th>
+            <th style="background-color: #FF4444; color: white; padding: 4pt; border: 1pt solid #333; text-align: center; width: 13%;">Muy Alto</th>
             <th style="background-color: #006699; color: white; padding: 4pt; border: 1pt solid #333; text-align: center; width: 10%;">Total</th>
         </tr>
     </thead>
@@ -1056,11 +1056,11 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
         $niveles = ['sin_riesgo', 'riesgo_bajo', 'riesgo_medio', 'riesgo_alto', 'riesgo_muy_alto'];
         $colores = [
-            'sin_riesgo' => ['bg' => '#4CAF50', 'fg' => 'white'],
-            'riesgo_bajo' => ['bg' => '#8BC34A', 'fg' => 'white'],
-            'riesgo_medio' => ['bg' => '#FFC107', 'fg' => '#333'],
-            'riesgo_alto' => ['bg' => '#FF9800', 'fg' => 'white'],
-            'riesgo_muy_alto' => ['bg' => '#F44336', 'fg' => 'white'],
+            'sin_riesgo' => ['bg' => '#5FE330', 'fg' => '#333'],
+            'riesgo_bajo' => ['bg' => '#5FE330', 'fg' => '#333'],
+            'riesgo_medio' => ['bg' => '#F5F74A', 'fg' => '#333'],
+            'riesgo_alto' => ['bg' => '#FF4444', 'fg' => 'white'],
+            'riesgo_muy_alto' => ['bg' => '#FF4444', 'fg' => 'white'],
         ];
 
         $html = '<tr>';
@@ -1097,11 +1097,11 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
         $niveles = ['muy_bajo', 'bajo', 'medio', 'alto', 'muy_alto'];
         $colores = [
-            'muy_bajo' => ['bg' => '#4CAF50', 'fg' => 'white'],
-            'bajo' => ['bg' => '#8BC34A', 'fg' => 'white'],
-            'medio' => ['bg' => '#FFC107', 'fg' => '#333'],
-            'alto' => ['bg' => '#FF9800', 'fg' => 'white'],
-            'muy_alto' => ['bg' => '#F44336', 'fg' => 'white'],
+            'muy_bajo' => ['bg' => '#5FE330', 'fg' => '#333'],
+            'bajo' => ['bg' => '#5FE330', 'fg' => '#333'],
+            'medio' => ['bg' => '#F5F74A', 'fg' => '#333'],
+            'alto' => ['bg' => '#FF4444', 'fg' => 'white'],
+            'muy_alto' => ['bg' => '#FF4444', 'fg' => 'white'],
         ];
 
         $html = '<tr>';
@@ -1138,23 +1138,23 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
     <table style="font-size: 8pt; border: none; width: 100%;">
         <tr>
             <td style="border: none; padding: 2pt 5pt;">
-                <span style="display: inline-block; width: 12pt; height: 12pt; background-color: #4CAF50; border: 1pt solid #333;"></span>
+                <span style="display: inline-block; width: 12pt; height: 12pt; background-color: #5FE330; border: 1pt solid #333;"></span>
                 Sin Riesgo / Muy Bajo
             </td>
             <td style="border: none; padding: 2pt 5pt;">
-                <span style="display: inline-block; width: 12pt; height: 12pt; background-color: #8BC34A; border: 1pt solid #333;"></span>
+                <span style="display: inline-block; width: 12pt; height: 12pt; background-color: #5FE330; border: 1pt solid #333;"></span>
                 Riesgo Bajo
             </td>
             <td style="border: none; padding: 2pt 5pt;">
-                <span style="display: inline-block; width: 12pt; height: 12pt; background-color: #FFC107; border: 1pt solid #333;"></span>
+                <span style="display: inline-block; width: 12pt; height: 12pt; background-color: #F5F74A; border: 1pt solid #333;"></span>
                 Riesgo Medio
             </td>
             <td style="border: none; padding: 2pt 5pt;">
-                <span style="display: inline-block; width: 12pt; height: 12pt; background-color: #FF9800; border: 1pt solid #333;"></span>
+                <span style="display: inline-block; width: 12pt; height: 12pt; background-color: #FF4444; border: 1pt solid #333;"></span>
                 Riesgo Alto
             </td>
             <td style="border: none; padding: 2pt 5pt;">
-                <span style="display: inline-block; width: 12pt; height: 12pt; background-color: #F44336; border: 1pt solid #333;"></span>
+                <span style="display: inline-block; width: 12pt; height: 12pt; background-color: #FF4444; border: 1pt solid #333;"></span>
                 Riesgo Muy Alto
             </td>
         </tr>

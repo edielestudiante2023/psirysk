@@ -1422,9 +1422,9 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
             }
         }
 
-        // Total estrés
+        // Total estrés (usa el baremo según la forma)
         if (isset($promedios['estres_total_puntaje'])) {
-            $baremo = EstresScoring::getBaremoTotal();
+            $baremo = $forma === 'A' ? EstresScoring::getBaremoA() : EstresScoring::getBaremoB();
             $promedios['estres_total_nivel'] = $this->aplicarBaremo($promedios['estres_total_puntaje'], $baremo);
         }
 

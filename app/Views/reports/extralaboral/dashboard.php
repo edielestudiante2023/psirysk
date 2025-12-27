@@ -345,6 +345,32 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
         </div>
     </div>
 
+    <!-- Estadísticas Generales - Total Extralaboral -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <?php
+            $nivelTotalExtralaboral = $stats['maxRisk']['extralaboral_total']['nivel'] ?? 'sin_riesgo';
+            $textClass = $nivelTotalExtralaboral === 'riesgo_medio' ? 'text-dark' : 'text-white';
+            ?>
+            <div class="card stat-card" style="<?= getTotalCardGradient($nivelTotalExtralaboral) ?> color: white; padding: 1.5rem;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="<?= $textClass ?>">
+                        <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.9;">Total Extralaboral (MAX RISK)</h6>
+                        <h2 class="fw-bold mb-0">
+                            <?= getRiskLabel($nivelTotalExtralaboral) ?>
+                        </h2>
+                        <p class="mb-0 small mt-1" style="opacity: 0.8;">
+                            <i class="fas fa-chart-line me-1"></i><?= formatMaxRiskHTML($stats['maxRisk']['extralaboral_total'] ?? [], true) ?>
+                        </p>
+                        <p class="mb-0 small mt-1" style="opacity: 0.8;">
+                            <i class="fas fa-users me-1"></i><?= $totalWorkers ?> trabajadores evaluados
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Segmentadores y Filtros -->
     <div class="segmentador-card">
         <h6 class="fw-bold mb-3">
@@ -568,32 +594,6 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
             <button class="btn btn-secondary btn-sm" onclick="clearAllFilters()">
                 <i class="fas fa-redo me-1"></i>Limpiar Todos los Filtros
             </button>
-        </div>
-    </div>
-
-    <!-- Estadísticas Generales - Total Extralaboral -->
-    <div class="row mb-3">
-        <div class="col-12">
-            <?php
-            $nivelTotalExtralaboral = $stats['maxRisk']['extralaboral_total']['nivel'] ?? 'sin_riesgo';
-            $textClass = $nivelTotalExtralaboral === 'riesgo_medio' ? 'text-dark' : 'text-white';
-            ?>
-            <div class="card stat-card" style="<?= getTotalCardGradient($nivelTotalExtralaboral) ?> color: white; padding: 1.5rem;">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="<?= $textClass ?>">
-                        <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.9;">Total Extralaboral (MAX RISK)</h6>
-                        <h2 class="fw-bold mb-0">
-                            <?= getRiskLabel($nivelTotalExtralaboral) ?>
-                        </h2>
-                        <p class="mb-0 small mt-1" style="opacity: 0.8;">
-                            <i class="fas fa-chart-line me-1"></i><?= formatMaxRiskHTML($stats['maxRisk']['extralaboral_total'] ?? [], true) ?>
-                        </p>
-                        <p class="mb-0 small mt-1" style="opacity: 0.8;">
-                            <i class="fas fa-users me-1"></i><?= $totalWorkers ?> trabajadores evaluados
-                        </p>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 

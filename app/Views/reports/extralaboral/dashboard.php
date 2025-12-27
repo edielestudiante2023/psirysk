@@ -578,7 +578,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
             $nivelTotalExtralaboral = $stats['maxRisk']['extralaboral_total']['nivel'] ?? 'sin_riesgo';
             $textClass = $nivelTotalExtralaboral === 'riesgo_medio' ? 'text-dark' : 'text-white';
             ?>
-            <div class="card stat-card" style="<?= getTotalCardGradient($nivelTotalExtralaboral) ?> color: white;">
+            <div class="card stat-card" style="<?= getTotalCardGradient($nivelTotalExtralaboral) ?> color: white; padding: 1.5rem;">
                 <div class="d-flex justify-content-between align-items-center">
                     <div class="<?= $textClass ?>">
                         <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.9;">Total Extralaboral (MAX RISK)</h6>

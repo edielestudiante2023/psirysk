@@ -1093,8 +1093,34 @@ class ReportsController extends BaseController
     }
 
     /**
-     * Calcular estadísticas extralaboral
+     * Aplicar baremo para determinar nivel de riesgo
+     *
+     * @param float $puntaje Puntaje transformado (0-100)
+     * @param array $baremo Array con rangos por nivel ['sin_riesgo' => [min, max], ...]
+     * @return string Nivel de riesgo ('sin_riesgo', 'riesgo_bajo', etc.)
      */
+    private function aplicarBaremo($puntaje, $baremo)
+    {
+        if (empty($baremo) || !is_array($baremo)) {
+            return 'sin_riesgo';
+        }
+
+        foreach ($baremo as $nivel => $rango) {
+            if (!is_array($rango) || count($rango) < 2) {
+                continue;
+            }
+
+            $min = $rango[0];
+            $max = $rango[1];
+
+            if ($puntaje >= $min && $puntaje <= $max) {
+                return $nivel;
+            }
+        }
+
+        return 'sin_riesgo';
+    }
+
     /**
      * Calcular estadísticas extralaboral
      */

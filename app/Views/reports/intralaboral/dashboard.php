@@ -261,23 +261,6 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
             <h5 class="mb-0"><i class="fas fa-briefcase me-2 text-primary"></i><?= $title ?></h5>
-            <div class="ms-auto">
-                <button class="btn btn-success btn-sm me-2" onclick="window.print()">
-                    <i class="fas fa-print me-1"></i>Imprimir
-                </button>
-                <button class="btn btn-primary btn-sm me-2"
-                    data-download-type="excel"
-                    data-service-id="<?= $service['id'] ?>"
-                    data-url="<?= base_url('reports/export-excel/' . $service['id'] . '/intralaboral') ?>">
-                    <i class="fas fa-file-excel me-1"></i>Excel
-                </button>
-                <a href="<?= base_url('reports/export-pdf/' . $service['id'] . '/intralaboral') ?>" class="btn btn-danger btn-sm me-2">
-                    <i class="fas fa-file-pdf me-1"></i>PDF Completo
-                </a>
-                <a href="<?= base_url('reports/intralaboral/executive/' . $service['id']) ?>" class="btn btn-warning btn-sm">
-                    <i class="fas fa-bolt me-1"></i>Informe Ejecutivo
-                </a>
-            </div>
         </div>
     </nav>
 
@@ -1207,7 +1190,9 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
         <!-- Tabla de Resultados -->
         <div class="row">
             <div class="col-12">
-                <h6 class="section-title">Resultados Detallados</h6>
+                <h6 class="section-title">
+        <i class="fas fa-table me-2"></i>Resultados Detallados por Trabajador
+    </h6>
                 <div class="card border-0 shadow-sm">
                     <div class="card-body p-3">
                         <div class="table-responsive">
@@ -1225,6 +1210,19 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                                         <th>Nivel Estrés</th>
                                         <th>Nivel Total</th>
                                         <th class="text-center">Acciones</th>
+                                    </tr>
+                                    <tr>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar nombre"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar doc"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar género"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar form"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar cargo"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar depto"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar nivel"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar nivel"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar nivel"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Buscar nivel"></th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1525,7 +1523,18 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                 url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
             },
             pageLength: 25,
-            order: [[0, 'asc']]
+            order: [[0, 'asc']],
+            orderCellsTop: true,
+            fixedHeader: true
+        });
+
+        // Activar filtros por columna en thead
+        $('#resultsTable thead tr:eq(1) th').each(function(i) {
+            $('input', this).on('keyup change', function() {
+                if (dataTable.column(i).search() !== this.value) {
+                    dataTable.column(i).search(this.value).draw();
+                }
+            });
         });
 
         // Gráfico de distribución de riesgo

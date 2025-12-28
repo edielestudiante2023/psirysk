@@ -309,10 +309,51 @@ $estresQuestions = [
                     </div>
                 </div>
 
-                <!-- Filtro por Frecuencia de Síntoma -->
-                <div class="col-md-9">
+                <!-- Filtro por Síntoma Específico -->
+                <div class="col-md-3">
                     <div class="filter-group">
-                        <label><i class="fas fa-notes-medical me-1"></i>Filtro por Frecuencia de Síntomas (aplica a tabla de 31 preguntas)</label>
+                        <label><i class="fas fa-list-ol me-1"></i>Síntoma/Pregunta Específica</label>
+                        <select class="form-select form-select-sm" id="filter_symptom_question">
+                            <option value="">Todos los síntomas</option>
+                            <option value="1">1. Dolores en el cuello y espalda</option>
+                            <option value="2">2. Problemas gastrointestinales</option>
+                            <option value="3">3. Problemas respiratorios</option>
+                            <option value="4">4. Dolor de cabeza</option>
+                            <option value="5">5. Trastornos del sueño</option>
+                            <option value="6">6. Palpitaciones o elevación de la presión</option>
+                            <option value="7">7. Cambios fuertes del apetito</option>
+                            <option value="8">8. Problemas relacionados con la función de los órganos genitales</option>
+                            <option value="9">9. Dificultad en las relaciones familiares</option>
+                            <option value="10">10. Dificultad para permanecer quieto</option>
+                            <option value="11">11. Sensación de aislamiento y desinterés</option>
+                            <option value="12">12. Sentimiento de sobrecarga de trabajo</option>
+                            <option value="13">13. Dificultad para concentrarse</option>
+                            <option value="14">14. Aumento en el número de accidentes de trabajo</option>
+                            <option value="15">15. Sentimiento de frustración, de no haber hecho lo que se quería en la vida</option>
+                            <option value="16">16. Cansancio, tedio o desgano</option>
+                            <option value="17">17. Disminución del rendimiento</option>
+                            <option value="18">18. Deseo de no asistir al trabajo</option>
+                            <option value="19">19. Bajo compromiso o poco interés con lo que se hace</option>
+                            <option value="20">20. Dificultad para tomar decisiones</option>
+                            <option value="21">21. Deseo de cambiar de empleo</option>
+                            <option value="22">22. Sentimiento de soledad y miedo</option>
+                            <option value="23">23. Sentimiento de irritabilidad, actitudes y pensamientos negativos</option>
+                            <option value="24">24. Sentimiento de angustia, preocupación o tristeza</option>
+                            <option value="25">25. Consumo de drogas para aliviar la tensión o los nervios</option>
+                            <option value="26">26. Sentimientos de que "no vale nada", "no sirve para nada"</option>
+                            <option value="27">27. Consumo de bebidas alcohólicas o café o cigarrillo</option>
+                            <option value="28">28. Sentimiento de que está perdiendo la razón</option>
+                            <option value="29">29. Comportamientos rígidos, obstinación o terquedad</option>
+                            <option value="30">30. Sensación de no poder manejar los problemas de la vida</option>
+                            <option value="31">31. Dificultad en las relaciones con otras personas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Filtro por Frecuencia de Síntoma -->
+                <div class="col-md-6">
+                    <div class="filter-group">
+                        <label><i class="fas fa-notes-medical me-1"></i>Filtro por Frecuencia de Síntomas</label>
                         <div class="btn-group btn-group-sm" role="group">
                             <input type="radio" class="btn-check" name="filter_symptom_frequency" id="filter_symptom_all" value="" checked>
                             <label class="btn btn-outline-secondary" for="filter_symptom_all">Todos</label>
@@ -1001,6 +1042,11 @@ function updateSymptomsTable(data) {
         });
     }
 
+    // Invalidar caché de DataTables para que use los nuevos valores al ordenar
+    if (sintomasTable) {
+        sintomasTable.rows().invalidate('dom').draw(false);
+    }
+
     // Actualizar gráfico de síntomas
     updateChartSintomas(symptomDataForChart);
 }
@@ -1377,35 +1423,52 @@ function filterTable() {
 }
 
 // ============================================
-// Variable global para el filtro de frecuencia
+// Variables globales para el filtro de síntomas
 let currentFrequencyFilter = null;
+let currentQuestionFilter = null;
 let workerIdsWithSymptom = new Set();
 
-// FUNCIÓN: Filtrar Síntomas por Frecuencia
+// FUNCIÓN: Filtrar Síntomas por Frecuencia y/o Pregunta
 // Filtra AMBAS tablas: síntomas y trabajadores
 // ============================================
-function filterSymptomsByFrequency(frequency) {
-    currentFrequencyFilter = frequency;
+function filterSymptomsByFrequencyAndQuestion(frequency = null, questionNum = null) {
+    // Si no se pasan parámetros, usar los filtros actuales
+    if (frequency === null) frequency = currentFrequencyFilter;
+    if (questionNum === null) questionNum = currentQuestionFilter;
 
-    if (!frequency) {
-        // Limpiar filtro
+    console.log('=== FILTER SYMPTOMS ===');
+    console.log('Frequency:', frequency, 'Question:', questionNum);
+
+    currentFrequencyFilter = frequency;
+    currentQuestionFilter = questionNum;
+
+    if (!frequency && !questionNum) {
+        // Limpiar filtros
         workerIdsWithSymptom.clear();
         $('#tableSintomas tbody tr').show();
         dataTable.draw();
+        console.log('Filters cleared');
         return;
     }
 
-    // PASO 1: Encontrar IDs de trabajadores que tienen al menos un síntoma con la frecuencia seleccionada
+    // PASO 1: Encontrar IDs de trabajadores que cumplen con los filtros
     workerIdsWithSymptom.clear();
 
-    filteredResults.forEach((worker) => {
-        const workerId = worker.worker_id;
+    console.log('Total workers to check:', filteredResults.length);
+    console.log('responsesData available:', Object.keys(responsesData).length);
 
-        if (responsesData[workerId]) {
-            const workerResponses = responsesData[workerId];
+    filteredResults.forEach((worker, idx) => {
+        const workerIdOriginal = worker.worker_id;
+        const workerId = parseInt(workerIdOriginal);
 
-            // Revisar todas las 31 preguntas
-            for (let q = 1; q <= 31; q++) {
+        if (responsesData[workerIdOriginal]) {
+            const workerResponses = responsesData[workerIdOriginal];
+
+            // Determinar qué preguntas revisar
+            const questionsToCheck = questionNum ? [parseInt(questionNum)] : Array.from({length: 31}, (_, i) => i + 1);
+
+            // Revisar las preguntas seleccionadas
+            for (let q of questionsToCheck) {
                 if (workerResponses[q] !== undefined && workerResponses[q] !== null) {
                     let answer = String(workerResponses[q]).toLowerCase().replace(/ /g, '_');
 
@@ -1415,53 +1478,43 @@ function filterSymptomsByFrequency(frequency) {
                         if (frecuencia) {
                             answer = frecuencia;
                         } else {
-                            continue; // No pudimos convertir, saltar esta respuesta
+                            continue;
                         }
                     }
 
-                    // Verificar si coincide con el filtro
-                    let matches = false;
-                    if (frequency === 'critico') {
-                        // Crítico = Siempre o Casi Siempre
-                        matches = (answer === 'siempre' || answer === 'casi_siempre');
-                    } else {
-                        matches = (answer === frequency);
+                    // Si solo hay filtro de pregunta (sin frecuencia), agregar al trabajador
+                    if (questionNum && !frequency) {
+                        workerIdsWithSymptom.add(workerId);
+                        break;
                     }
 
-                    if (matches) {
-                        workerIdsWithSymptom.add(workerId);
-                        break; // Ya encontramos al menos un síntoma, no necesitamos seguir
+                    // Si hay filtro de frecuencia, verificar coincidencia
+                    if (frequency) {
+                        let matches = false;
+                        if (frequency === 'critico') {
+                            matches = (answer === 'siempre' || answer === 'casi_siempre');
+                        } else {
+                            matches = (answer === frequency);
+                        }
+
+                        if (matches) {
+                            workerIdsWithSymptom.add(workerId);
+                            break;
+                        }
                     }
                 }
             }
         }
     });
 
-    // PASO 2: Filtrar tabla de síntomas (mostrar solo preguntas donde hay trabajadores con esa frecuencia)
-    $('#tableSintomas tbody tr').each(function() {
-        const $row = $(this);
-        const questionNum = $row.attr('data-question');
-        let shouldShow = false;
+    console.log('Workers with symptom:', workerIdsWithSymptom.size);
+    console.log('Sample IDs:', Array.from(workerIdsWithSymptom).slice(0, 5));
 
-        if (frequency === 'critico') {
-            const $span = $row.find(`span[data-q="${questionNum}"][data-answer="critico"]`);
-            const criticoValue = parseInt($span.text().trim()) || 0;
-            shouldShow = criticoValue > 0;
-        } else {
-            const $span = $row.find(`span[data-q="${questionNum}"][data-answer="${frequency}"]`);
-            const freqValue = parseInt($span.text().trim()) || 0;
-            shouldShow = freqValue > 0;
-        }
-
-        if (shouldShow) {
-            $row.show();
-        } else {
-            $row.hide();
-        }
-    });
-
-    // PASO 3: Filtrar tabla de trabajadores usando DataTables API
+    // PASO 2: Filtrar ambas tablas usando DataTables API
+    console.log('Calling draw() on both tables...');
+    sintomasTable.draw();
     dataTable.draw();
+    console.log('=== END FILTER ===');
 }
 
 // ============================================
@@ -1470,11 +1523,18 @@ function filterSymptomsByFrequency(frequency) {
 function clearAllFilters() {
     $('select[id^="filter_"]').val('');
     $('input[name="filter_symptom_frequency"][value=""]').prop('checked', true);
+    $('#filter_symptom_question').val('');
     filteredResults = [...allResults];
     updateStats(allResults);
     updateSymptomsTable(allResults);
     filterTable();
-    filterSymptomsByFrequency('');
+
+    // Limpiar filtros de síntomas
+    currentFrequencyFilter = null;
+    currentQuestionFilter = null;
+    workerIdsWithSymptom.clear();
+    sintomasTable.draw();
+    dataTable.draw();
 }
 
 // ============================================
@@ -1483,15 +1543,26 @@ function clearAllFilters() {
 $(document).ready(function() {
     // Agregar filtro personalizado para frecuencia de síntomas
     $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        // Solo aplicar este filtro a la tabla de resultados
+        if (settings.nTable.id !== 'tableResults') {
+            return true;
+        }
+
         // Si no hay filtro de frecuencia activo, mostrar todas las filas
         if (!currentFrequencyFilter) {
             return true;
         }
 
-        // Obtener el worker_id de la fila actual
-        const row = $('#tableResults').DataTable().row(dataIndex);
-        const $rowNode = $(row.node());
-        const workerId = parseInt($rowNode.attr('data-worker-id'));
+        // Obtener el worker_id desde filteredResults usando el dataIndex
+        if (dataIndex >= filteredResults.length) {
+            console.log(`Filter check: dataIndex=${dataIndex} out of range (${filteredResults.length})`);
+            return false;
+        }
+
+        const worker = filteredResults[dataIndex];
+        const workerId = parseInt(worker.worker_id);
+
+        console.log(`Filter check: dataIndex=${dataIndex}, workerId=${workerId}, inSet=${workerIdsWithSymptom.has(workerId)}`);
 
         // Mostrar solo si el worker tiene al menos un síntoma con la frecuencia seleccionada
         return workerIdsWithSymptom.has(workerId);
@@ -1517,8 +1588,31 @@ $(document).ready(function() {
         });
     });
 
-    // NO inicializar DataTable para síntomas - dejar como tabla simple
-    sintomasTable = null;
+    // Inicializar DataTable para síntomas
+    sintomasTable = $('#tableSintomas').DataTable({
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+        },
+        pageLength: 31, // Mostrar todas las 31 preguntas por defecto
+        order: [[0, 'asc']], // Ordenar por número de pregunta
+        orderCellsTop: true,
+        dom: 'frtip', // Solo filtro, tabla, info y paginación
+        columnDefs: [
+            {
+                // Columnas 2-6 (Siempre, Casi Siempre, A Veces, Nunca, Crítico) son numéricas
+                targets: [2, 3, 4, 5, 6],
+                render: function(data, type, row, meta) {
+                    // data llega como HTML (incluye <span>...)
+                    if (type === 'sort' || type === 'type') {
+                        const text = $('<div>').html(data).text().trim(); // extrae texto del HTML
+                        const num = parseInt(text, 10);
+                        return isNaN(num) ? 0 : num;
+                    }
+                    return data; // para display, mantiene el HTML
+                }
+            }
+        ]
+    });
 
     // Inicializar estadísticas con todos los resultados
     updateStats(allResults);
@@ -1536,7 +1630,16 @@ $(document).ready(function() {
 
     // Event listener para filtro de frecuencia de síntomas
     $('input[name="filter_symptom_frequency"]').on('change', function() {
-        filterSymptomsByFrequency($(this).val());
+        const frequency = $(this).val();
+        const question = $('#filter_symptom_question').val();
+        filterSymptomsByFrequencyAndQuestion(frequency, question);
+    });
+
+    // Event listener para filtro de pregunta específica
+    $('#filter_symptom_question').on('change', function() {
+        const question = $(this).val();
+        const frequency = $('input[name="filter_symptom_frequency"]:checked').val();
+        filterSymptomsByFrequencyAndQuestion(frequency, question);
     });
 });
 </script>

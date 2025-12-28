@@ -315,8 +315,6 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                         <i class="fas fa-building me-2"></i><?= esc($service['company_name']) ?>
                         <span class="mx-2">|</span>
                         <i class="fas fa-calendar me-2"></i><?= date('d/m/Y', strtotime($service['service_date'])) ?>
-                        <span class="mx-2">|</span>
-                        <i class="fas fa-user me-2"></i><?= esc($service['consultant_name'] ?? 'N/A') ?>
                     </p>
                 </div>
                 <div class="col-md-4 text-end">
@@ -804,6 +802,17 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                             <th>Nivel Riesgo</th>
                             <th>Acciones</th>
                         </tr>
+                        <tr>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar nombre"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar doc"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar género"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar depto"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar cargo"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar tipo"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar puntaje"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar nivel"></th>
+                            <th></th>
+                        </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($results as $result): ?>
@@ -896,6 +905,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
 // ============================================
 const allResults = <?= json_encode($results) ?>;
 const accessRequests = <?= json_encode($accessRequests) ?>;
+const statsData = <?= json_encode($stats) ?>;
 const userRole = '<?= session()->get('role_name') ?>';
 const isConsultant = ['superadmin', 'admin', 'consultor'].includes(userRole);
 let filteredResults = [...allResults];
@@ -1123,73 +1133,6 @@ function createDimensionsChart(data) {
         chartDimensions.destroy();
     }
 
-    // Baremos extralaborales oficiales (Resolución 2404/2019 - Tabla 18: Auxiliares)
-    const extralaboralBaremos = {
-        'dim_tiempo_fuera_trabajo': [
-            { min: 0.0, max: 6.3, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 6.4, max: 25.0, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 25.1, max: 37.5, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 37.6, max: 50.0, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 50.1, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_relaciones_familiares': [
-            { min: 0.0, max: 8.3, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 8.4, max: 25.0, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 25.1, max: 33.3, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 33.4, max: 50.0, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 50.1, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_comunicacion_relaciones_interpersonales': [
-            { min: 0.0, max: 5.0, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 5.1, max: 15.0, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 15.1, max: 25.0, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 25.1, max: 35.0, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 35.1, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_situacion_economica_grupo_familiar': [
-            { min: 0.0, max: 16.7, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 16.8, max: 25.0, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 25.1, max: 41.7, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 41.8, max: 50.0, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 50.1, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_caracteristicas_vivienda_entorno': [
-            { min: 0.0, max: 5.6, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 5.7, max: 11.1, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 11.2, max: 16.7, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 16.8, max: 27.8, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 27.9, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_influencia_entorno_extralaboral': [
-            { min: 0.0, max: 0.9, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 1.0, max: 16.7, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 16.8, max: 25.0, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 25.1, max: 41.7, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 41.8, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_desplazamiento_vivienda_trabajo': [
-            { min: 0.0, max: 0.9, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 1.0, max: 12.5, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 12.6, max: 25.0, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 25.1, max: 43.8, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 43.9, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ]
-    };
-
-    // Función para obtener nivel de riesgo según baremo
-    const getRiskLevelFromScore = (score, dimension) => {
-        const baremo = extralaboralBaremos[dimension];
-        if (!baremo) return { nivel: 'sin_riesgo', label: 'Sin Riesgo' };
-
-        for (let range of baremo) {
-            if (score >= range.min && score <= range.max) {
-                return { nivel: range.nivel, label: range.label };
-            }
-        }
-        return { nivel: 'sin_riesgo', label: 'Sin Riesgo' };
-    };
-
-    // Calcular promedios y niveles de riesgo de las 7 dimensiones
     const dimensionKeys = [
         'dim_tiempo_fuera_trabajo',
         'dim_relaciones_familiares',
@@ -1204,11 +1147,55 @@ function createDimensionsChart(data) {
     const dimensionColors = [];
     const dimensionLabels = [];
 
-    if (data.length > 0) {
+    // Si es data completa (no filtrada), usar MAX RISK
+    const useMaxRisk = data.length === allResults.length;
+
+    if (useMaxRisk && statsData.maxRisk) {
+        // Usar MAX RISK desde statsData
+        dimensionKeys.forEach(dim => {
+            const maxRiskData = statsData.maxRisk?.[dim];
+
+            if (maxRiskData) {
+                dimensionData.push(maxRiskData.promedio || 0);
+                dimensionColors.push(riskColors[maxRiskData.nivel] || riskColors['sin_riesgo']);
+
+                const labels = {
+                    'sin_riesgo': 'Sin Riesgo',
+                    'riesgo_bajo': 'Riesgo Bajo',
+                    'riesgo_medio': 'Riesgo Medio',
+                    'riesgo_alto': 'Riesgo Alto',
+                    'riesgo_muy_alto': 'Riesgo Muy Alto'
+                };
+                dimensionLabels.push(labels[maxRiskData.nivel] || 'Sin Riesgo');
+            } else {
+                dimensionData.push(0);
+                dimensionColors.push(riskColors['sin_riesgo']);
+                dimensionLabels.push('Sin Riesgo');
+            }
+        });
+    } else {
+        // Recalcular desde data filtrada (promedios simples)
+        // Baremos para clasificar niveles
+        const extralaboralBaremos = {
+            'dim_tiempo_fuera_trabajo': [[0, 6.3, 'sin_riesgo'], [6.4, 25.0, 'riesgo_bajo'], [25.1, 37.5, 'riesgo_medio'], [37.6, 50.0, 'riesgo_alto'], [50.1, 100, 'riesgo_muy_alto']],
+            'dim_relaciones_familiares': [[0, 8.3, 'sin_riesgo'], [8.4, 25.0, 'riesgo_bajo'], [25.1, 33.3, 'riesgo_medio'], [33.4, 50.0, 'riesgo_alto'], [50.1, 100, 'riesgo_muy_alto']],
+            'dim_comunicacion_relaciones_interpersonales': [[0, 5.0, 'sin_riesgo'], [5.1, 15.0, 'riesgo_bajo'], [15.1, 25.0, 'riesgo_medio'], [25.1, 35.0, 'riesgo_alto'], [35.1, 100, 'riesgo_muy_alto']],
+            'dim_situacion_economica_grupo_familiar': [[0, 16.7, 'sin_riesgo'], [16.8, 25.0, 'riesgo_bajo'], [25.1, 41.7, 'riesgo_medio'], [41.8, 50.0, 'riesgo_alto'], [50.1, 100, 'riesgo_muy_alto']],
+            'dim_caracteristicas_vivienda_entorno': [[0, 5.6, 'sin_riesgo'], [5.7, 11.1, 'riesgo_bajo'], [11.2, 16.7, 'riesgo_medio'], [16.8, 27.8, 'riesgo_alto'], [27.9, 100, 'riesgo_muy_alto']],
+            'dim_influencia_entorno_extralaboral': [[0, 0.9, 'sin_riesgo'], [1.0, 16.7, 'riesgo_bajo'], [16.8, 25.0, 'riesgo_medio'], [25.1, 41.7, 'riesgo_alto'], [41.8, 100, 'riesgo_muy_alto']],
+            'dim_desplazamiento_vivienda_trabajo': [[0, 0.9, 'sin_riesgo'], [1.0, 12.5, 'riesgo_bajo'], [12.6, 25.0, 'riesgo_medio'], [25.1, 43.8, 'riesgo_alto'], [43.9, 100, 'riesgo_muy_alto']]
+        };
+
+        const getRiskLevel = (score, dim) => {
+            const baremo = extralaboralBaremos[dim];
+            for (let [min, max, nivel] of baremo) {
+                if (score >= min && score <= max) return nivel;
+            }
+            return 'sin_riesgo';
+        };
+
         dimensionKeys.forEach(dim => {
             const dbColumnName = dimensionMapping[dim];
-
-            // Calcular promedio de puntaje para esta dimensión
             let sum = 0;
             let count = 0;
 
@@ -1218,20 +1205,20 @@ function createDimensionsChart(data) {
                 count++;
             });
 
-            // Calcular promedio
             const average = count > 0 ? sum / count : 0;
+            const nivel = getRiskLevel(average, dim);
 
-            // Determinar nivel de riesgo basado en el PUNTAJE PROMEDIO usando baremos oficiales
-            const riskLevel = getRiskLevelFromScore(average, dim);
-
-            // Usar el puntaje promedio como altura de la barra
             dimensionData.push(average);
+            dimensionColors.push(riskColors[nivel]);
 
-            // Color basado en el nivel de riesgo del puntaje promedio
-            dimensionColors.push(riskColors[riskLevel.nivel]);
-
-            // Label del nivel de riesgo
-            dimensionLabels.push(riskLevel.label);
+            const labels = {
+                'sin_riesgo': 'Sin Riesgo',
+                'riesgo_bajo': 'Riesgo Bajo',
+                'riesgo_medio': 'Riesgo Medio',
+                'riesgo_alto': 'Riesgo Alto',
+                'riesgo_muy_alto': 'Riesgo Muy Alto'
+            };
+            dimensionLabels.push(labels[nivel]);
         });
     }
 
@@ -1364,121 +1351,92 @@ function createTopDimensionsChart(data) {
         chartTopDimensions.destroy();
     }
 
-    // Baremos extralaborales para determinar niveles de riesgo
-    const extralaboralBaremos = {
-        'dim_tiempo_fuera_trabajo': [
-            { min: 0.0, max: 6.3, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 6.4, max: 25.0, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 25.1, max: 37.5, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 37.6, max: 50.0, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 50.1, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_relaciones_familiares': [
-            { min: 0.0, max: 8.3, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 8.4, max: 25.0, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 25.1, max: 33.3, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 33.4, max: 50.0, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 50.1, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_comunicacion_relaciones_interpersonales': [
-            { min: 0.0, max: 5.0, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 5.1, max: 15.0, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 15.1, max: 25.0, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 25.1, max: 35.0, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 35.1, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_situacion_economica_grupo_familiar': [
-            { min: 0.0, max: 16.7, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 16.8, max: 25.0, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 25.1, max: 41.7, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 41.8, max: 50.0, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 50.1, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_caracteristicas_vivienda_entorno': [
-            { min: 0.0, max: 5.6, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 5.7, max: 11.1, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 11.2, max: 16.7, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 16.8, max: 27.8, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 27.9, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_influencia_entorno_extralaboral': [
-            { min: 0.0, max: 0.9, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 1.0, max: 16.7, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 16.8, max: 25.0, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 25.1, max: 41.7, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 41.8, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ],
-        'dim_desplazamiento_vivienda_trabajo': [
-            { min: 0.0, max: 0.9, nivel: 'sin_riesgo', label: 'Sin Riesgo' },
-            { min: 1.0, max: 12.5, nivel: 'riesgo_bajo', label: 'Riesgo Bajo' },
-            { min: 12.6, max: 25.0, nivel: 'riesgo_medio', label: 'Riesgo Medio' },
-            { min: 25.1, max: 43.8, nivel: 'riesgo_alto', label: 'Riesgo Alto' },
-            { min: 43.9, max: 100, nivel: 'riesgo_muy_alto', label: 'Riesgo Muy Alto' }
-        ]
+    const dimensionNames = {
+        'dim_tiempo_fuera_trabajo': 'Tiempo fuera del trabajo',
+        'dim_relaciones_familiares': 'Relaciones familiares',
+        'dim_comunicacion_relaciones_interpersonales': 'Comunicación y relaciones',
+        'dim_situacion_economica_grupo_familiar': 'Situación económica',
+        'dim_caracteristicas_vivienda_entorno': 'Vivienda y entorno',
+        'dim_influencia_entorno_extralaboral': 'Influencia extralaboral',
+        'dim_desplazamiento_vivienda_trabajo': 'Desplazamiento'
     };
 
-    const getRiskLevelFromScore = (score, dimensionKey) => {
-        const baremo = extralaboralBaremos[dimensionKey];
-        if (!baremo) return { nivel: 'sin_riesgo', label: 'Sin Riesgo' };
+    const riskLevelLabels = {
+        'sin_riesgo': 'Sin Riesgo',
+        'riesgo_bajo': 'Riesgo Bajo',
+        'riesgo_medio': 'Riesgo Medio',
+        'riesgo_alto': 'Riesgo Alto',
+        'riesgo_muy_alto': 'Riesgo Muy Alto'
+    };
 
-        for (let range of baremo) {
-            if (score >= range.min && score <= range.max) {
-                return { nivel: range.nivel, label: range.label };
+    const dimScores = [];
+
+    // Si es data completa (no filtrada), usar MAX RISK
+    const useMaxRisk = data.length === allResults.length;
+
+    if (useMaxRisk && statsData.maxRisk) {
+        // Usar MAX RISK desde statsData
+        Object.entries(dimensionNames).forEach(([key, label]) => {
+            const maxRiskData = statsData.maxRisk?.[key];
+            if (maxRiskData) {
+                dimScores.push({
+                    label: label,
+                    score: maxRiskData.promedio || 0,
+                    nivel: maxRiskData.nivel,
+                    riskLabel: riskLevelLabels[maxRiskData.nivel] || 'Sin Riesgo'
+                });
             }
-        }
-        return { nivel: 'sin_riesgo', label: 'Sin Riesgo' };
-    };
+        });
+    } else {
+        // Recalcular desde data filtrada
+        const extralaboralBaremos = {
+            'dim_tiempo_fuera_trabajo': [[0, 6.3, 'sin_riesgo'], [6.4, 25.0, 'riesgo_bajo'], [25.1, 37.5, 'riesgo_medio'], [37.6, 50.0, 'riesgo_alto'], [50.1, 100, 'riesgo_muy_alto']],
+            'dim_relaciones_familiares': [[0, 8.3, 'sin_riesgo'], [8.4, 25.0, 'riesgo_bajo'], [25.1, 33.3, 'riesgo_medio'], [33.4, 50.0, 'riesgo_alto'], [50.1, 100, 'riesgo_muy_alto']],
+            'dim_comunicacion_relaciones_interpersonales': [[0, 5.0, 'sin_riesgo'], [5.1, 15.0, 'riesgo_bajo'], [15.1, 25.0, 'riesgo_medio'], [25.1, 35.0, 'riesgo_alto'], [35.1, 100, 'riesgo_muy_alto']],
+            'dim_situacion_economica_grupo_familiar': [[0, 16.7, 'sin_riesgo'], [16.8, 25.0, 'riesgo_bajo'], [25.1, 41.7, 'riesgo_medio'], [41.8, 50.0, 'riesgo_alto'], [50.1, 100, 'riesgo_muy_alto']],
+            'dim_caracteristicas_vivienda_entorno': [[0, 5.6, 'sin_riesgo'], [5.7, 11.1, 'riesgo_bajo'], [11.2, 16.7, 'riesgo_medio'], [16.8, 27.8, 'riesgo_alto'], [27.9, 100, 'riesgo_muy_alto']],
+            'dim_influencia_entorno_extralaboral': [[0, 0.9, 'sin_riesgo'], [1.0, 16.7, 'riesgo_bajo'], [16.8, 25.0, 'riesgo_medio'], [25.1, 41.7, 'riesgo_alto'], [41.8, 100, 'riesgo_muy_alto']],
+            'dim_desplazamiento_vivienda_trabajo': [[0, 0.9, 'sin_riesgo'], [1.0, 12.5, 'riesgo_bajo'], [12.6, 25.0, 'riesgo_medio'], [25.1, 43.8, 'riesgo_alto'], [43.9, 100, 'riesgo_muy_alto']]
+        };
 
-    // Calcular promedios y ordenar
-    const dimensions = {
-        'Tiempo fuera del trabajo': 0,
-        'Relaciones familiares': 0,
-        'Comunicación y relaciones': 0,
-        'Situación económica': 0,
-        'Vivienda y entorno': 0,
-        'Influencia extralaboral': 0,
-        'Desplazamiento': 0
-    };
+        const getRiskLevel = (score, dim) => {
+            const baremo = extralaboralBaremos[dim];
+            for (let [min, max, nivel] of baremo) {
+                if (score >= min && score <= max) return nivel;
+            }
+            return 'sin_riesgo';
+        };
 
-    const dimKeys = [
-        'dim_tiempo_fuera_trabajo',
-        'dim_relaciones_familiares',
-        'dim_comunicacion_relaciones_interpersonales',
-        'dim_situacion_economica_grupo_familiar',
-        'dim_caracteristicas_vivienda_entorno',
-        'dim_influencia_entorno_extralaboral',
-        'dim_desplazamiento_vivienda_trabajo'
-    ];
-
-    const dimScores = {};
-    if (data.length > 0) {
-        dimKeys.forEach((key, index) => {
-            let sum = 0;
+        Object.entries(dimensionNames).forEach(([key, label]) => {
             const dbColumnName = dimensionMapping[key];
-            data.forEach(r => {
-                sum += parseFloat(r[dbColumnName + '_puntaje'] || 0);
-            });
-            const label = Object.keys(dimensions)[index];
-            const avg = sum / data.length;
-            const riskLevel = getRiskLevelFromScore(avg, key);
+            let sum = 0;
+            let count = 0;
 
-            dimScores[label] = {
-                score: avg,
-                nivel: riskLevel.nivel,
-                label: riskLevel.label
-            };
+            data.forEach(r => {
+                const puntaje = parseFloat(r[dbColumnName + '_puntaje'] || 0);
+                sum += puntaje;
+                count++;
+            });
+
+            const average = count > 0 ? sum / count : 0;
+            const nivel = getRiskLevel(average, key);
+
+            dimScores.push({
+                label: label,
+                score: average,
+                nivel: nivel,
+                riskLabel: riskLevelLabels[nivel]
+            });
         });
     }
 
     // Ordenar por score y tomar top 5
-    const sorted = Object.entries(dimScores)
-        .sort((a, b) => b[1].score - a[1].score)
-        .slice(0, 5);
+    const sorted = dimScores.sort((a, b) => b.score - a.score).slice(0, 5);
 
-    const labels = sorted.map(s => s[0]);
-    const values = sorted.map(s => s[1].score);
-    const riskLabels = sorted.map(s => s[1].label);
-    const colors = sorted.map(s => riskColors[s[1].nivel]);
+    const labels = sorted.map(s => s.label);
+    const values = sorted.map(s => s.score);
+    const riskLabels = sorted.map(s => s.riskLabel);
+    const colors = sorted.map(s => riskColors[s.nivel]);
 
     chartTopDimensions = new Chart(ctx, {
         type: 'bar',
@@ -1927,7 +1885,18 @@ $(document).ready(function() {
         },
         pageLength: 25,
         order: [[6, 'desc']], // Ordenar por puntaje total descendente
-        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
+        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+        orderCellsTop: true,
+        fixedHeader: true
+    });
+
+    // Activar filtros por columna en thead
+    $('#tableResults thead tr:eq(1) th').each(function(i) {
+        $('input', this).on('keyup change', function() {
+            if (dataTable.column(i).search() !== this.value) {
+                dataTable.column(i).search(this.value).draw();
+            }
+        });
     });
 
     // Crear charts iniciales

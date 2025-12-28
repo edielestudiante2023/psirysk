@@ -39,10 +39,11 @@ class ReportsController extends BaseController
             return redirect()->to('/dashboard')->with('error', 'No tienes permisos para acceder a esta sección');
         }
 
-        // Obtener información del servicio incluyendo parent_company_id
+        // Obtener información del servicio incluyendo parent_company_id y nombre del consultor
         $service = $this->batteryServiceModel
-            ->select('battery_services.*, companies.name as company_name, companies.nit, companies.parent_company_id')
+            ->select('battery_services.*, companies.name as company_name, companies.nit, companies.parent_company_id, users.name as consultant_name')
             ->join('companies', 'companies.id = battery_services.company_id')
+            ->join('users', 'users.id = battery_services.consultant_id', 'left')
             ->find($serviceId);
 
         if (!$service) {
@@ -1296,9 +1297,14 @@ class ReportsController extends BaseController
                 'riskDistribution' => [],
                 'symptomAverages' => [],
                 'genderDistribution' => [],
-                'formTypeDistribution' => []
+                'formTypeDistribution' => [],
+                'maxRisk' => []
             ];
         }
+
+        // Obtener baremos oficiales para estrés
+        $baremosA = \App\Libraries\EstresScoring::getBaremoA();
+        $baremosB = \App\Libraries\EstresScoring::getBaremoB();
 
         $stats = [
             'riskDistribution' => [
@@ -1315,45 +1321,141 @@ class ReportsController extends BaseController
                 'psicoemocionales' => 0
             ],
             'genderDistribution' => [],
-            'formTypeDistribution' => ['A' => 0, 'B' => 0]
+            'formTypeDistribution' => ['A' => 0, 'B' => 0],
+            'maxRisk' => [
+                'estres_total' => ['promedio' => 0, 'nivel' => 'muy_bajo', 'forma_origen' => null, 'data_a' => null, 'data_b' => null],
+                'sintomas_fisiologicos' => ['promedio' => 0, 'nivel' => 'muy_bajo', 'forma_origen' => null, 'data_a' => null, 'data_b' => null],
+                'sintomas_comportamiento' => ['promedio' => 0, 'nivel' => 'muy_bajo', 'forma_origen' => null, 'data_a' => null, 'data_b' => null],
+                'sintomas_intelectuales' => ['promedio' => 0, 'nivel' => 'muy_bajo', 'forma_origen' => null, 'data_a' => null, 'data_b' => null],
+                'sintomas_psicoemocionales' => ['promedio' => 0, 'nivel' => 'muy_bajo', 'forma_origen' => null, 'data_a' => null, 'data_b' => null]
+            ]
         ];
 
         $count = count($results);
         $totals = array_fill_keys(array_keys($stats['symptomAverages']), 0);
 
+        // Agrupar resultados por worker_id para aplicar MAX RISK
+        $workerData = [];
         foreach ($results as $result) {
-            // Distribución de riesgo
-            if (!empty($result['estres_total_nivel'])) {
-                $nivel = $result['estres_total_nivel'];
+            $workerId = $result['worker_id'];
+            $formType = $result['intralaboral_form_type'] ?? '';
+
+            if (!isset($workerData[$workerId])) {
+                $workerData[$workerId] = [
+                    'A' => null,
+                    'B' => null,
+                    'gender' => $result['gender'] ?? 'No especificado'
+                ];
+            }
+
+            $workerData[$workerId][$formType] = $result;
+        }
+
+        // Función helper para aplicar baremo
+        $aplicarBaremo = function($puntaje, $forma) use ($baremosA, $baremosB) {
+            $baremo = ($forma === 'A') ? $baremosA : $baremosB;
+            foreach ($baremo as $nivel => $rango) {
+                if ($puntaje >= $rango[0] && $puntaje <= $rango[1]) {
+                    return $nivel;
+                }
+            }
+            return 'muy_bajo';
+        };
+
+        // Calcular MAX RISK por trabajador
+        $maxRiskTotals = [
+            'estres_total' => 0,
+            'sintomas_fisiologicos' => 0,
+            'sintomas_comportamiento' => 0,
+            'sintomas_intelectuales' => 0,
+            'sintomas_psicoemocionales' => 0
+        ];
+
+        foreach ($workerData as $workerId => $forms) {
+            $dataA = $forms['A'];
+            $dataB = $forms['B'];
+
+            // Determinar cual forma tiene el peor riesgo (MAX RISK)
+            $maxRiesgoData = null;
+            $formaOrigen = null;
+
+            if ($dataA && $dataB) {
+                $puntajeA = $dataA['estres_total_puntaje'] ?? 0;
+                $puntajeB = $dataB['estres_total_puntaje'] ?? 0;
+                $nivelA = $aplicarBaremo($puntajeA, 'A');
+                $nivelB = $aplicarBaremo($puntajeB, 'B');
+
+                // Orden de severidad de niveles
+                $ordenSeveridad = ['muy_bajo' => 0, 'bajo' => 1, 'medio' => 2, 'alto' => 3, 'muy_alto' => 4];
+
+                if ($ordenSeveridad[$nivelB] > $ordenSeveridad[$nivelA]) {
+                    $maxRiesgoData = $dataB;
+                    $formaOrigen = 'B';
+                } else {
+                    $maxRiesgoData = $dataA;
+                    $formaOrigen = 'A';
+                }
+            } elseif ($dataA) {
+                $maxRiesgoData = $dataA;
+                $formaOrigen = 'A';
+            } elseif ($dataB) {
+                $maxRiesgoData = $dataB;
+                $formaOrigen = 'B';
+            }
+
+            if ($maxRiesgoData) {
+                // Acumular para distribución de riesgo
+                $nivel = $aplicarBaremo($maxRiesgoData['estres_total_puntaje'] ?? 0, $formaOrigen);
                 if (isset($stats['riskDistribution'][$nivel])) {
                     $stats['riskDistribution'][$nivel]++;
                 }
-            }
 
-            // Promedios de síntomas
-            $totals['fisiologicos'] += $result['estres_sintomas_fisiologicos_puntaje'] ?? 0;
-            $totals['comportamiento_social'] += $result['estres_sintomas_comportamiento_social_puntaje'] ?? 0;
-            $totals['intelectuales_laborales'] += $result['estres_sintomas_intelectuales_laborales_puntaje'] ?? 0;
-            $totals['psicoemocionales'] += $result['estres_sintomas_psicoemocionales_puntaje'] ?? 0;
+                // Acumular totales para MAX RISK
+                $maxRiskTotals['estres_total'] += $maxRiesgoData['estres_total_puntaje'] ?? 0;
+                $maxRiskTotals['sintomas_fisiologicos'] += $maxRiesgoData['estres_sintomas_fisiologicos_puntaje'] ?? 0;
+                $maxRiskTotals['sintomas_comportamiento'] += $maxRiesgoData['estres_sintomas_comportamiento_social_puntaje'] ?? 0;
+                $maxRiskTotals['sintomas_intelectuales'] += $maxRiesgoData['estres_sintomas_intelectuales_laborales_puntaje'] ?? 0;
+                $maxRiskTotals['sintomas_psicoemocionales'] += $maxRiesgoData['estres_sintomas_psicoemocionales_puntaje'] ?? 0;
 
-            // Distribución por género
-            $gender = $result['gender'] ?? 'No especificado';
-            if (!isset($stats['genderDistribution'][$gender])) {
-                $stats['genderDistribution'][$gender] = 0;
-            }
-            $stats['genderDistribution'][$gender]++;
+                // Acumular para promedios simples (compatibilidad)
+                $totals['fisiologicos'] += $maxRiesgoData['estres_sintomas_fisiologicos_puntaje'] ?? 0;
+                $totals['comportamiento_social'] += $maxRiesgoData['estres_sintomas_comportamiento_social_puntaje'] ?? 0;
+                $totals['intelectuales_laborales'] += $maxRiesgoData['estres_sintomas_intelectuales_laborales_puntaje'] ?? 0;
+                $totals['psicoemocionales'] += $maxRiesgoData['estres_sintomas_psicoemocionales_puntaje'] ?? 0;
 
-            // Distribución por tipo de formulario
-            $formType = $result['intralaboral_form_type'] ?? '';
-            if (isset($stats['formTypeDistribution'][$formType])) {
-                $stats['formTypeDistribution'][$formType]++;
+                // Distribución por género
+                $gender = $forms['gender'];
+                if (!isset($stats['genderDistribution'][$gender])) {
+                    $stats['genderDistribution'][$gender] = 0;
+                }
+                $stats['genderDistribution'][$gender]++;
+
+                // Distribución por tipo de formulario
+                if (isset($stats['formTypeDistribution'][$formaOrigen])) {
+                    $stats['formTypeDistribution'][$formaOrigen]++;
+                }
             }
         }
 
-        // Calcular promedios
-        if ($count > 0) {
+        // Calcular promedios MAX RISK
+        $numWorkers = count($workerData);
+        if ($numWorkers > 0) {
+            // Total estrés
+            $promedioTotal = $maxRiskTotals['estres_total'] / $numWorkers;
+            $stats['maxRisk']['estres_total']['promedio'] = round($promedioTotal, 1);
+            $stats['maxRisk']['estres_total']['nivel'] = $aplicarBaremo($promedioTotal, 'B'); // Usar baremo más conservador
+            $stats['maxRisk']['estres_total']['forma_origen'] = null; // Promedio de ambas formas
+
+            // Síntomas
+            foreach (['sintomas_fisiologicos', 'sintomas_comportamiento', 'sintomas_intelectuales', 'sintomas_psicoemocionales'] as $sintoma) {
+                $promedio = $maxRiskTotals[$sintoma] / $numWorkers;
+                $stats['maxRisk'][$sintoma]['promedio'] = round($promedio, 1);
+                // Los síntomas no tienen baremos específicos, solo se muestran como porcentajes
+            }
+
+            // Calcular promedios simples (compatibilidad)
             foreach ($totals as $key => $total) {
-                $stats['symptomAverages'][$key] = round($total / $count, 2);
+                $stats['symptomAverages'][$key] = round($total / $numWorkers, 2);
             }
         }
 

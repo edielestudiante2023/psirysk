@@ -27,6 +27,43 @@ function getEstresRiskLabel($nivel) {
     return $labels[$nivel] ?? 'N/A';
 }
 
+/**
+ * Función helper para obtener el gradiente del card Total según nivel de riesgo
+ */
+function getTotalEstresCardGradient($nivel) {
+    switch($nivel) {
+        case 'muy_bajo':
+        case 'bajo':
+            return 'background: linear-gradient(135deg, #28a745 0%, #20c997 100%);'; // Verde
+        case 'medio':
+            return 'background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);'; // Amarillo/Naranja
+        case 'alto':
+            return 'background: linear-gradient(135deg, #fd7e14 0%, #dc3545 100%);'; // Naranja/Rojo
+        case 'muy_alto':
+            return 'background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);'; // Rojo oscuro
+        default:
+            return 'background: linear-gradient(135deg, #6c757d 0%, #495057 100%);'; // Gris
+    }
+}
+
+/**
+ * Función helper para formatear datos MAX RISK con HTML
+ */
+function formatMaxRiskHTML($data, $showOtherForm = false) {
+    if (empty($data) || !isset($data['promedio'])) {
+        return 'N/D';
+    }
+
+    $html = number_format($data['promedio'], 1) . '%';
+
+    // Si hay forma de origen, mostrarla
+    if (isset($data['forma_origen']) && $data['forma_origen'] !== null) {
+        $html .= ' <span style="font-size: 0.85em; opacity: 0.9;">(Forma ' . $data['forma_origen'] . ')</span>';
+    }
+
+    return $html;
+}
+
 // Textos de las 31 preguntas del cuestionario de estrés
 $estresQuestions = [
     1 => 'Dolores en el cuello y espalda o tensión muscular',
@@ -219,17 +256,6 @@ $estresQuestions = [
             <i class="fas fa-arrow-left"></i> Volver
         </a>
         <h5 class="mb-0"><i class="fas fa-heartbeat me-2 text-warning"></i><?= $title ?></h5>
-        <div class="ms-auto">
-            <button class="btn btn-success btn-sm me-2" onclick="window.print()">
-                <i class="fas fa-print me-1"></i>Imprimir
-            </button>
-            <a href="<?= base_url('reports/export-pdf/' . $service['id'] . '/estres') ?>" class="btn btn-danger btn-sm me-2">
-                <i class="fas fa-file-pdf me-1"></i>PDF Completo
-            </a>
-            <a href="<?= base_url('reports/estres/executive/' . $service['id']) ?>" class="btn btn-warning btn-sm">
-                <i class="fas fa-bolt me-1"></i>Informe Ejecutivo
-            </a>
-        </div>
     </div>
 </nav>
 
@@ -249,8 +275,6 @@ $estresQuestions = [
                         <i class="fas fa-building me-2"></i><?= esc($service['company_name']) ?>
                         <span class="mx-2">|</span>
                         <i class="fas fa-calendar me-2"></i><?= date('d/m/Y', strtotime($service['service_date'])) ?>
-                        <span class="mx-2">|</span>
-                        <i class="fas fa-user me-2"></i><?= esc($service['consultant_name'] ?? 'N/A') ?>
                     </p>
                 </div>
                 <div class="col-md-4 text-end">
@@ -497,6 +521,32 @@ $estresQuestions = [
         </div>
     </div>
 
+    <!-- Estadística General - Total Estrés -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <?php
+            $nivelTotalEstres = $stats['maxRisk']['estres_total']['nivel'] ?? 'muy_bajo';
+            $textClass = $nivelTotalEstres === 'medio' ? 'text-dark' : 'text-white';
+            ?>
+            <div class="card stat-card" style="<?= getTotalEstresCardGradient($nivelTotalEstres) ?> color: white; padding: 1.5rem;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="<?= $textClass ?>">
+                        <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; opacity: 0.9;">Total Estrés (MAX RISK)</h6>
+                        <h2 class="fw-bold mb-0">
+                            <?= getEstresRiskLabel($nivelTotalEstres) ?>
+                        </h2>
+                        <p class="mb-0 small mt-1" style="opacity: 0.8;">
+                            <i class="fas fa-chart-line me-1"></i><?= formatMaxRiskHTML($stats['maxRisk']['estres_total'] ?? []) ?>
+                        </p>
+                        <p class="mb-0 small mt-1" style="opacity: 0.8;">
+                            <i class="fas fa-users me-1"></i><?= $totalWorkers ?> trabajadores evaluados
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Distribución por Nivel de Estrés -->
     <h6 class="section-title">Distribución por Nivel de Estrés</h6>
     <div class="row mb-4">
@@ -510,7 +560,7 @@ $estresQuestions = [
         ];
 
         foreach ($riskCards as $card):
-            $count = $stats['distribution'][$card['nivel']] ?? 0;
+            $count = $stats['riskDistribution'][$card['nivel']] ?? 0;
             $textColor = $card['textColor'];
         ?>
         <div class="col-md-6 col-lg mb-3">
@@ -642,10 +692,21 @@ $estresQuestions = [
                             <th>Nivel Estrés</th>
                             <th>Acciones</th>
                         </tr>
+                        <tr>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar nombre"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar doc"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar género"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar depto"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar cargo"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar tipo"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar puntaje"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Buscar nivel"></th>
+                            <th></th>
+                        </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($results as $result): ?>
-                        <tr>
+                        <tr data-worker-id="<?= $result['worker_id'] ?>">
                             <td><?= esc($result['worker_name'] ?? 'N/A') ?></td>
                             <td><?= esc($result['worker_document'] ?? 'N/A') ?></td>
                             <td><?= esc($result['gender'] ?? 'N/A') ?></td>
@@ -722,6 +783,7 @@ $estresQuestions = [
 const allResults = <?= json_encode($results) ?>;
 const responsesData = <?= json_encode($responsesData) ?>;
 const accessRequests = <?= json_encode($accessRequests) ?>;
+const statsData = <?= json_encode($stats) ?>;
 const userRole = '<?= session()->get('role_name') ?>';
 const isConsultant = ['superadmin', 'admin', 'consultor'].includes(userRole);
 let filteredResults = [...allResults];
@@ -1003,20 +1065,31 @@ function applyFilters() {
 // FUNCIÓN: Actualizar Estadísticas
 // ============================================
 function updateStats(data) {
-    // Actualizar distribución de riesgos
-    const riskCounts = {
-        'muy_bajo': 0,
-        'bajo': 0,
-        'medio': 0,
-        'alto': 0,
-        'muy_alto': 0
-    };
+    // Si es data completa (no filtrada), usar MAX RISK precalculado
+    const useMaxRisk = data.length === allResults.length;
 
-    data.forEach(r => {
-        const nivel = r.estres_total_nivel || 'muy_bajo';
-        riskCounts[nivel]++;
-    });
+    let riskCounts;
 
+    if (useMaxRisk && statsData.riskDistribution) {
+        // Usar distribución MAX RISK precalculada del backend
+        riskCounts = statsData.riskDistribution;
+    } else {
+        // Recalcular distribución desde data filtrada
+        riskCounts = {
+            'muy_bajo': 0,
+            'bajo': 0,
+            'medio': 0,
+            'alto': 0,
+            'muy_alto': 0
+        };
+
+        data.forEach(r => {
+            const nivel = r.estres_total_nivel || 'muy_bajo';
+            riskCounts[nivel]++;
+        });
+    }
+
+    // Actualizar cards de distribución
     Object.keys(riskCounts).forEach(nivel => {
         const elem = document.querySelector(`[data-stat-risk="${nivel}"]`);
         if (elem) {
@@ -1304,28 +1377,79 @@ function filterTable() {
 }
 
 // ============================================
+// Variable global para el filtro de frecuencia
+let currentFrequencyFilter = null;
+let workerIdsWithSymptom = new Set();
+
 // FUNCIÓN: Filtrar Síntomas por Frecuencia
+// Filtra AMBAS tablas: síntomas y trabajadores
 // ============================================
 function filterSymptomsByFrequency(frequency) {
+    currentFrequencyFilter = frequency;
+
     if (!frequency) {
-        // Mostrar todas las filas
+        // Limpiar filtro
+        workerIdsWithSymptom.clear();
         $('#tableSintomas tbody tr').show();
+        dataTable.draw();
         return;
     }
 
+    // PASO 1: Encontrar IDs de trabajadores que tienen al menos un síntoma con la frecuencia seleccionada
+    workerIdsWithSymptom.clear();
+
+    filteredResults.forEach((worker) => {
+        const workerId = worker.worker_id;
+
+        if (responsesData[workerId]) {
+            const workerResponses = responsesData[workerId];
+
+            // Revisar todas las 31 preguntas
+            for (let q = 1; q <= 31; q++) {
+                if (workerResponses[q] !== undefined && workerResponses[q] !== null) {
+                    let answer = String(workerResponses[q]).toLowerCase().replace(/ /g, '_');
+
+                    // Convertir valor numérico a texto si es necesario
+                    if (!isNaN(answer)) {
+                        const frecuencia = convertirPuntajeAFrecuencia(q, answer);
+                        if (frecuencia) {
+                            answer = frecuencia;
+                        } else {
+                            continue; // No pudimos convertir, saltar esta respuesta
+                        }
+                    }
+
+                    // Verificar si coincide con el filtro
+                    let matches = false;
+                    if (frequency === 'critico') {
+                        // Crítico = Siempre o Casi Siempre
+                        matches = (answer === 'siempre' || answer === 'casi_siempre');
+                    } else {
+                        matches = (answer === frequency);
+                    }
+
+                    if (matches) {
+                        workerIdsWithSymptom.add(workerId);
+                        break; // Ya encontramos al menos un síntoma, no necesitamos seguir
+                    }
+                }
+            }
+        }
+    });
+
+    // PASO 2: Filtrar tabla de síntomas (mostrar solo preguntas donde hay trabajadores con esa frecuencia)
     $('#tableSintomas tbody tr').each(function() {
         const $row = $(this);
         const questionNum = $row.attr('data-question');
-
         let shouldShow = false;
 
         if (frequency === 'critico') {
-            // Mostrar si Crítico > 0
-            const criticoValue = parseInt($(`span[data-q="${questionNum}"][data-answer="critico"]`).text());
+            const $span = $row.find(`span[data-q="${questionNum}"][data-answer="critico"]`);
+            const criticoValue = parseInt($span.text().trim()) || 0;
             shouldShow = criticoValue > 0;
         } else {
-            // Mostrar si la frecuencia específica > 0
-            const freqValue = parseInt($(`span[data-q="${questionNum}"][data-answer="${frequency}"]`).text());
+            const $span = $row.find(`span[data-q="${questionNum}"][data-answer="${frequency}"]`);
+            const freqValue = parseInt($span.text().trim()) || 0;
             shouldShow = freqValue > 0;
         }
 
@@ -1335,6 +1459,9 @@ function filterSymptomsByFrequency(frequency) {
             $row.hide();
         }
     });
+
+    // PASO 3: Filtrar tabla de trabajadores usando DataTables API
+    dataTable.draw();
 }
 
 // ============================================
@@ -1354,13 +1481,40 @@ function clearAllFilters() {
 // INICIALIZACIÓN
 // ============================================
 $(document).ready(function() {
+    // Agregar filtro personalizado para frecuencia de síntomas
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        // Si no hay filtro de frecuencia activo, mostrar todas las filas
+        if (!currentFrequencyFilter) {
+            return true;
+        }
+
+        // Obtener el worker_id de la fila actual
+        const row = $('#tableResults').DataTable().row(dataIndex);
+        const $rowNode = $(row.node());
+        const workerId = parseInt($rowNode.attr('data-worker-id'));
+
+        // Mostrar solo si el worker tiene al menos un síntoma con la frecuencia seleccionada
+        return workerIdsWithSymptom.has(workerId);
+    });
+
     // Inicializar DataTable de trabajadores
     dataTable = $('#tableResults').DataTable({
         language: {
             url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
         },
         pageLength: 25,
-        order: [[6, 'desc']]
+        order: [[6, 'desc']],
+        orderCellsTop: true,
+        fixedHeader: true
+    });
+
+    // Activar filtros por columna en thead
+    $('#tableResults thead tr:eq(1) th').each(function(i) {
+        $('input', this).on('keyup change', function() {
+            if (dataTable.column(i).search() !== this.value) {
+                dataTable.column(i).search(this.value).draw();
+            }
+        });
     });
 
     // NO inicializar DataTable para síntomas - dejar como tabla simple

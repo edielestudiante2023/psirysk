@@ -618,25 +618,22 @@ class ValidationController extends BaseController
             return redirect()->to('/validation/' . $serviceId)->with('error', 'No hay trabajadores Forma A con evaluaciones completadas');
         }
 
-        // Las respuestas condicionales se guardan en workers.atiende_clientes (1=Sí, 0=No, NULL=Sin respuesta)
+        // Las respuestas condicionales se guardan en workers.atiende_clientes (1=Sí, 0 o NULL=No)
         // No es necesario buscar en 'responses' porque se guardan directamente en workers
 
         // Estadísticas
         $respuestaSi = 0;
         $respuestaNo = 0;
-        $sinRespuesta = 0;
 
         foreach ($workers as &$worker) {
-            // atiende_clientes: 1=Sí, 0=No, NULL=Sin respuesta
+            // atiende_clientes: 1=Sí, 0 o NULL=No (NULL se trata como No)
             if ($worker['atiende_clientes'] === 1 || $worker['atiende_clientes'] === '1') {
                 $worker['respuesta_pregunta_i'] = 'si';
                 $respuestaSi++;
-            } elseif ($worker['atiende_clientes'] === 0 || $worker['atiende_clientes'] === '0') {
+            } else {
+                // Cualquier otro valor (0, NULL, etc.) se trata como No
                 $worker['respuesta_pregunta_i'] = 'no';
                 $respuestaNo++;
-            } else {
-                $worker['respuesta_pregunta_i'] = null;
-                $sinRespuesta++;
             }
         }
         unset($worker);
@@ -650,8 +647,7 @@ class ValidationController extends BaseController
             'stats' => [
                 'total' => count($workers),
                 'si' => $respuestaSi,
-                'no' => $respuestaNo,
-                'sin_respuesta' => $sinRespuesta
+                'no' => $respuestaNo
             ],
             'items_controlados' => '106-114 (9 ítems sobre atención a clientes)'
         ];
@@ -694,19 +690,16 @@ class ValidationController extends BaseController
         // Estadísticas
         $respuestaSi = 0;
         $respuestaNo = 0;
-        $sinRespuesta = 0;
 
         foreach ($workers as &$worker) {
-            // es_jefe: 1=Sí, 0=No, NULL=Sin respuesta
+            // es_jefe: 1=Sí, 0 o NULL=No (NULL se trata como No)
             if ($worker['es_jefe'] === 1 || $worker['es_jefe'] === '1') {
                 $worker['respuesta_pregunta_ii'] = 'si';
                 $respuestaSi++;
-            } elseif ($worker['es_jefe'] === 0 || $worker['es_jefe'] === '0') {
+            } else {
+                // Cualquier otro valor (0, NULL, etc.) se trata como No
                 $worker['respuesta_pregunta_ii'] = 'no';
                 $respuestaNo++;
-            } else {
-                $worker['respuesta_pregunta_ii'] = null;
-                $sinRespuesta++;
             }
         }
         unset($worker);
@@ -720,8 +713,7 @@ class ValidationController extends BaseController
             'stats' => [
                 'total' => count($workers),
                 'si' => $respuestaSi,
-                'no' => $respuestaNo,
-                'sin_respuesta' => $sinRespuesta
+                'no' => $respuestaNo
             ],
             'items_controlados' => '115-123 (9 ítems sobre relación con colaboradores)'
         ];
@@ -764,19 +756,16 @@ class ValidationController extends BaseController
         // Estadísticas
         $respuestaSi = 0;
         $respuestaNo = 0;
-        $sinRespuesta = 0;
 
         foreach ($workers as &$worker) {
-            // atiende_clientes: 1=Sí, 0=No, NULL=Sin respuesta
+            // atiende_clientes: 1=Sí, 0 o NULL=No (NULL se trata como No)
             if ($worker['atiende_clientes'] === 1 || $worker['atiende_clientes'] === '1') {
                 $worker['respuesta_pregunta_i'] = 'si';
                 $respuestaSi++;
-            } elseif ($worker['atiende_clientes'] === 0 || $worker['atiende_clientes'] === '0') {
+            } else {
+                // Cualquier otro valor (0, NULL, etc.) se trata como No
                 $worker['respuesta_pregunta_i'] = 'no';
                 $respuestaNo++;
-            } else {
-                $worker['respuesta_pregunta_i'] = null;
-                $sinRespuesta++;
             }
         }
         unset($worker);
@@ -790,8 +779,7 @@ class ValidationController extends BaseController
             'stats' => [
                 'total' => count($workers),
                 'si' => $respuestaSi,
-                'no' => $respuestaNo,
-                'sin_respuesta' => $sinRespuesta
+                'no' => $respuestaNo
             ],
             'items_controlados' => '89-97 (9 ítems sobre atención a clientes)'
         ];

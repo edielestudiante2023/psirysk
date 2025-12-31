@@ -92,31 +92,24 @@
         <div class="content-card">
             <h4 class="mb-3"><i class="fas fa-chart-pie me-2"></i>Estadísticas de Respuestas</h4>
             <div class="row">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                         <div class="stat-value"><?= $stats['total'] ?></div>
                         <div class="stat-label">Total Trabajadores</div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="stat-card bg-success">
                         <div class="stat-value"><?= $stats['si'] ?></div>
                         <div class="stat-label">Respondieron SÍ</div>
                         <small>(<?= $stats['total'] > 0 ? round(($stats['si'] / $stats['total']) * 100, 1) : 0 ?>%)</small>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="stat-card bg-warning">
                         <div class="stat-value"><?= $stats['no'] ?></div>
                         <div class="stat-label">Respondieron NO</div>
                         <small>(<?= $stats['total'] > 0 ? round(($stats['no'] / $stats['total']) * 100, 1) : 0 ?>%)</small>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-card bg-danger">
-                        <div class="stat-value"><?= $stats['sin_respuesta'] ?></div>
-                        <div class="stat-label">Sin Respuesta</div>
-                        <small>(<?= $stats['total'] > 0 ? round(($stats['sin_respuesta'] / $stats['total']) * 100, 1) : 0 ?>%)</small>
                     </div>
                 </div>
             </div>
@@ -154,13 +147,9 @@
                                     <span class="badge badge-respuesta bg-success">
                                         <i class="fas fa-check me-1"></i>SÍ
                                     </span>
-                                <?php elseif ($respuestaLower === 'no'): ?>
+                                <?php else: ?>
                                     <span class="badge badge-respuesta bg-warning text-dark">
                                         <i class="fas fa-times me-1"></i>NO
-                                    </span>
-                                <?php else: ?>
-                                    <span class="badge badge-respuesta bg-danger">
-                                        <i class="fas fa-question me-1"></i>Sin respuesta
                                     </span>
                                 <?php endif; ?>
                             </td>
@@ -177,7 +166,6 @@
             <ul class="mb-0">
                 <li><strong>SÍ:</strong> El trabajador respondió los <?= esc($items_controlados) ?> correspondientes.</li>
                 <li><strong>NO:</strong> El trabajador NO respondió estos ítems (fueron omitidos del cuestionario).</li>
-                <li><strong>Sin respuesta:</strong> Error en el sistema - debe investigarse.</li>
             </ul>
 
             <?php if ($formType === 'A' && strpos($title, 'II') !== false): ?>

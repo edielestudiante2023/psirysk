@@ -832,4 +832,23 @@ class IntralaboralAScoring
     {
         return self::$baremoTotal;
     }
+
+    /**
+     * Obtiene el factor de transformación total intralaboral (Tabla 27 - Forma A)
+     * @return int Factor de transformación (492)
+     */
+    public static function getFactorTransformacionIntralaboral()
+    {
+        return self::$factorTransformacionTotal;
+    }
+
+    /**
+     * Obtiene el factor de transformación para evaluación general (Tabla 28 - Forma A)
+     * Suma de factores intralaboral (492) + extralaboral (124)
+     * @return int Factor de transformación total (616)
+     */
+    public static function getFactorTransformacionGeneral()
+    {
+        return 616; // 492 (intralaboral) + 124 (extralaboral) - Tabla 28
+    }
 }

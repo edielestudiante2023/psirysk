@@ -77,7 +77,9 @@
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" checkout cycloid)",
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"fix: Mejorar procesamiento de preguntas condicionales con mb_strtolower\n\nCambia strtolower\\(\\) por mb_strtolower\\(\\) con encoding UTF-8 para \nprocesar correctamente todas las variaciones de ''Sí'':\n- Sí, Si, sí, si, SÍ, SI \\(todas se reconocen como 1\\)\n- Cualquier otro valor \\(No, vacío, N/A, etc.\\) se guarda como 0\n\nEsto garantiza que cuando un CSV contenga ''SÍ'' en mayúsculas con\nacento, se procese correctamente y se guarde como 1 en lugar de 0.\n\nCumple con el requisito: ''<> Si entonces guarde No''\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\")",
       "Bash(head:*)",
-      "Bash(cut:*)"
+      "Bash(cut:*)",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"fix: Eliminar opción ''Sin respuesta'' en preguntas condicionales\n\nSimplifica la lógica de visualización de preguntas condicionales:\n- Solo hay dos opciones: SÍ o NO\n- NULL se trata como NO \\(no se muestra ''Sin respuesta''\\)\n- Elimina tarjeta de estadísticas ''Sin respuesta''\n- Cambia layout de estadísticas de 4 a 3 columnas\n- Actualiza badges en tabla: solo verde \\(SÍ\\) o amarillo \\(NO\\)\n- Actualiza leyenda para eliminar mención de ''Sin respuesta''\n\nAfecta a:\n- conditionalFormaA_I: atiende_clientes\n- conditionalFormaA_II: es_jefe\n- conditionalFormaB_I: atiende_clientes\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\")",
+      "Bash(del verify_all_inverse_items.php check_total_workers.php check_service_6_workers.php)"
     ],
     "deny": [],
     "ask": []

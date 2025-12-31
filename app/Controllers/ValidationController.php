@@ -786,4 +786,219 @@ class ValidationController extends BaseController
 
         return view('validation/conditional_question', $data);
     }
+
+    /**
+     * Validación de Dominio (agrupa varias dimensiones)
+     * Muestra puntajes y niveles de riesgo del dominio según Tablas 31-32
+     */
+    public function validateDomain($serviceId, $domainKey, $formType)
+    {
+        $this->checkPermissions();
+
+        // Obtener configuración del dominio desde las librerías oficiales
+        $scoringClass = ($formType === 'A') ? IntralaboralAScoring::class : IntralaboralBScoring::class;
+        $allDomains = $scoringClass::getDominios();
+
+        if (!isset($allDomains[$domainKey])) {
+            throw new \CodeIgniter\Exceptions\PageNotFoundException("Dominio no encontrado: $domainKey");
+        }
+
+        $dimensionsInDomain = $allDomains[$domainKey];
+        $baremosDominio = $scoringClass::getBaremosDominios();
+        $baremos = $baremosDominio[$domainKey] ?? null;
+
+        // Obtener workers completados con la forma correspondiente
+        $workers = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('status', 'completado')
+            ->where('intralaboral_type', $formType)
+            ->findAll();
+
+        if (empty($workers)) {
+            return redirect()->back()->with('error', 'No hay trabajadores completados para validar');
+        }
+
+        $workerIds = array_column($workers, 'id');
+
+        // Obtener resultados de BD
+        $calculatedResults = $this->calculatedResultModel
+            ->whereIn('worker_id', $workerIds)
+            ->findAll();
+
+        $resultsById = [];
+        foreach ($calculatedResults as $result) {
+            $resultsById[$result['worker_id']] = $result;
+        }
+
+        // Calcular puntajes del dominio usando la librería oficial
+        $domainScores = [];
+        foreach ($workers as $worker) {
+            $responses = $this->responseModel
+                ->where('worker_id', $worker['id'])
+                ->whereIn('question_number', range(1, 123))
+                ->findAll();
+
+            $answersArray = [];
+            foreach ($responses as $resp) {
+                $answersArray[$resp['question_number']] = $resp['answer_value'];
+            }
+
+            if (empty($answersArray)) {
+                continue;
+            }
+
+            // Calcular usando librería oficial
+            $result = $scoringClass::calcular($answersArray, $worker['atiende_clientes'] === 'si', $worker['es_jefe'] === 'si');
+
+            // Extraer puntaje del dominio
+            $puntajeBruto = $result['puntajes_brutos_dominios'][$domainKey] ?? null;
+            $puntajeTransformado = $result['puntajes_transformados_dominios'][$domainKey] ?? null;
+            $nivel = $result['niveles_riesgo_dominios'][$domainKey] ?? null;
+
+            $domainScores[] = [
+                'worker_id' => $worker['id'],
+                'worker_name' => $worker['name'],
+                'puntaje_bruto' => $puntajeBruto,
+                'puntaje_transformado' => $puntajeTransformado,
+                'nivel_calculado' => $nivel,
+                'nivel_bd' => $resultsById[$worker['id']]['dom_' . $domainKey . '_nivel'] ?? null,
+                'puntaje_bd' => $resultsById[$worker['id']]['dom_' . $domainKey . '_puntaje'] ?? null
+            ];
+        }
+
+        // Calcular estadísticas
+        $puntajes = array_column($domainScores, 'puntaje_transformado');
+        $promedioCalculado = count($puntajes) > 0 ? round(array_sum($puntajes) / count($puntajes), 2) : 0;
+        $promedioFromDB = count($domainScores) > 0
+            ? round(array_sum(array_column($domainScores, 'puntaje_bd')) / count($domainScores), 2)
+            : 0;
+
+        // Determinar nivel según baremos
+        $nivelCalculado = $this->getNivelRiesgo($promedioCalculado, $baremos);
+
+        $data = [
+            'service' => $this->batteryServiceModel->find($serviceId),
+            'domainKey' => $domainKey,
+            'domainName' => $this->getDomainDisplayName($domainKey),
+            'formType' => $formType,
+            'dimensionsInDomain' => $dimensionsInDomain,
+            'baremos' => $baremos,
+            'domainScores' => $domainScores,
+            'promedioCalculado' => $promedioCalculado,
+            'promedioFromDB' => $promedioFromDB,
+            'nivelCalculado' => $nivelCalculado,
+            'totalWorkers' => count($workers)
+        ];
+
+        return view('validation/domain_detail', $data);
+    }
+
+    /**
+     * Obtiene el nombre amigable del dominio
+     */
+    private function getDomainDisplayName($domainKey)
+    {
+        $names = [
+            'liderazgo_relaciones_sociales' => 'Liderazgo y Relaciones Sociales en el Trabajo',
+            'control' => 'Control sobre el Trabajo',
+            'demandas' => 'Demandas del Trabajo',
+            'recompensas' => 'Recompensas'
+        ];
+        return $names[$domainKey] ?? $domainKey;
+    }
+
+    /**
+     * Validación del Puntaje Total Intralaboral (Tabla 33)
+     * Suma de todas las dimensiones transformadas y calificadas según baremos oficiales
+     */
+    public function validateTotal($serviceId, $formType)
+    {
+        $this->checkPermissions();
+
+        // Obtener clase de scoring según forma
+        $scoringClass = ($formType === 'A') ? IntralaboralAScoring::class : IntralaboralBScoring::class;
+        $baremoTotal = $scoringClass::getBaremoTotal();
+
+        // Obtener workers completados con la forma correspondiente
+        $workers = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('status', 'completado')
+            ->where('intralaboral_type', $formType)
+            ->findAll();
+
+        if (empty($workers)) {
+            return redirect()->back()->with('error', 'No hay trabajadores completados para validar');
+        }
+
+        $workerIds = array_column($workers, 'id');
+
+        // Obtener resultados de BD
+        $calculatedResults = $this->calculatedResultModel
+            ->whereIn('worker_id', $workerIds)
+            ->findAll();
+
+        $resultsById = [];
+        foreach ($calculatedResults as $result) {
+            $resultsById[$result['worker_id']] = $result;
+        }
+
+        // Calcular puntajes totales usando la librería oficial
+        $totalScores = [];
+        foreach ($workers as $worker) {
+            $responses = $this->responseModel
+                ->where('worker_id', $worker['id'])
+                ->whereIn('question_number', range(1, $formType === 'A' ? 123 : 97))
+                ->findAll();
+
+            $answersArray = [];
+            foreach ($responses as $resp) {
+                $answersArray[$resp['question_number']] = $resp['answer_value'];
+            }
+
+            if (empty($answersArray)) {
+                continue;
+            }
+
+            // Calcular usando librería oficial
+            $result = $scoringClass::calcular($answersArray, $worker['atiende_clientes'] === 'si', $worker['es_jefe'] === 'si');
+
+            // Extraer puntajes totales
+            $puntajeBruto = $result['puntaje_bruto_total'] ?? null;
+            $puntajeTransformado = $result['puntaje_total_intralaboral'] ?? null;
+            $nivel = $result['nivel_riesgo_total'] ?? null;
+
+            $totalScores[] = [
+                'worker_id' => $worker['id'],
+                'worker_name' => $worker['name'],
+                'puntaje_bruto' => $puntajeBruto,
+                'puntaje_transformado' => $puntajeTransformado,
+                'nivel_calculado' => $nivel,
+                'nivel_bd' => $resultsById[$worker['id']]['nivel_riesgo_intralaboral'] ?? null,
+                'puntaje_bd' => $resultsById[$worker['id']]['puntaje_total_intralaboral'] ?? null
+            ];
+        }
+
+        // Calcular estadísticas
+        $puntajes = array_column($totalScores, 'puntaje_transformado');
+        $promedioCalculado = count($puntajes) > 0 ? round(array_sum($puntajes) / count($puntajes), 2) : 0;
+        $promedioFromDB = count($totalScores) > 0
+            ? round(array_sum(array_column($totalScores, 'puntaje_bd')) / count($totalScores), 2)
+            : 0;
+
+        // Determinar nivel según baremos
+        $nivelCalculado = $this->getNivelRiesgo($promedioCalculado, $baremoTotal);
+
+        $data = [
+            'service' => $this->batteryServiceModel->find($serviceId),
+            'formType' => $formType,
+            'baremos' => $baremoTotal,
+            'totalScores' => $totalScores,
+            'promedioCalculado' => $promedioCalculado,
+            'promedioFromDB' => $promedioFromDB,
+            'nivelCalculado' => $nivelCalculado,
+            'totalWorkers' => count($workers)
+        ];
+
+        return view('validation/total_detail', $data);
+    }
 }

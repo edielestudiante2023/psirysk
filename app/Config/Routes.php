@@ -240,6 +240,8 @@ $routes->group('satisfaction', function($routes) {
 
 // Rutas de Validación de Resultados
 $routes->get('validation/dimension/(:num)/(:segment)/(:alpha)', 'ValidationController::validateDimension/$1/$2/$3'); // Validar dimensión con forma específica (A o B)
+$routes->get('validation/domain/(:num)/(:segment)/(:alpha)', 'ValidationController::validateDomain/$1/$2/$3'); // Validar dominio con forma específica (A o B)
+$routes->get('validation/total/(:num)/(:alpha)', 'ValidationController::validateTotal/$1/$2'); // Validar total intralaboral por forma (A o B)
 $routes->get('validation/conditional/forma-a-i/(:num)', 'ValidationController::conditionalFormaA_I/$1'); // Pregunta condicional I Forma A
 $routes->get('validation/conditional/forma-a-ii/(:num)', 'ValidationController::conditionalFormaA_II/$1'); // Pregunta condicional II Forma A
 $routes->get('validation/conditional/forma-b-i/(:num)', 'ValidationController::conditionalFormaB_I/$1'); // Pregunta condicional I Forma B

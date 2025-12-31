@@ -201,23 +201,6 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
     }
 
     /**
-     * Factores de transformación según Tabla 28 - Resolución 2404/2019
-     * Factor Total = Factor Intralaboral + Factor Extralaboral
-     */
-    protected const FACTORES_TABLA28 = [
-        'A' => [
-            'intralaboral' => 492,
-            'extralaboral' => 124,
-            'total'        => 616,  // 492 + 124
-        ],
-        'B' => [
-            'intralaboral' => 388,
-            'extralaboral' => 124,
-            'total'        => 512,  // 388 + 124
-        ],
-    ];
-
-    /**
      * Calcula estadísticas para Tabla 34 (Intralaboral + Extralaboral)
      * FÓRMULA OFICIAL TABLA 28: Puntaje = (Bruto_Intra + Bruto_Extra) / Factor × 100
      *
@@ -250,11 +233,15 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
             return null;
         }
 
-        // Factores de transformación según Tabla 28
-        $factores = self::FACTORES_TABLA28[$forma];
-        $factorIntra = $factores['intralaboral'];
-        $factorExtra = $factores['extralaboral'];
-        $factorTotal = $factores['total'];
+        // Factores de transformación según Tabla 28 - Desde Single Source of Truth
+        if ($forma === 'A') {
+            $factorIntra = IntralaboralAScoring::getFactorTransformacionIntralaboral(); // 492
+            $factorTotal = IntralaboralAScoring::getFactorTransformacionGeneral(); // 616
+        } else {
+            $factorIntra = IntralaboralBScoring::getFactorTransformacionIntralaboral(); // 388
+            $factorTotal = IntralaboralBScoring::getFactorTransformacionGeneral(); // 512
+        }
+        $factorExtra = 124; // ExtralaboralScoring - Tabla 28
 
         // Acumuladores para promedios de puntajes TRANSFORMADOS (para mostrar)
         $sumaIntraTransformado = 0;
@@ -717,6 +704,13 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
         $colorA = $this->getRiskColor($nivelA);
         $colorB = $this->getRiskColor($nivelB);
 
+        // Obtener factores desde Single Source of Truth
+        $factorIntraA = IntralaboralAScoring::getFactorTransformacionIntralaboral();
+        $factorTotalA = IntralaboralAScoring::getFactorTransformacionGeneral();
+        $factorIntraB = IntralaboralBScoring::getFactorTransformacionIntralaboral();
+        $factorTotalB = IntralaboralBScoring::getFactorTransformacionGeneral();
+        $factorExtra = 124;
+
         $html = '
 <h1 style="font-size: 13pt; color: #006699; margin: 0 0 5pt 0; padding-bottom: 5pt; border-bottom: 2pt solid #6a1b9a;">
     Puntaje Total General de Factores de Riesgo Psicosocial
@@ -734,7 +728,7 @@ class TotalesIntralaboralesController extends PdfEjecutivoBaseController
         Puntaje Total = (Puntaje Bruto Intra + Puntaje Bruto Extra) ÷ Factor × 100
     </div>
     <div style="font-size: 8pt; color: #666; margin-top: 5pt;">
-        Factor Forma A = 616 (492 + 124) | Factor Forma B = 512 (388 + 124)
+        Factor Forma A = ' . $factorTotalA . ' (' . $factorIntraA . ' + ' . $factorExtra . ') | Factor Forma B = ' . $factorTotalB . ' (' . $factorIntraB . ' + ' . $factorExtra . ')
     </div>
 </div>
 ';

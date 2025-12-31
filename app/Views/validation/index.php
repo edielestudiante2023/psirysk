@@ -128,9 +128,9 @@
                     <div class="card shadow-sm mb-4">
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Cuestionario de Factores de Riesgo Psicosocial Intralaboral - Forma A</h5>
-                            <button class="btn btn-light btn-sm">
+                            <a href="<?= base_url('validation/total/' . $service['id'] . '/A') ?>" target="_blank" class="btn btn-light btn-sm">
                                 <i class="fas fa-check-circle me-1"></i>Validar Total
-                            </button>
+                            </a>
                         </div>
                         <div class="card-body p-0">
                             <?php foreach ($domainsFormaA as $domainIndex => $domain): ?>
@@ -142,9 +142,9 @@
                                             </h6>
                                             <small class="text-muted"><?= count($domain['dimensions']) ?> dimensiones</small>
                                         </div>
-                                        <button class="btn btn-outline-primary btn-sm">
+                                        <a href="<?= base_url('validation/domain/' . $service['id'] . '/' . $domain['key'] . '/A') ?>" target="_blank" class="btn btn-outline-primary btn-sm">
                                             <i class="fas fa-check-circle me-1"></i>Validar Dominio
-                                        </button>
+                                        </a>
                                     </div>
                                     <div class="list-group list-group-flush">
                                         <?php foreach ($domain['dimensions'] as $dimension): ?>
@@ -168,9 +168,9 @@
                     <div class="card shadow-sm">
                         <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                             <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Cuestionario de Factores de Riesgo Psicosocial Intralaboral - Forma B</h5>
-                            <button class="btn btn-light btn-sm">
+                            <a href="<?= base_url('validation/total/' . $service['id'] . '/B') ?>" target="_blank" class="btn btn-light btn-sm">
                                 <i class="fas fa-check-circle me-1"></i>Validar Total
-                            </button>
+                            </a>
                         </div>
                         <div class="card-body p-0">
                             <?php foreach ($domainsFormaB as $domainIndex => $domain): ?>
@@ -182,9 +182,9 @@
                                             </h6>
                                             <small class="text-muted"><?= count($domain['dimensions']) ?> dimensiones</small>
                                         </div>
-                                        <button class="btn btn-outline-success btn-sm">
+                                        <a href="<?= base_url('validation/domain/' . $service['id'] . '/' . $domain['key'] . '/B') ?>" target="_blank" class="btn btn-outline-success btn-sm">
                                             <i class="fas fa-check-circle me-1"></i>Validar Dominio
-                                        </button>
+                                        </a>
                                     </div>
                                     <div class="list-group list-group-flush">
                                         <?php foreach ($domain['dimensions'] as $dimension): ?>

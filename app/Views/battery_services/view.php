@@ -287,108 +287,6 @@
             </div>
         </div>
 
-        <!-- VALIDACIÓN DE PREGUNTAS CONDICIONALES -->
-        <?php if (session()->get('role_name') === 'consultor' || session()->get('role_name') === 'superadmin'): ?>
-        <div class="content-section">
-            <div class="section-title" style="border-left: 4px solid #fd7e14; background: linear-gradient(135deg, #fff8e1 0%, #ffe5cc 100%);">
-                <i class="fas fa-exclamation-triangle fa-lg me-3" style="color: #fd7e14;"></i>
-                <h5>Validación de Preguntas Condicionales (Cumplimiento Legal)</h5>
-                <span class="badge bg-warning text-dark ms-auto">3 validaciones</span>
-            </div>
-
-            <div class="alert alert-warning mb-3">
-                <h6 class="mb-2"><i class="fas fa-info-circle me-2"></i>Importante</h6>
-                <p class="mb-1">
-                    Los cuestionarios intralaboral A y B contienen <strong>preguntas condicionales</strong> (Si/No) que habilitan o deshabilitan
-                    segmentos de ítems. Es crítico validar las respuestas para evitar inconsistencias legales.
-                </p>
-                <small><strong>Ejemplo:</strong> Un jefe con personal a cargo que responda "NO" a la pregunta "Soy jefe de otras personas"
-                NO responderá los 9 ítems de "Relación con Colaboradores", lo cual puede tener implicaciones legales.</small>
-            </div>
-
-            <div class="row g-3">
-                <!-- Forma A - Pregunta I -->
-                <div class="col-md-4">
-                    <div class="action-card card border-info">
-                        <div class="card-header bg-info bg-opacity-10">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-users text-info me-2"></i>
-                                <strong>Forma A - Pregunta I</strong>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h6 class="mb-2">Atención a Clientes</h6>
-                            <p class="small text-muted mb-3">
-                                "¿En mi trabajo debo brindar servicio a clientes o usuarios?"
-                            </p>
-                            <p class="small mb-3">
-                                <i class="fas fa-info-circle text-info me-1"></i>
-                                Controla ítems 106-114 (9 preguntas)
-                            </p>
-                            <a href="<?= base_url('validation/conditional/forma-a-i/' . $service['id']) ?>"
-                               class="btn btn-info btn-sm w-100" target="_blank">
-                                <i class="fas fa-list-check me-1"></i> Ver Respuestas
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Forma A - Pregunta II -->
-                <div class="col-md-4">
-                    <div class="action-card card border-danger">
-                        <div class="card-header bg-danger bg-opacity-10">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-user-tie text-danger me-2"></i>
-                                <strong>Forma A - Pregunta II</strong>
-                                <span class="badge bg-danger ms-auto">CRÍTICO</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h6 class="mb-2">Jefatura de Personal</h6>
-                            <p class="small text-muted mb-3">
-                                "¿Soy jefe de otras personas en mi trabajo?"
-                            </p>
-                            <p class="small mb-3">
-                                <i class="fas fa-exclamation-triangle text-danger me-1"></i>
-                                Controla ítems 115-123 (9 preguntas sobre relación con colaboradores)
-                            </p>
-                            <a href="<?= base_url('validation/conditional/forma-a-ii/' . $service['id']) ?>"
-                               class="btn btn-danger btn-sm w-100" target="_blank">
-                                <i class="fas fa-shield-exclamation me-1"></i> Validar (Legal)
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Forma B - Pregunta I -->
-                <div class="col-md-4">
-                    <div class="action-card card border-success">
-                        <div class="card-header bg-success bg-opacity-10">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-headset text-success me-2"></i>
-                                <strong>Forma B - Pregunta I</strong>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h6 class="mb-2">Atención a Clientes</h6>
-                            <p class="small text-muted mb-3">
-                                "¿En mi trabajo debo brindar servicio a clientes o usuarios?"
-                            </p>
-                            <p class="small mb-3">
-                                <i class="fas fa-info-circle text-success me-1"></i>
-                                Controla ítems 89-97 (9 preguntas)
-                            </p>
-                            <a href="<?= base_url('validation/conditional/forma-b-i/' . $service['id']) ?>"
-                               class="btn btn-success btn-sm w-100" target="_blank">
-                                <i class="fas fa-list-check me-1"></i> Ver Respuestas
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <?php endif; ?>
-
         <!-- MAPAS DE CALOR POR INSTRUMENTO -->
         <div class="content-section">
             <div class="section-title danger">
@@ -844,6 +742,108 @@
         <?php endif; ?>
 
         <!-- Navegación -->
+        <!-- VALIDACIÓN DE PREGUNTAS CONDICIONALES -->
+        <?php if (session()->get('role_name') === 'consultor' || session()->get('role_name') === 'superadmin'): ?>
+        <div class="content-section">
+            <div class="section-title" style="border-left: 4px solid #fd7e14; background: linear-gradient(135deg, #fff8e1 0%, #ffe5cc 100%);">
+                <i class="fas fa-exclamation-triangle fa-lg me-3" style="color: #fd7e14;"></i>
+                <h5>Validación de Preguntas Condicionales (Cumplimiento Legal)</h5>
+                <span class="badge bg-warning text-dark ms-auto">3 validaciones</span>
+            </div>
+
+            <div class="alert alert-warning mb-3">
+                <h6 class="mb-2"><i class="fas fa-info-circle me-2"></i>Importante</h6>
+                <p class="mb-1">
+                    Los cuestionarios intralaboral A y B contienen <strong>preguntas condicionales</strong> (Si/No) que habilitan o deshabilitan
+                    segmentos de ítems. Es crítico validar las respuestas para evitar inconsistencias legales.
+                </p>
+                <small><strong>Ejemplo:</strong> Un jefe con personal a cargo que responda "NO" a la pregunta "Soy jefe de otras personas"
+                NO responderá los 9 ítems de "Relación con Colaboradores", lo cual puede tener implicaciones legales.</small>
+            </div>
+
+            <div class="row g-3">
+                <!-- Forma A - Pregunta I -->
+                <div class="col-md-4">
+                    <div class="action-card card border-info">
+                        <div class="card-header bg-info bg-opacity-10">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-users text-info me-2"></i>
+                                <strong>Forma A - Pregunta I</strong>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="mb-2">Atención a Clientes</h6>
+                            <p class="small text-muted mb-3">
+                                "¿En mi trabajo debo brindar servicio a clientes o usuarios?"
+                            </p>
+                            <p class="small mb-3">
+                                <i class="fas fa-info-circle text-info me-1"></i>
+                                Controla ítems 106-114 (9 preguntas)
+                            </p>
+                            <a href="<?= base_url('validation/conditional/forma-a-i/' . $service['id']) ?>"
+                               class="btn btn-info btn-sm w-100" target="_blank">
+                                <i class="fas fa-list-check me-1"></i> Ver Respuestas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forma A - Pregunta II -->
+                <div class="col-md-4">
+                    <div class="action-card card border-danger">
+                        <div class="card-header bg-danger bg-opacity-10">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user-tie text-danger me-2"></i>
+                                <strong>Forma A - Pregunta II</strong>
+                                <span class="badge bg-danger ms-auto">CRÍTICO</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="mb-2">Jefatura de Personal</h6>
+                            <p class="small text-muted mb-3">
+                                "¿Soy jefe de otras personas en mi trabajo?"
+                            </p>
+                            <p class="small mb-3">
+                                <i class="fas fa-exclamation-triangle text-danger me-1"></i>
+                                Controla ítems 115-123 (9 preguntas sobre relación con colaboradores)
+                            </p>
+                            <a href="<?= base_url('validation/conditional/forma-a-ii/' . $service['id']) ?>"
+                               class="btn btn-danger btn-sm w-100" target="_blank">
+                                <i class="fas fa-shield-exclamation me-1"></i> Validar (Legal)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Forma B - Pregunta I -->
+                <div class="col-md-4">
+                    <div class="action-card card border-success">
+                        <div class="card-header bg-success bg-opacity-10">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-headset text-success me-2"></i>
+                                <strong>Forma B - Pregunta I</strong>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="mb-2">Atención a Clientes</h6>
+                            <p class="small text-muted mb-3">
+                                "¿En mi trabajo debo brindar servicio a clientes o usuarios?"
+                            </p>
+                            <p class="small mb-3">
+                                <i class="fas fa-info-circle text-success me-1"></i>
+                                Controla ítems 89-97 (9 preguntas)
+                            </p>
+                            <a href="<?= base_url('validation/conditional/forma-b-i/' . $service['id']) ?>"
+                               class="btn btn-success btn-sm w-100" target="_blank">
+                                <i class="fas fa-list-check me-1"></i> Ver Respuestas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="nav-footer d-flex justify-content-between align-items-center mb-4">
             <a href="<?= base_url('battery-services') ?>" class="btn btn-secondary" target="_blank">
                 <i class="fas fa-arrow-left me-2"></i>Volver a Servicios

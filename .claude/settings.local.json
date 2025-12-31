@@ -59,7 +59,10 @@
       "Bash(cmd /c \"del c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\fix_dashboard_dimensions.php\")",
       "Bash(cmd /c \"del c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\fix_dashboard_js.php\")",
       "Bash(cmd /c \"del c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\fix_cards_domains.php\")",
-      "Bash(cmd /c:*)"
+      "Bash(cmd /c:*)",
+      "Bash(if not exist \"c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\app\\\\Views\\\\validation\" mkdir \"c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\app\\\\Views\\\\validation\")",
+      "Bash(del \"c:\\\\xampp\\\\htdocs\\\\psyrisk\\\\test_dimension_config.php\")",
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" add app/Controllers/ValidationController.php app/Views/validation/ app/Config/Routes.php app/Views/battery_services/view.php .claude/settings.local.json)"
     ],
     "deny": [],
     "ask": []

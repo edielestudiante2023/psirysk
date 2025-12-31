@@ -5,6 +5,13 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
+
+// DEBUG: Log todas las peticiones
+if (isset($_SERVER['REQUEST_URI'])) {
+    log_message('error', '🌐 [ROUTES.PHP] REQUEST_URI: ' . $_SERVER['REQUEST_URI']);
+    log_message('error', '🌐 [ROUTES.PHP] REQUEST_METHOD: ' . $_SERVER['REQUEST_METHOD']);
+}
+
 // Ruta principal redirige al login
 $routes->get('/', 'AuthController::index');
 
@@ -230,6 +237,13 @@ $routes->group('satisfaction', function($routes) {
     $routes->post('submit/(:num)', 'SatisfactionController::submit/$1'); // Envío de encuesta
     $routes->get('view/(:num)', 'SatisfactionController::view/$1'); // Ver detalle (admin/consultor/comercial)
 });
+
+// Rutas de Validación de Resultados
+$routes->get('validation/dimension/(:num)/(:segment)/(:alpha)', 'ValidationController::validateDimension/$1/$2/$3'); // Validar dimensión con forma específica (A o B)
+$routes->get('validation/conditional/forma-a-i/(:num)', 'ValidationController::conditionalFormaA_I/$1'); // Pregunta condicional I Forma A
+$routes->get('validation/conditional/forma-a-ii/(:num)', 'ValidationController::conditionalFormaA_II/$1'); // Pregunta condicional II Forma A
+$routes->get('validation/conditional/forma-b-i/(:num)', 'ValidationController::conditionalFormaB_I/$1'); // Pregunta condicional I Forma B
+$routes->get('validation/(:num)', 'ValidationController::index/$1'); // Vista principal de validación
 
 // ============================================
 // RUTAS PARA CLIENTES (cliente_empresa y cliente_gestor)

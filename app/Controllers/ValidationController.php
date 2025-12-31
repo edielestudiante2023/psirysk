@@ -210,11 +210,10 @@ class ValidationController extends BaseController
             }
 
             // Mapeo de valores numéricos a opciones de respuesta
-            // Normal: Siempre=0, Casi siempre=1, Algunas veces=2, Casi nunca=3, Nunca=4
-            // Inverso: Siempre=4, Casi siempre=3, Algunas veces=2, Casi nunca=1, Nunca=0
-            $numToOption = $isInverse
-                ? ['4' => 'siempre', '3' => 'casi_siempre', '2' => 'algunas_veces', '1' => 'casi_nunca', '0' => 'nunca']
-                : ['0' => 'siempre', '1' => 'casi_siempre', '2' => 'algunas_veces', '3' => 'casi_nunca', '4' => 'nunca'];
+            // Los valores en BD (0-4) representan la RESPUESTA LITERAL del usuario:
+            // 0=Siempre, 1=Casi siempre, 2=Algunas veces, 3=Casi nunca, 4=Nunca
+            // Esto aplica tanto para ítems normales como inversos
+            $numToOption = ['0' => 'siempre', '1' => 'casi_siempre', '2' => 'algunas_veces', '3' => 'casi_nunca', '4' => 'nunca'];
 
             // Contar respuestas y calcular puntajes
             foreach ($responses as $response) {
@@ -225,8 +224,11 @@ class ValidationController extends BaseController
                     $option = $numToOption[$numericValue];
                     $itemData['responses'][$option]++;
 
-                    // El puntaje es el valor numérico mismo (ya transformado según tipo)
-                    $itemData['scores'][$option] += (int)$numericValue;
+                    // Calcular el puntaje según si el ítem es normal o inverso
+                    // Normal: usar el valor directo (0,1,2,3,4)
+                    // Inverso: invertir el valor (4,3,2,1,0)
+                    $scoreValue = $isInverse ? (4 - (int)$numericValue) : (int)$numericValue;
+                    $itemData['scores'][$option] += $scoreValue;
                 }
             }
 

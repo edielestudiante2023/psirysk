@@ -22,7 +22,7 @@ class IntralaboralAScoring
      * Grupo 1 según Tabla 21 - Ministerio de la Protección Social
      */
     private static $itemsGrupoNormal = [
-        4, 5, 6, 9, 12, 14, 22, 30, 32, 33, 34, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59,
+        4, 5, 6, 9, 12, 14, 32, 34, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 53, 54, 55, 56, 57, 58, 59,
         60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 81, 82, 83, 84, 85, 86, 87,
         88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105
     ];
@@ -32,7 +32,7 @@ class IntralaboralAScoring
      * Grupo 2 según Tabla 21 - Ministerio de la Protección Social
      */
     private static $itemsGrupoInverso = [
-        1, 2, 3, 7, 8, 10, 11, 13, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 31, 35, 36,
+        1, 2, 3, 7, 8, 10, 11, 13, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 33, 35, 36,
         37, 38, 52, 80, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123
     ];
 
@@ -557,9 +557,18 @@ class IntralaboralAScoring
         $puntajes = [];
 
         foreach ($respuestas as $numPregunta => $valorRespuesta) {
-            // Los valores YA están calificados (0-4) según Tabla 21
-            // No se aplica inversión aquí
-            $puntajes[$numPregunta] = $valorRespuesta;
+            // Aplicar calificación según si el ítem es normal o inverso (Tabla 21)
+            // Los valores de respuesta (0-4) representan: 0=Siempre, 1=Casi siempre, 2=Algunas veces, 3=Casi nunca, 4=Nunca
+            // Grupo 1 (Normal): Siempre=0, Casi siempre=1, Algunas veces=2, Casi nunca=3, Nunca=4
+            // Grupo 2 (Inverso): Siempre=4, Casi siempre=3, Algunas veces=2, Casi nunca=1, Nunca=0
+
+            if (in_array($numPregunta, self::$itemsGrupoInverso)) {
+                // Ítem inverso: invertir el valor (4-valor)
+                $puntajes[$numPregunta] = 4 - (int)$valorRespuesta;
+            } else {
+                // Ítem normal: usar el valor directo
+                $puntajes[$numPregunta] = (int)$valorRespuesta;
+            }
         }
 
         return $puntajes;

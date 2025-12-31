@@ -500,9 +500,18 @@ class IntralaboralBScoring
         $puntajes = [];
 
         foreach ($respuestas as $numPregunta => $valorRespuesta) {
-            // Los valores YA están calificados (0-4) según Tabla 22
-            // No se aplica inversión aquí
-            $puntajes[$numPregunta] = $valorRespuesta;
+            // Aplicar calificación según si el ítem es normal o inverso (Tabla 22)
+            // Los valores de respuesta (0-4) representan: 0=Siempre, 1=Casi siempre, 2=Algunas veces, 3=Casi nunca, 4=Nunca
+            // Grupo 1 (Normal): Siempre=0, Casi siempre=1, Algunas veces=2, Casi nunca=3, Nunca=4
+            // Grupo 2 (Inverso): Siempre=4, Casi siempre=3, Algunas veces=2, Casi nunca=1, Nunca=0
+
+            if (in_array($numPregunta, self::$itemsGrupoInverso)) {
+                // Ítem inverso: invertir el valor (4-valor)
+                $puntajes[$numPregunta] = 4 - (int)$valorRespuesta;
+            } else {
+                // Ítem normal: usar el valor directo
+                $puntajes[$numPregunta] = (int)$valorRespuesta;
+            }
         }
 
         return $puntajes;

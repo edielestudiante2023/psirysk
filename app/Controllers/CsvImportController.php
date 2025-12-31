@@ -914,8 +914,11 @@ class CsvImportController extends BaseController
         }
 
         // Procesar atiende_clientes (va a workers, no a worker_demographics)
-        if (isset($data['atiende_clientes']) && trim($data['atiende_clientes']) !== '') {
+        // Si la columna existe en el CSV, procesarla
+        if (isset($data['atiende_clientes'])) {
             $atiendeClientes = strtolower(trim($data['atiende_clientes']));
+            // Solo es 1 (Sí) si explícitamente dice "Sí" o "Si"
+            // Cualquier otro valor (vacío, "No", "no", etc.) es 0
             $newValue = ($atiendeClientes === 'sí' || $atiendeClientes === 'si') ? 1 : 0;
 
             // Normalizar valor actual (NULL se trata como 0)
@@ -926,10 +929,14 @@ class CsvImportController extends BaseController
                 $workerUpdates['atiende_clientes'] = $newValue;
             }
         }
+        // Si la columna NO existe en el CSV, dejar NULL para validación manual
 
         // Procesar es_jefe (va a workers, no a worker_demographics)
-        if (isset($data['es_jefe']) && trim($data['es_jefe']) !== '') {
+        // Si la columna existe en el CSV, procesarla
+        if (isset($data['es_jefe'])) {
             $esJefe = strtolower(trim($data['es_jefe']));
+            // Solo es 1 (Sí) si explícitamente dice "Sí" o "Si"
+            // Cualquier otro valor (vacío, "No", "no", etc.) es 0
             $newValue = ($esJefe === 'sí' || $esJefe === 'si') ? 1 : 0;
 
             // Normalizar valor actual (NULL se trata como 0)
@@ -940,6 +947,7 @@ class CsvImportController extends BaseController
                 $workerUpdates['es_jefe'] = $newValue;
             }
         }
+        // Si la columna NO existe en el CSV, dejar NULL para validación manual
 
         // Procesar cada columna del CSV
         foreach ($headers as $index => $header) {

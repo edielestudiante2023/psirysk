@@ -1713,7 +1713,7 @@ class ValidationController extends BaseController
             return redirect()->back()->with('error', 'Servicio no encontrado');
         }
 
-        log_message('info', "Servicio encontrado: {$service['name']}");
+        log_message('info', "Servicio encontrado: ID={$serviceId}, Nombre={$service['service_name']}");
 
         // Validar que formType sea A o B
         if (!in_array($formType, ['A', 'B'])) {
@@ -1767,105 +1767,114 @@ class ValidationController extends BaseController
             return redirect()->back()->with('error', "No hay trabajadores Forma {$formType} con cuestionario de estrés completado");
         }
 
-        // Calcular PUNTAJE BRUTO según Tabla 4 - Paso 3
-        // CRÍTICO CORRECCIÓN: El factor se aplica al PROMEDIO del bloque, NO a la suma
-        // Paso 3 correcto:
-        // - Promedio ítems 1-8 × 4
-        // - Promedio ítems 9-12 × 3
-        // - Promedio ítems 13-22 × 2
-        // - Promedio ítems 23-31 × 1
+        // CALCULAR PUNTAJES INDIVIDUALES según Tabla 4 - Paso 3
+        // METODOLOGÍA CORRECTA:
+        // 1. Para CADA worker individual: aplicar a-b-c-d
+        // 2. Promediar los puntajes transformados individuales
+        // 3. Comparar con promedio de BD
         $workerIds = array_column($workersWithEstres, 'id');
         $workerCount = count($workersWithEstres);
 
         log_message('info', '========================================');
-        log_message('info', "CÁLCULO DE PUNTAJE BRUTO");
+        log_message('info', "CÁLCULO DE PUNTAJES INDIVIDUALES");
         log_message('info', "Worker IDs: [" . implode(', ', $workerIds) . "]");
-        log_message('info', "Total workers para promedios: {$workerCount}");
+        log_message('info', "Total workers: {$workerCount}");
         log_message('info', '========================================');
 
-        // Obtener rangos con factores de multiplicación desde Single Source of Truth
-        $rangosMultiplicacion = \App\Libraries\EstresScoring::getRangosMultiplicacion();
+        // Array para almacenar puntajes transformados individuales
+        $puntajesTransformadosIndividuales = [];
+        $workerNum = 1;
 
-        // Inicializar suma total bruta
-        $puntajeBruto = 0;
-        $bloqueNum = 1;
+        // CALCULAR PUNTAJE INDIVIDUAL DE CADA WORKER
+        foreach ($workersWithEstres as $worker) {
+            $workerId = $worker['id'];
 
-        // Procesar cada bloque con su factor de multiplicación
-        foreach ($rangosMultiplicacion as $rango) {
-            $items = $rango['items'];
-            $factor = $rango['factor'];
-            $sumaPromediosBloque = 0;
-            $countItems = count($items);
+            log_message('info', "--- Worker {$workerNum}/{$workerCount}: ID={$workerId}, Nombre={$worker['name']} ---");
 
-            $itemsRange = $items[0] . '-' . end($items);
-            log_message('info', "--- BLOQUE {$bloqueNum}: Ítems {$itemsRange} (Factor ×{$factor}) ---");
+            // Obtener TODAS las respuestas de este worker
+            $responses = $this->responseModel
+                ->where('worker_id', $workerId)
+                ->where('form_type', 'estres')
+                ->findAll();
 
-            // Calcular promedio de cada ítem en este bloque
-            foreach ($items as $itemNumber) {
-                // Obtener TODAS las respuestas de este ítem de TODOS los workers
-                $responses = $this->responseModel
-                    ->whereIn('worker_id', $workerIds)
-                    ->where('form_type', 'estres')
-                    ->where('question_number', $itemNumber)
-                    ->findAll();
-
-                if (count($responses) > 0) {
-                    // Subtotal = suma de scores calificados según grupo del ítem
-                    $subtotal = 0;
-                    $rawValues = [];
-                    $scoredValues = [];
-
-                    foreach ($responses as $resp) {
-                        $rawValue = $resp['answer_value'];
-                        // Calificar según grupo (Grupo 1: 9,6,3,0 | Grupo 2: 6,4,2,0 | Grupo 3: 3,2,1,0)
-                        $scoredValue = \App\Libraries\EstresScoring::calificarItemNumerico($itemNumber, $rawValue);
-                        $subtotal += $scoredValue;
-                        $rawValues[] = $rawValue;
-                        $scoredValues[] = $scoredValue;
-                    }
-
-                    $average = $subtotal / $workerCount;
-                    $sumaPromediosBloque += $average;
-
-                    // Log detallado solo para primeros 3 ítems de cada bloque
-                    if (($itemNumber - $items[0]) < 3) {
-                        log_message('debug', "  Ítem {$itemNumber}: responses=" . count($responses) . ", subtotal={$subtotal}, promedio=" . number_format($average, 4));
-                        log_message('debug', "    Raw values sample (primeros 5): [" . implode(', ', array_slice($rawValues, 0, 5)) . "]");
-                        log_message('debug', "    Scored values sample (primeros 5): [" . implode(', ', array_slice($scoredValues, 0, 5)) . "]");
-                    }
-                } else {
-                    log_message('warning', "  Ítem {$itemNumber}: NO HAY RESPUESTAS");
-                }
+            if (count($responses) < 31) {
+                log_message('warning', "  ⚠️ Worker {$workerId} tiene solo " . count($responses) . " respuestas (se requieren 31)");
+                $workerNum++;
+                continue;
             }
 
-            // CORRECCIÓN: Calcular PROMEDIO del bloque y luego multiplicar por el factor
-            $promedioBloque = $countItems > 0 ? $sumaPromediosBloque / $countItems : 0;
-            $resultadoBloque = $promedioBloque * $factor;
-            $puntajeBruto += $resultadoBloque;
+            // Organizar respuestas por número de pregunta
+            $respuestasPorPregunta = [];
+            foreach ($responses as $resp) {
+                $respuestasPorPregunta[$resp['question_number']] = $resp['answer_value'];
+            }
 
-            log_message('info', "  Suma de promedios: " . number_format($sumaPromediosBloque, 4));
-            log_message('info', "  Cantidad ítems: {$countItems}");
-            log_message('info', "  Promedio del bloque: " . number_format($promedioBloque, 4));
-            log_message('info', "  Promedio × Factor: " . number_format($promedioBloque, 4) . " × {$factor} = " . number_format($resultadoBloque, 4));
-            log_message('info', "  Puntaje bruto acumulado: " . number_format($puntajeBruto, 4));
+            // Aplicar metodología a-b-c-d POR ESTE WORKER
+            // a. Promedio ítems 1-8 × 4
+            $suma_1_8 = 0;
+            for ($i = 1; $i <= 8; $i++) {
+                $suma_1_8 += isset($respuestasPorPregunta[$i]) ? $respuestasPorPregunta[$i] : 0;
+            }
+            $promedio_1_8 = $suma_1_8 / 8;
+            $subtotal_a = $promedio_1_8 * 4;
 
-            $bloqueNum++;
+            // b. Promedio ítems 9-12 × 3
+            $suma_9_12 = 0;
+            for ($i = 9; $i <= 12; $i++) {
+                $suma_9_12 += isset($respuestasPorPregunta[$i]) ? $respuestasPorPregunta[$i] : 0;
+            }
+            $promedio_9_12 = $suma_9_12 / 4;
+            $subtotal_b = $promedio_9_12 * 3;
+
+            // c. Promedio ítems 13-22 × 2
+            $suma_13_22 = 0;
+            for ($i = 13; $i <= 22; $i++) {
+                $suma_13_22 += isset($respuestasPorPregunta[$i]) ? $respuestasPorPregunta[$i] : 0;
+            }
+            $promedio_13_22 = $suma_13_22 / 10;
+            $subtotal_c = $promedio_13_22 * 2;
+
+            // d. Promedio ítems 23-31
+            $suma_23_31 = 0;
+            for ($i = 23; $i <= 31; $i++) {
+                $suma_23_31 += isset($respuestasPorPregunta[$i]) ? $respuestasPorPregunta[$i] : 0;
+            }
+            $promedio_23_31 = $suma_23_31 / 9;
+            $subtotal_d = $promedio_23_31;
+
+            // Puntaje bruto individual
+            $puntajeBrutoIndividual = $subtotal_a + $subtotal_b + $subtotal_c + $subtotal_d;
+
+            // Transformar (Tabla 4 - Paso 4)
+            $factorTotal = \App\Libraries\EstresScoring::getFactorTransformacion();
+            $puntajeTransformadoIndividual = ($puntajeBrutoIndividual / $factorTotal) * 100;
+
+            $puntajesTransformadosIndividuales[] = $puntajeTransformadoIndividual;
+
+            // Log solo para primeros 3 workers
+            if ($workerNum <= 3) {
+                log_message('debug', "  a. Ítems 1-8: suma={$suma_1_8}, promedio=" . number_format($promedio_1_8, 4) . ", ×4 = " . number_format($subtotal_a, 4));
+                log_message('debug', "  b. Ítems 9-12: suma={$suma_9_12}, promedio=" . number_format($promedio_9_12, 4) . ", ×3 = " . number_format($subtotal_b, 4));
+                log_message('debug', "  c. Ítems 13-22: suma={$suma_13_22}, promedio=" . number_format($promedio_13_22, 4) . ", ×2 = " . number_format($subtotal_c, 4));
+                log_message('debug', "  d. Ítems 23-31: suma={$suma_23_31}, promedio=" . number_format($promedio_23_31, 4) . ", ×1 = " . number_format($subtotal_d, 4));
+                log_message('debug', "  Puntaje bruto: " . number_format($puntajeBrutoIndividual, 4));
+                log_message('debug', "  Puntaje transformado: " . number_format($puntajeTransformadoIndividual, 2) . "%");
+            }
+
+            $workerNum++;
         }
 
-        log_message('info', '========================================');
-        log_message('info', "PUNTAJE BRUTO FINAL: " . number_format($puntajeBruto, 4));
-        log_message('info', '========================================');
-
-        // Transformar con factor 61.16 (Tabla 4 - Paso 4)
-        // Fórmula: (Puntaje Bruto / Factor) × 100
-        $factorTotal = \App\Libraries\EstresScoring::getFactorTransformacion();
-        $puntajeTransformado = $factorTotal > 0 ? round(($puntajeBruto / $factorTotal) * 100, 2) : 0;
+        // Calcular PROMEDIO de puntajes transformados individuales
+        $puntajeTransformado = count($puntajesTransformadosIndividuales) > 0
+            ? array_sum($puntajesTransformadosIndividuales) / count($puntajesTransformadosIndividuales)
+            : 0;
 
         log_message('info', '========================================');
-        log_message('info', "TRANSFORMACIÓN (Tabla 4 - Paso 4)");
-        log_message('info', "Factor de transformación: {$factorTotal}");
-        log_message('info', "Fórmula: ({$puntajeBruto} / {$factorTotal}) × 100");
-        log_message('info', "Puntaje transformado calculado: {$puntajeTransformado}");
+        log_message('info', "AGREGADO (Promedio de puntajes individuales)");
+        log_message('info', "Puntajes individuales calculados: " . count($puntajesTransformadosIndividuales));
+        log_message('info', "Primeros 5: [" . implode(', ', array_map(function($v) { return number_format($v, 2); }, array_slice($puntajesTransformadosIndividuales, 0, 5))) . "]");
+        log_message('info', "Suma total: " . number_format(array_sum($puntajesTransformadosIndividuales), 2));
+        log_message('info', "PROMEDIO DE TRANSFORMADOS: " . number_format($puntajeTransformado, 2) . "%");
         log_message('info', '========================================');
 
         // Obtener puntaje promedio de BD desde calculated_results
@@ -1915,9 +1924,9 @@ class ValidationController extends BaseController
             'element_key' => 'total_estres',
             'element_name' => 'Total Estrés',
             'total_workers' => $workerCount,
-            'sum_averages' => round($puntajeBruto, 2), // Puntaje Bruto (con factores aplicados)
-            'transformation_factor' => $factorTotal,
-            'calculated_score' => $puntajeTransformado,
+            'sum_averages' => round($puntajeTransformado, 2), // Promedio de puntajes transformados individuales
+            'transformation_factor' => \App\Libraries\EstresScoring::getFactorTransformacion(),
+            'calculated_score' => round($puntajeTransformado, 2),
             'db_score' => round($dbScore, 2),
             'difference' => $difference,
             'validation_status' => $validationStatus,

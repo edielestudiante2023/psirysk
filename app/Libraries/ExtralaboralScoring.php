@@ -167,18 +167,23 @@ class ExtralaboralScoring
     ];
 
     /**
-     * Procesa un ítem - El valor YA viene calificado de la BD según Tabla 11
+     * Procesa un ítem - Aplica calificación según Tabla 11
      *
-     * IMPORTANTE: Según el manual oficial (Paso 1. Calificación de los ítems),
-     * la calificación (inversión) se aplica AL MOMENTO DE GUARDAR en la BD.
-     *
-     * Este método solo retorna el valor tal cual viene de la BD.
+     * Los valores en BD están guardados como 0-4 SIN inversión aplicada.
+     * Este método aplica la inversión para ítems del Grupo 2.
      */
     public static function calificarItem($numeroItem, $respuesta)
     {
-        // El valor YA está calificado (0-4) según Tabla 11
-        // No se aplica inversión aquí
-        return $respuesta;
+        // Verificar si el ítem pertenece al Grupo 2 (ítems inversos)
+        if (in_array($numeroItem, self::$itemsGrupo2)) {
+            // Grupo 2 (2, 3, 6, 24, 26, 28, 30, 31): calificación inversa
+            // Siempre=4, Casi Siempre=3, Algunas Veces=2, Casi Nunca=1, Nunca=0
+            return 4 - $respuesta;
+        } else {
+            // Grupo 1: calificación normal
+            // Siempre=0, Casi Siempre=1, Algunas Veces=2, Casi Nunca=3, Nunca=4
+            return $respuesta;
+        }
     }
 
     /**
@@ -362,5 +367,146 @@ class ExtralaboralScoring
     {
         $baremos = ($forma === 'A') ? self::$baremosJefes : self::$baremosAuxiliares;
         return $baremos['total'] ?? null;
+    }
+
+    /**
+     * Obtiene el baremo con metadata (min, max, label, color)
+     * Convierte el formato simple [min, max] a formato completo con labels y colores
+     *
+     * @param array $baremo Baremo en formato simple
+     * @return array Baremo con metadata completa
+     */
+    public static function getBaremoConMetadata($baremo)
+    {
+        $labels = [
+            'sin_riesgo' => 'Sin riesgo o riesgo despreciable',
+            'riesgo_bajo' => 'Riesgo bajo',
+            'riesgo_medio' => 'Riesgo medio',
+            'riesgo_alto' => 'Riesgo alto',
+            'riesgo_muy_alto' => 'Riesgo muy alto'
+        ];
+
+        $colores = [
+            'sin_riesgo' => 'success',
+            'riesgo_bajo' => 'success',
+            'riesgo_medio' => 'warning',
+            'riesgo_alto' => 'danger',
+            'riesgo_muy_alto' => 'danger'
+        ];
+
+        $result = [];
+        foreach ($baremo as $nivel => $rango) {
+            $result[$nivel] = [
+                'min' => $rango[0],
+                'max' => $rango[1],
+                'label' => $labels[$nivel] ?? ucwords(str_replace('_', ' ', $nivel)),
+                'color' => $colores[$nivel] ?? 'secondary'
+            ];
+        }
+        return $result;
+    }
+
+    /**
+     * Determina el nivel de riesgo según el puntaje y los baremos
+     *
+     * @param float $puntaje Puntaje transformado
+     * @param array $baremo Baremo a usar
+     * @return array|null Información del nivel de riesgo (nivel, label, color) o null
+     */
+    public static function getNivelRiesgo($puntaje, $baremo)
+    {
+        $baremoConMetadata = self::getBaremoConMetadata($baremo);
+
+        foreach ($baremoConMetadata as $nivel => $rango) {
+            if ($puntaje >= $rango['min'] && $puntaje <= $rango['max']) {
+                return [
+                    'nivel' => $nivel,
+                    'label' => $rango['label'],
+                    'color' => $rango['color']
+                ];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Nombres oficiales de las dimensiones extralaborales
+     * Tabla 12 de la Resolución 2404/2019
+     */
+    private static $nombresDimensiones = [
+        'tiempo_fuera_trabajo' => 'Tiempo Fuera del Trabajo',
+        'relaciones_familiares' => 'Relaciones Familiares',
+        'comunicacion_relaciones' => 'Comunicación y Relaciones Interpersonales',
+        'situacion_economica' => 'Situación Económica del Grupo Familiar',
+        'caracteristicas_vivienda' => 'Características de la Vivienda y de su Entorno',
+        'influencia_entorno' => 'Influencia del Entorno Extralaboral sobre el Trabajo',
+        'desplazamiento' => 'Desplazamiento Vivienda - Trabajo - Vivienda'
+    ];
+
+    /**
+     * Obtiene el nombre oficial de una dimensión
+     *
+     * @param string $dimensionKey Clave de la dimensión
+     * @return string Nombre oficial de la dimensión
+     */
+    public static function getNombreDimension($dimensionKey)
+    {
+        return self::$nombresDimensiones[$dimensionKey] ?? ucwords(str_replace('_', ' ', $dimensionKey));
+    }
+
+    /**
+     * Obtiene todos los nombres de dimensiones
+     *
+     * @return array Array asociativo de claves => nombres
+     */
+    public static function getNombresDimensiones()
+    {
+        return self::$nombresDimensiones;
+    }
+
+    /**
+     * Obtiene el factor de transformación total
+     * Tabla 14 de la Resolución 2404/2019
+     *
+     * @return int Factor de transformación total (124)
+     */
+    public static function getFactorTransformacionTotal()
+    {
+        return self::$factoresTransformacion['total'];
+    }
+
+    /**
+     * Obtiene el factor de transformación de una dimensión específica
+     * Tabla 14 de la Resolución 2404/2019
+     *
+     * @param string $dimensionKey Clave de la dimensión (ej: 'tiempo_fuera_trabajo')
+     * @return float Factor de transformación de la dimensión
+     */
+    public static function getFactorDimension($dimensionKey)
+    {
+        return self::$factoresTransformacion[$dimensionKey] ?? 0;
+    }
+
+    /**
+     * Obtiene la lista de ítems inversos (Grupo 2)
+     * Tabla 11 de la Resolución 2404/2019
+     *
+     * @return array Ítems con calificación inversa [2, 3, 6, 24, 26, 28, 30, 31]
+     */
+    public static function getItemsInversos()
+    {
+        return self::$itemsGrupo2;
+    }
+
+    /**
+     * Verifica si un ítem es inverso
+     * Tabla 11 de la Resolución 2404/2019
+     *
+     * @param int $itemNumber Número del ítem
+     * @return bool True si el ítem es inverso (Grupo 2), False si es normal (Grupo 1)
+     */
+    public static function isItemInverso($itemNumber)
+    {
+        return in_array($itemNumber, self::$itemsGrupo2);
     }
 }

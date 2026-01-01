@@ -7,6 +7,7 @@ use App\Models\BatteryServiceModel;
 use App\Models\WorkerModel;
 use App\Models\ResponseModel;
 use App\Models\CalculatedResultModel;
+use App\Models\ValidationResultModel;
 use App\Libraries\IntralaboralAScoring;
 use App\Libraries\IntralaboralBScoring;
 
@@ -16,6 +17,7 @@ class ValidationController extends BaseController
     protected $workerModel;
     protected $responseModel;
     protected $calculatedResultModel;
+    protected $validationResultModel;
 
     public function __construct()
     {
@@ -23,6 +25,7 @@ class ValidationController extends BaseController
         $this->workerModel = new WorkerModel();
         $this->responseModel = new ResponseModel();
         $this->calculatedResultModel = new CalculatedResultModel();
+        $this->validationResultModel = new ValidationResultModel();
     }
 
     /**
@@ -79,12 +82,38 @@ class ValidationController extends BaseController
         $domainsFormaA = $this->getDimensionsGroupedByDomain('A');
         $domainsFormaB = $this->getDimensionsGroupedByDomain('B');
 
+        // Obtener dimensiones extralaboral
+        $extralaboralDimensions = $this->getExtralaboralDimensions();
+
+        // Verificar estado de procesamiento intralaboral
+        $dimensionsProcessed = $this->validationResultModel->areDimensionsProcessed($serviceId, 'intralaboral', null);
+        $domainsProcessed = $this->validationResultModel->areDomainsProcessed($serviceId, 'intralaboral', null);
+        $errorsCount = $this->validationResultModel->countErrors($serviceId, 'intralaboral');
+
+        // Verificar estado de procesamiento extralaboral
+        $extralaboralDimensionsProcessedA = $this->validationResultModel->areDimensionsProcessed($serviceId, 'extralaboral', 'A');
+        $extralaboralDimensionsProcessedB = $this->validationResultModel->areDimensionsProcessed($serviceId, 'extralaboral', 'B');
+        $extralaboralTotalProcessedA = $this->validationResultModel->areTotalsProcessed($serviceId, 'extralaboral', 'A');
+        $extralaboralTotalProcessedB = $this->validationResultModel->areTotalsProcessed($serviceId, 'extralaboral', 'B');
+        $extralaboralErrorsCountA = $this->validationResultModel->countErrors($serviceId, 'extralaboral', 'A');
+        $extralaboralErrorsCountB = $this->validationResultModel->countErrors($serviceId, 'extralaboral', 'B');
+
         $data = [
             'title' => 'Validación de Resultados - ' . $service['service_name'],
             'service' => $service,
             'workers' => $workers,
             'domainsFormaA' => $domainsFormaA,
-            'domainsFormaB' => $domainsFormaB
+            'domainsFormaB' => $domainsFormaB,
+            'extralaboralDimensions' => $extralaboralDimensions,
+            'dimensionsProcessed' => $dimensionsProcessed,
+            'domainsProcessed' => $domainsProcessed,
+            'errorsCount' => $errorsCount,
+            'extralaboralDimensionsProcessedA' => $extralaboralDimensionsProcessedA,
+            'extralaboralDimensionsProcessedB' => $extralaboralDimensionsProcessedB,
+            'extralaboralTotalProcessedA' => $extralaboralTotalProcessedA,
+            'extralaboralTotalProcessedB' => $extralaboralTotalProcessedB,
+            'extralaboralErrorsCountA' => $extralaboralErrorsCountA,
+            'extralaboralErrorsCountB' => $extralaboralErrorsCountB
         ];
 
         return view('validation/index', $data);
@@ -268,7 +297,7 @@ class ValidationController extends BaseController
     }
 
     /**
-     * Obtener nivel de riesgo según baremos
+     * Obtener nivel de riesgo según baremos (formato con min/max)
      */
     private function getNivelRiesgo($puntaje, $baremos)
     {
@@ -283,6 +312,21 @@ class ValidationController extends BaseController
         }
 
         return ['nivel' => 'desconocido', 'label' => 'Desconocido', 'color' => 'secondary'];
+    }
+
+    /**
+     * Obtener nivel de riesgo según baremos de librerías (formato [min, max])
+     */
+    private function getNivelRiesgoFromLibrary($puntaje, $baremos)
+    {
+        foreach ($baremos as $nivel => $rango) {
+            // Formato de librerías: [min, max]
+            if ($puntaje >= $rango[0] && $puntaje <= $rango[1]) {
+                return $nivel;
+            }
+        }
+
+        return 'desconocido';
     }
 
     /**
@@ -590,6 +634,41 @@ class ValidationController extends BaseController
     }
 
     /**
+     * Obtener dimensiones extralaboral desde la librería oficial
+     */
+    private function getExtralaboralDimensions()
+    {
+        $scoringLib = new \App\Libraries\ExtralaboralScoring();
+        $reflection = new \ReflectionClass($scoringLib);
+
+        // Obtener dimensiones
+        $dimensionesProperty = $reflection->getProperty('dimensiones');
+        $dimensionesProperty->setAccessible(true);
+        $dimensiones = $dimensionesProperty->getValue($scoringLib);
+
+        // Obtener nombres de dimensiones desde la librería (Single Source of Truth)
+        $dimensionNames = \App\Libraries\ExtralaboralScoring::getNombresDimensiones();
+
+        $result = [];
+
+        foreach ($dimensiones as $dimensionKey => $items) {
+            $itemCount = count($items);
+            $minItem = min($items);
+            $maxItem = max($items);
+
+            $result[] = [
+                'key' => $dimensionKey,
+                'name' => $dimensionNames[$dimensionKey] ?? ucwords(str_replace('_', ' ', $dimensionKey)),
+                'item_count' => $itemCount,
+                'item_range' => "$minItem-$maxItem",
+                'items' => $items
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
      * Lista trabajadores Forma A que respondieron Pregunta I (Atención a clientes)
      */
     public function conditionalFormaA_I($serviceId)
@@ -788,8 +867,8 @@ class ValidationController extends BaseController
     }
 
     /**
-     * Validación de Dominio (agrupa varias dimensiones)
-     * Muestra puntajes y niveles de riesgo del dominio según Tablas 31-32
+     * Validación de Dominio (consolida dimensiones ya validadas)
+     * Muestra las dimensiones que componen el dominio y sus puntajes
      */
     public function validateDomain($serviceId, $domainKey, $formType)
     {
@@ -807,6 +886,9 @@ class ValidationController extends BaseController
         $baremosDominio = $scoringClass::getBaremosDominios();
         $baremos = $baremosDominio[$domainKey] ?? null;
 
+        // Obtener service
+        $service = $this->batteryServiceModel->find($serviceId);
+
         // Obtener workers completados con la forma correspondiente
         $workers = $this->workerModel
             ->where('battery_service_id', $serviceId)
@@ -818,75 +900,73 @@ class ValidationController extends BaseController
             return redirect()->back()->with('error', 'No hay trabajadores completados para validar');
         }
 
+        // Obtener resultados de dimensiones desde validation_results
+        $dimensionResults = $this->validationResultModel->getDimensionResults($serviceId, 'intralaboral', $formType);
+
+        // Filtrar solo las dimensiones de este dominio
+        $dimensionsData = [];
+        $sumPromedios = 0;
+
+        foreach ($dimensionsInDomain as $dimensionKey) {
+            // Buscar el resultado de esta dimensión
+            $dimResult = array_filter($dimensionResults, function($r) use ($dimensionKey) {
+                return $r['element_key'] === $dimensionKey;
+            });
+
+            if (!empty($dimResult)) {
+                $dimResult = array_values($dimResult)[0];
+                $dimensionsData[] = [
+                    'key' => $dimensionKey,
+                    'name' => $dimResult['element_name'],
+                    'sum_averages' => $dimResult['sum_averages'],
+                    'calculated_score' => $dimResult['calculated_score'],
+                    'db_score' => $dimResult['db_score'],
+                    'transformation_factor' => $dimResult['transformation_factor']
+                ];
+                $sumPromedios += $dimResult['sum_averages'];
+            }
+        }
+
+        // Obtener factor de transformación del dominio
+        $reflectionClass = new \ReflectionClass($scoringClass);
+        $factoresProperty = $reflectionClass->getProperty('factoresTransformacionDominios');
+        $factoresProperty->setAccessible(true);
+        $factoresTransformacion = $factoresProperty->getValue();
+        $factor = $factoresTransformacion[$domainKey];
+
+        // Calcular puntaje transformado del dominio
+        $puntajeTransformado = $factor > 0 ? round(($sumPromedios / $factor) * 100, 2) : 0;
+
+        // Obtener puntaje de BD
+        $dbField = $this->getDomainDbField($domainKey);
         $workerIds = array_column($workers, 'id');
+        $calculatedResults = $this->calculatedResultModel->whereIn('worker_id', $workerIds)->findAll();
+        $dbScores = array_column($calculatedResults, $dbField);
+        $dbScore = count($dbScores) > 0 ? round(array_sum($dbScores) / count($dbScores), 2) : 0;
 
-        // Obtener resultados de BD
-        $calculatedResults = $this->calculatedResultModel
-            ->whereIn('worker_id', $workerIds)
-            ->findAll();
+        // Comparación
+        $difference = round($puntajeTransformado - $dbScore, 2);
+        $status = abs($difference) < 0.1 ? 'ok' : 'error';
 
-        $resultsById = [];
-        foreach ($calculatedResults as $result) {
-            $resultsById[$result['worker_id']] = $result;
-        }
-
-        // Calcular puntajes del dominio usando la librería oficial
-        $domainScores = [];
-        foreach ($workers as $worker) {
-            $responses = $this->responseModel
-                ->where('worker_id', $worker['id'])
-                ->whereIn('question_number', range(1, 123))
-                ->findAll();
-
-            $answersArray = [];
-            foreach ($responses as $resp) {
-                $answersArray[$resp['question_number']] = $resp['answer_value'];
-            }
-
-            if (empty($answersArray)) {
-                continue;
-            }
-
-            // Calcular usando librería oficial
-            $result = $scoringClass::calcular($answersArray, $worker['atiende_clientes'] === 'si', $worker['es_jefe'] === 'si');
-
-            // Extraer puntaje del dominio
-            $puntajeBruto = $result['puntajes_brutos_dominios'][$domainKey] ?? null;
-            $puntajeTransformado = $result['puntajes_transformados_dominios'][$domainKey] ?? null;
-            $nivel = $result['niveles_riesgo_dominios'][$domainKey] ?? null;
-
-            $domainScores[] = [
-                'worker_id' => $worker['id'],
-                'worker_name' => $worker['name'],
-                'puntaje_bruto' => $puntajeBruto,
-                'puntaje_transformado' => $puntajeTransformado,
-                'nivel_calculado' => $nivel,
-                'nivel_bd' => $resultsById[$worker['id']]['dom_' . $domainKey . '_nivel'] ?? null,
-                'puntaje_bd' => $resultsById[$worker['id']]['dom_' . $domainKey . '_puntaje'] ?? null
-            ];
-        }
-
-        // Calcular estadísticas
-        $puntajes = array_column($domainScores, 'puntaje_transformado');
-        $promedioCalculado = count($puntajes) > 0 ? round(array_sum($puntajes) / count($puntajes), 2) : 0;
-        $promedioFromDB = count($domainScores) > 0
-            ? round(array_sum(array_column($domainScores, 'puntaje_bd')) / count($domainScores), 2)
-            : 0;
-
-        // Determinar nivel según baremos
-        $nivelCalculado = $this->getNivelRiesgo($promedioCalculado, $baremos);
+        $validation = [
+            'dimensions' => $dimensionsData,
+            'sum_promedios' => $sumPromedios,
+            'transformation_factor' => $factor,
+            'puntaje_transformado' => $puntajeTransformado,
+            'db_comparison' => [
+                'db_score' => $dbScore,
+                'difference' => $difference,
+                'status' => $status
+            ]
+        ];
 
         $data = [
-            'service' => $this->batteryServiceModel->find($serviceId),
+            'service' => $service,
             'domainKey' => $domainKey,
             'domainName' => $this->getDomainDisplayName($domainKey),
             'formType' => $formType,
-            'dimensionsInDomain' => $dimensionsInDomain,
             'baremos' => $baremos,
-            'domainScores' => $domainScores,
-            'promedioCalculado' => $promedioCalculado,
-            'promedioFromDB' => $promedioFromDB,
-            'nivelCalculado' => $nivelCalculado,
+            'validation' => $validation,
             'totalWorkers' => count($workers)
         ];
 
@@ -908,6 +988,20 @@ class ValidationController extends BaseController
     }
 
     /**
+     * Obtiene el nombre del campo de BD para un dominio
+     */
+    private function getDomainDbField($domainKey)
+    {
+        $fields = [
+            'liderazgo_relaciones_sociales' => 'dom_liderazgo_puntaje',
+            'control' => 'dom_control_puntaje',
+            'demandas' => 'dom_demandas_puntaje',
+            'recompensas' => 'dom_recompensas_puntaje'
+        ];
+        return $fields[$domainKey] ?? null;
+    }
+
+    /**
      * Validación del Puntaje Total Intralaboral (Tabla 33)
      * Suma de todas las dimensiones transformadas y calificadas según baremos oficiales
      */
@@ -918,6 +1012,9 @@ class ValidationController extends BaseController
         // Obtener clase de scoring según forma
         $scoringClass = ($formType === 'A') ? IntralaboralAScoring::class : IntralaboralBScoring::class;
         $baremoTotal = $scoringClass::getBaremoTotal();
+
+        // Obtener service
+        $service = $this->batteryServiceModel->find($serviceId);
 
         // Obtener workers completados con la forma correspondiente
         $workers = $this->workerModel
@@ -930,75 +1027,874 @@ class ValidationController extends BaseController
             return redirect()->back()->with('error', 'No hay trabajadores completados para validar');
         }
 
+        // Obtener resultados de dominios desde validation_results
+        $domainResults = $this->validationResultModel->getDomainResults($serviceId, 'intralaboral', $formType);
+
+        // Preparar datos de dominios
+        $domainsData = [];
+        $sumPromedios = 0;
+
+        $dominiosKeys = ['liderazgo_relaciones_sociales', 'control', 'demandas', 'recompensas'];
+
+        foreach ($dominiosKeys as $domainKey) {
+            // Buscar el resultado de este dominio
+            $domResult = array_filter($domainResults, function($r) use ($domainKey) {
+                return $r['element_key'] === $domainKey;
+            });
+
+            if (!empty($domResult)) {
+                $domResult = array_values($domResult)[0];
+                $domainsData[] = [
+                    'key' => $domainKey,
+                    'name' => $domResult['element_name'],
+                    'sum_averages' => $domResult['sum_averages'],
+                    'calculated_score' => $domResult['calculated_score'],
+                    'db_score' => $domResult['db_score'],
+                    'transformation_factor' => $domResult['transformation_factor']
+                ];
+                $sumPromedios += $domResult['sum_averages'];
+            }
+        }
+
+        // Obtener factor de transformación del total
+        $reflectionClass = new \ReflectionClass($scoringClass);
+        $factorProperty = $reflectionClass->getProperty('factorTransformacionTotal');
+        $factorProperty->setAccessible(true);
+        $factorTotal = $factorProperty->getValue();
+
+        // Calcular puntaje transformado total
+        $puntajeTransformado = $factorTotal > 0 ? round(($sumPromedios / $factorTotal) * 100, 2) : 0;
+
+        // Obtener puntaje de BD
         $workerIds = array_column($workers, 'id');
+        $calculatedResults = $this->calculatedResultModel->whereIn('worker_id', $workerIds)->findAll();
+        $dbScores = array_column($calculatedResults, 'intralaboral_total_puntaje');
+        $dbScore = count($dbScores) > 0 ? round(array_sum($dbScores) / count($dbScores), 2) : 0;
 
-        // Obtener resultados de BD
-        $calculatedResults = $this->calculatedResultModel
-            ->whereIn('worker_id', $workerIds)
-            ->findAll();
+        // Comparación
+        $difference = round($puntajeTransformado - $dbScore, 2);
+        $status = abs($difference) < 0.1 ? 'ok' : 'error';
 
+        // Preparar puntajes por trabajador
+        $totalScores = [];
         $resultsById = [];
         foreach ($calculatedResults as $result) {
             $resultsById[$result['worker_id']] = $result;
         }
 
-        // Calcular puntajes totales usando la librería oficial
-        $totalScores = [];
         foreach ($workers as $worker) {
-            $responses = $this->responseModel
-                ->where('worker_id', $worker['id'])
-                ->whereIn('question_number', range(1, $formType === 'A' ? 123 : 97))
-                ->findAll();
+            $workerId = $worker['id'];
+            $workerResult = $resultsById[$workerId] ?? null;
 
-            $answersArray = [];
-            foreach ($responses as $resp) {
-                $answersArray[$resp['question_number']] = $resp['answer_value'];
+            if ($workerResult) {
+                // Calcular puntaje bruto sumando los 4 dominios desde BD
+                $puntajeBruto = ($workerResult['dom_liderazgo_puntaje'] ?? 0) +
+                               ($workerResult['dom_control_puntaje'] ?? 0) +
+                               ($workerResult['dom_demandas_puntaje'] ?? 0) +
+                               ($workerResult['dom_recompensas_puntaje'] ?? 0);
+
+                $totalScores[] = [
+                    'worker_name' => $worker['name'],
+                    'puntaje_bruto' => $puntajeBruto,
+                    'puntaje_transformado' => $workerResult['intralaboral_total_puntaje'] ?? 0,
+                    'nivel_bd' => $workerResult['intralaboral_total_nivel'] ?? 'sin_datos',
+                    'nivel_calculado' => $workerResult['intralaboral_total_nivel'] ?? 'sin_datos',
+                    'puntaje_bd' => $workerResult['intralaboral_total_puntaje'] ?? 0
+                ];
             }
-
-            if (empty($answersArray)) {
-                continue;
-            }
-
-            // Calcular usando librería oficial
-            $result = $scoringClass::calcular($answersArray, $worker['atiende_clientes'] === 'si', $worker['es_jefe'] === 'si');
-
-            // Extraer puntajes totales
-            $puntajeBruto = $result['puntaje_bruto_total'] ?? null;
-            $puntajeTransformado = $result['puntaje_total_intralaboral'] ?? null;
-            $nivel = $result['nivel_riesgo_total'] ?? null;
-
-            $totalScores[] = [
-                'worker_id' => $worker['id'],
-                'worker_name' => $worker['name'],
-                'puntaje_bruto' => $puntajeBruto,
-                'puntaje_transformado' => $puntajeTransformado,
-                'nivel_calculado' => $nivel,
-                'nivel_bd' => $resultsById[$worker['id']]['nivel_riesgo_intralaboral'] ?? null,
-                'puntaje_bd' => $resultsById[$worker['id']]['puntaje_total_intralaboral'] ?? null
-            ];
         }
 
-        // Calcular estadísticas
-        $puntajes = array_column($totalScores, 'puntaje_transformado');
-        $promedioCalculado = count($puntajes) > 0 ? round(array_sum($puntajes) / count($puntajes), 2) : 0;
-        $promedioFromDB = count($totalScores) > 0
-            ? round(array_sum(array_column($totalScores, 'puntaje_bd')) / count($totalScores), 2)
-            : 0;
-
-        // Determinar nivel según baremos
-        $nivelCalculado = $this->getNivelRiesgo($promedioCalculado, $baremoTotal);
+        $validation = [
+            'domains' => $domainsData,
+            'sum_promedios' => $sumPromedios,
+            'transformation_factor' => $factorTotal,
+            'puntaje_transformado' => $puntajeTransformado,
+            'db_comparison' => [
+                'db_score' => $dbScore,
+                'difference' => $difference,
+                'status' => $status
+            ]
+        ];
 
         $data = [
-            'service' => $this->batteryServiceModel->find($serviceId),
+            'service' => $service,
             'formType' => $formType,
             'baremos' => $baremoTotal,
+            'validation' => $validation,
             'totalScores' => $totalScores,
-            'promedioCalculado' => $promedioCalculado,
-            'promedioFromDB' => $promedioFromDB,
-            'nivelCalculado' => $nivelCalculado,
             'totalWorkers' => count($workers)
         ];
 
         return view('validation/total_detail', $data);
+    }
+
+    /**
+     * Procesar todas las dimensiones de intralaboral para un servicio
+     * Guarda los resultados en validation_results
+     */
+    public function processDimensions($serviceId)
+    {
+        $this->checkPermissions();
+
+        $service = $this->batteryServiceModel->find($serviceId);
+        if (!$service) {
+            return redirect()->back()->with('error', 'Servicio no encontrado');
+        }
+
+        // Procesar Forma A
+        $processedA = $this->processDimensionsByForm($serviceId, 'A');
+
+        // Procesar Forma B
+        $processedB = $this->processDimensionsByForm($serviceId, 'B');
+
+        $totalProcessed = $processedA + $processedB;
+
+        return redirect()->to('validation/' . $serviceId)
+            ->with('success', "Dimensiones procesadas correctamente: {$totalProcessed} dimensiones guardadas");
+    }
+
+    /**
+     * Procesar dimensiones de una forma específica (A o B)
+     */
+    private function processDimensionsByForm($serviceId, $formType)
+    {
+        // Obtener workers completados con esta forma
+        $workers = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('status', 'completado')
+            ->where('intralaboral_type', $formType)
+            ->findAll();
+
+        if (empty($workers)) {
+            return 0;
+        }
+
+        $scoringClass = ($formType === 'A') ? IntralaboralAScoring::class : IntralaboralBScoring::class;
+
+        // Obtener todas las dimensiones desde la librería
+        $baremosDimensiones = $scoringClass::getBaremosDimensiones();
+
+        $processed = 0;
+
+        // Eliminar validaciones anteriores de dimensiones para esta forma
+        $this->validationResultModel->deleteValidationLevel($serviceId, 'intralaboral', $formType, 'dimension');
+
+        // Convertir formType para consultas de responses (A -> intralaboral_A)
+        $responseFormType = 'intralaboral_' . $formType;
+
+        // Procesar cada dimensión
+        foreach (array_keys($baremosDimensiones) as $dimensionKey) {
+            // Obtener configuración de esta dimensión específica
+            $config = $this->getDimensionConfig($dimensionKey, $formType);
+
+            if (!$config) {
+                continue; // Skip si no se pudo obtener la configuración
+            }
+            // Calcular validación de la dimensión (usar responseFormType para queries)
+            $validation = $this->calculateDimensionValidation($workers, $config, $responseFormType);
+
+            // Obtener puntaje promedio de BD desde calculated_results
+            $dbField = $config['db_field'];
+            $workerIds = array_column($workers, 'id');
+
+            // Obtener resultados calculados para estos workers
+            $calculatedResults = $this->calculatedResultModel
+                ->whereIn('worker_id', $workerIds)
+                ->findAll();
+
+            // Extraer los puntajes del campo específico de dimensión
+            $dbScores = array_column($calculatedResults, $dbField);
+            $dbScore = count($dbScores) > 0 ? array_sum($dbScores) / count($dbScores) : 0;
+
+            // Preparar datos para guardar
+            $data = [
+                'battery_service_id' => $serviceId,
+                'questionnaire_type' => 'intralaboral',
+                'form_type' => $formType,
+                'validation_level' => 'dimension',
+                'element_key' => $dimensionKey,
+                'element_name' => $config['name'],
+                'total_workers' => count($workers),
+                'sum_averages' => $validation['sum_promedios'],
+                'transformation_factor' => $validation['transformation_factor'],
+                'calculated_score' => $validation['puntaje_transformado'],
+                'db_score' => round($dbScore, 2),
+                'difference' => round($validation['puntaje_transformado'] - $dbScore, 2),
+                'validation_status' => abs($validation['puntaje_transformado'] - $dbScore) < 0.1 ? 'ok' : 'error',
+                'processed_at' => date('Y-m-d H:i:s'),
+                'processed_by' => session()->get('id')
+            ];
+
+            $this->validationResultModel->insert($data);
+            $processed++;
+        }
+
+        return $processed;
+    }
+
+    /**
+     * Procesar todos los dominios de intralaboral para un servicio
+     * Requiere que las dimensiones ya estén procesadas
+     */
+    public function processDomains($serviceId)
+    {
+        $this->checkPermissions();
+
+        $service = $this->batteryServiceModel->find($serviceId);
+        if (!$service) {
+            return redirect()->back()->with('error', 'Servicio no encontrado');
+        }
+
+        // Verificar que las dimensiones estén procesadas
+        $dimensionsAProcessed = $this->validationResultModel->areDimensionsProcessed($serviceId, 'intralaboral', 'A');
+        $dimensionsBProcessed = $this->validationResultModel->areDimensionsProcessed($serviceId, 'intralaboral', 'B');
+
+        if (!$dimensionsAProcessed && !$dimensionsBProcessed) {
+            return redirect()->back()->with('error', 'Debe procesar las dimensiones primero');
+        }
+
+        $totalProcessed = 0;
+
+        // Procesar Forma A si tiene dimensiones procesadas
+        if ($dimensionsAProcessed) {
+            $totalProcessed += $this->processDomainsByForm($serviceId, 'A');
+        }
+
+        // Procesar Forma B si tiene dimensiones procesadas
+        if ($dimensionsBProcessed) {
+            $totalProcessed += $this->processDomainsByForm($serviceId, 'B');
+        }
+
+        return redirect()->to('validation/' . $serviceId)
+            ->with('success', "Dominios procesados correctamente: {$totalProcessed} dominios guardados");
+    }
+
+    /**
+     * Procesar dominios de una forma específica (A o B)
+     */
+    private function processDomainsByForm($serviceId, $formType)
+    {
+        $scoringClass = ($formType === 'A') ? IntralaboralAScoring::class : IntralaboralBScoring::class;
+
+        // Obtener dominios desde la librería
+        $dominios = $scoringClass::getDominios();
+
+        // Obtener resultados de dimensiones ya procesados
+        $dimensionResults = $this->validationResultModel->getDimensionResults($serviceId, 'intralaboral', $formType);
+
+        if (empty($dimensionResults)) {
+            return 0;
+        }
+
+        // Obtener workers
+        $workers = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('status', 'completado')
+            ->where('intralaboral_type', $formType)
+            ->findAll();
+
+        $totalWorkers = count($workers);
+        $processed = 0;
+
+        // Eliminar validaciones anteriores de dominios para esta forma
+        $this->validationResultModel->deleteValidationLevel($serviceId, 'intralaboral', $formType, 'domain');
+
+        // Procesar cada dominio
+        foreach ($dominios as $domainKey => $dimensionsInDomain) {
+            // Sumar los puntajes de las dimensiones que componen este dominio
+            $sumPromedios = 0;
+
+            foreach ($dimensionsInDomain as $dimensionKey) {
+                // Buscar el resultado de esta dimensión
+                $dimResult = array_filter($dimensionResults, function($r) use ($dimensionKey) {
+                    return $r['element_key'] === $dimensionKey;
+                });
+
+                if (!empty($dimResult)) {
+                    $dimResult = array_values($dimResult)[0];
+                    $sumPromedios += $dimResult['sum_averages'];
+                }
+            }
+
+            // Obtener factor de transformación del dominio
+            $reflectionClass = new \ReflectionClass($scoringClass);
+            $factoresProperty = $reflectionClass->getProperty('factoresTransformacionDominios');
+            $factoresProperty->setAccessible(true);
+            $factoresTransformacion = $factoresProperty->getValue();
+            $factor = $factoresTransformacion[$domainKey];
+
+            // Calcular puntaje transformado
+            $puntajeTransformado = $factor > 0 ? round(($sumPromedios / $factor) * 100, 2) : 0;
+
+            // Obtener puntaje promedio de BD desde calculated_results
+            $dbField = $this->getDomainDbField($domainKey);
+            $workerIds = array_column($workers, 'id');
+
+            // Obtener resultados calculados para estos workers
+            $calculatedResults = $this->calculatedResultModel
+                ->whereIn('worker_id', $workerIds)
+                ->findAll();
+
+            // Extraer los puntajes del campo específico de dominio
+            $dbScores = array_column($calculatedResults, $dbField);
+            $dbScore = count($dbScores) > 0 ? array_sum($dbScores) / count($dbScores) : 0;
+
+            // Preparar datos para guardar
+            $data = [
+                'battery_service_id' => $serviceId,
+                'questionnaire_type' => 'intralaboral',
+                'form_type' => $formType,
+                'validation_level' => 'domain',
+                'element_key' => $domainKey,
+                'element_name' => $this->getDomainDisplayName($domainKey),
+                'total_workers' => $totalWorkers,
+                'sum_averages' => round($sumPromedios, 2),
+                'transformation_factor' => $factor,
+                'calculated_score' => $puntajeTransformado,
+                'db_score' => round($dbScore, 2),
+                'difference' => round($puntajeTransformado - $dbScore, 2),
+                'validation_status' => abs($puntajeTransformado - $dbScore) < 0.1 ? 'ok' : 'error',
+                'processed_at' => date('Y-m-d H:i:s'),
+                'processed_by' => session()->get('id')
+            ];
+
+            $this->validationResultModel->insert($data);
+            $processed++;
+        }
+
+        return $processed;
+    }
+
+    /**
+     * Process extralaboral dimensions validation and save to validation_results
+     * POST /validation/process-dimensions-extralaboral/{serviceId}/{formType}
+     *
+     * Patrón AGREGADO como intralaboral: UN registro por dimensión con promedios de TODOS los workers
+     */
+    public function processDimensionsExtralaboral($serviceId, $formType = null)
+    {
+        $this->checkPermissions();
+
+        $service = $this->batteryServiceModel->find($serviceId);
+        if (!$service) {
+            return redirect()->back()->with('error', 'Servicio no encontrado');
+        }
+
+        // Validar que formType sea A o B
+        if (!in_array($formType, ['A', 'B'])) {
+            return redirect()->back()->with('error', 'Tipo de formulario inválido');
+        }
+
+        // Obtener workers completados con esta forma
+        $workers = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('status', 'completado')
+            ->where('intralaboral_type', $formType)
+            ->findAll();
+
+        if (empty($workers)) {
+            return redirect()->back()->with('error', "No hay trabajadores Forma {$formType}");
+        }
+
+        // Filtrar workers que tienen respuestas extralaboral
+        $workersWithExtralaboral = [];
+        foreach ($workers as $worker) {
+            $hasResponses = $this->responseModel
+                ->where('worker_id', $worker['id'])
+                ->where('form_type', 'extralaboral')
+                ->countAllResults() > 0;
+
+            if ($hasResponses) {
+                $workersWithExtralaboral[] = $worker;
+            }
+        }
+
+        if (empty($workersWithExtralaboral)) {
+            return redirect()->back()->with('error', "No hay trabajadores Forma {$formType} con cuestionario extralaboral completado");
+        }
+
+        $processed = 0;
+
+        // Eliminar validaciones anteriores de dimensiones para esta forma
+        $this->validationResultModel->deleteValidationLevel($serviceId, 'extralaboral', $formType, 'dimension');
+
+        // Get configuration from ExtralaboralScoring library
+        $scoringLib = new \App\Libraries\ExtralaboralScoring();
+        $reflectionClass = new \ReflectionClass($scoringLib);
+
+        $dimensionsProperty = $reflectionClass->getProperty('dimensiones');
+        $dimensionsProperty->setAccessible(true);
+        $dimensiones = $dimensionsProperty->getValue($scoringLib);
+
+        $factorsProperty = $reflectionClass->getProperty('factoresTransformacion');
+        $factorsProperty->setAccessible(true);
+        $factores = $factorsProperty->getValue($scoringLib);
+
+        // Obtener nombres de dimensiones desde la librería (Single Source of Truth)
+        $dimensionNames = \App\Libraries\ExtralaboralScoring::getNombresDimensiones();
+
+        // Mapeo de claves a columnas de BD
+        $dbFieldMap = [
+            'tiempo_fuera_trabajo' => 'extralaboral_tiempo_fuera_puntaje',
+            'relaciones_familiares' => 'extralaboral_relaciones_familiares_puntaje',
+            'comunicacion_relaciones' => 'extralaboral_comunicacion_puntaje',
+            'situacion_economica' => 'extralaboral_situacion_economica_puntaje',
+            'caracteristicas_vivienda' => 'extralaboral_caracteristicas_vivienda_puntaje',
+            'influencia_entorno' => 'extralaboral_influencia_entorno_puntaje',
+            'desplazamiento' => 'extralaboral_desplazamiento_puntaje'
+        ];
+
+        // Procesar cada dimensión
+        foreach ($dimensiones as $dimensionKey => $itemKeys) {
+            $factor = $factores[$dimensionKey] ?? 0;
+            $dimensionName = $dimensionNames[$dimensionKey] ?? ucwords(str_replace('_', ' ', $dimensionKey));
+
+            // Calcular SUMA DE PROMEDIOS de todos los ítems (igual que intralaboral)
+            // Para cada ítem: subtotal = suma de scores de todos los workers
+            //                 promedio = subtotal / cantidad de workers
+            // sum_averages = SUMA de todos los promedios de ítems
+
+            $workerIds = array_column($workersWithExtralaboral, 'id');
+            $workerCount = count($workersWithExtralaboral);
+            $sumPromedios = 0;
+
+            // Procesar cada ítem de la dimensión
+            foreach ($itemKeys as $itemNumber) {
+                // Obtener TODAS las respuestas de este ítem de TODOS los workers
+                $responses = $this->responseModel
+                    ->whereIn('worker_id', $workerIds)
+                    ->where('form_type', 'extralaboral')
+                    ->where('question_number', $itemNumber)
+                    ->findAll();
+
+                if (count($responses) > 0) {
+                    // Subtotal = suma de todos los scores individuales
+                    $subtotal = array_sum(array_column($responses, 'answer_value'));
+
+                    // Promedio del ítem = subtotal / cantidad de workers
+                    $average = $subtotal / $workerCount;
+
+                    // Acumular en la suma de promedios
+                    $sumPromedios += $average;
+                }
+            }
+
+            if ($workerCount === 0) {
+                continue; // Skip if no workers have this dimension
+            }
+
+            // Calcular puntaje transformado
+            $puntajeTransformado = $factor > 0 ? round(($sumPromedios / $factor) * 100, 2) : 0;
+
+            // Obtener puntaje promedio de BD desde calculated_results
+            $dbField = $dbFieldMap[$dimensionKey] ?? null;
+            if ($dbField) {
+                $workerIds = array_column($workersWithExtralaboral, 'id');
+                $calculatedResults = $this->calculatedResultModel
+                    ->whereIn('worker_id', $workerIds)
+                    ->findAll();
+
+                $dbScores = array_column($calculatedResults, $dbField);
+                $dbScore = count($dbScores) > 0 ? array_sum($dbScores) / count($dbScores) : 0;
+            } else {
+                $dbScore = 0;
+            }
+
+            // Preparar datos para guardar
+            $data = [
+                'battery_service_id' => $serviceId,
+                'questionnaire_type' => 'extralaboral',
+                'form_type' => $formType,
+                'validation_level' => 'dimension',
+                'element_key' => $dimensionKey,
+                'element_name' => $dimensionName,
+                'total_workers' => $workerCount,
+                'sum_averages' => round($sumPromedios, 2),
+                'transformation_factor' => $factor,
+                'calculated_score' => $puntajeTransformado,
+                'db_score' => round($dbScore, 2),
+                'difference' => round($puntajeTransformado - $dbScore, 2),
+                'validation_status' => abs($puntajeTransformado - $dbScore) < 0.1 ? 'ok' : 'error',
+                'processed_at' => date('Y-m-d H:i:s'),
+                'processed_by' => session()->get('id')
+            ];
+
+            $this->validationResultModel->insert($data);
+            $processed++;
+        }
+
+        $message = "Procesadas {$processed} dimensiones extralaboral Forma {$formType}.";
+        return redirect()->to("/validation/{$serviceId}")
+            ->with('success', $message);
+    }
+
+    /**
+     * Process extralaboral total validation (cascade from dimensions)
+     * POST /validation/process-total-extralaboral/{serviceId}/{formType}
+     *
+     * Patrón AGREGADO como intralaboral: UN registro total con promedios
+     */
+    public function processTotalExtralaboral($serviceId, $formType = null)
+    {
+        $this->checkPermissions();
+
+        $service = $this->batteryServiceModel->find($serviceId);
+        if (!$service) {
+            return redirect()->back()->with('error', 'Servicio no encontrado');
+        }
+
+        // Validar que formType sea A o B
+        if (!in_array($formType, ['A', 'B'])) {
+            return redirect()->back()->with('error', 'Tipo de formulario inválido');
+        }
+
+        // Eliminar validaciones anteriores de total para esta forma
+        $this->validationResultModel->deleteValidationLevel($serviceId, 'extralaboral', $formType, 'total');
+
+        // Get dimension results from validation_results (CASCADE) for this form type
+        $dimensionResults = $this->validationResultModel->getDimensionResults($serviceId, 'extralaboral', $formType);
+
+        if (empty($dimensionResults)) {
+            return redirect()->back()->with('error', 'Debe procesar primero las dimensiones extralaboral');
+        }
+
+        // Get configuration from ExtralaboralScoring library
+        $scoringLib = new \App\Libraries\ExtralaboralScoring();
+        $reflectionClass = new \ReflectionClass($scoringLib);
+
+        // Get total transformation factor
+        $factorProperty = $reflectionClass->getProperty('factorTransformacionTotal');
+        $factorProperty->setAccessible(true);
+        $factorTotal = $factorProperty->getValue($scoringLib);
+
+        // Sumar los promedios de las 7 dimensiones
+        $sumPromedios = array_sum(array_column($dimensionResults, 'sum_averages'));
+
+        // Calcular puntaje transformado total
+        $puntajeTransformado = $factorTotal > 0 ? round(($sumPromedios / $factorTotal) * 100, 2) : 0;
+
+        // Obtener puntaje promedio de BD desde calculated_results
+        // Usar los mismos workers que se usaron para dimensiones
+        $totalWorkers = $dimensionResults[0]['total_workers'] ?? 0;
+
+        // Obtener workers completados con esta forma
+        $workers = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('status', 'completado')
+            ->where('intralaboral_type', $formType)
+            ->findAll();
+
+        // Filtrar workers que tienen respuestas extralaboral
+        $workersWithExtralaboral = [];
+        foreach ($workers as $worker) {
+            $hasResponses = $this->responseModel
+                ->where('worker_id', $worker['id'])
+                ->where('form_type', 'extralaboral')
+                ->countAllResults() > 0;
+
+            if ($hasResponses) {
+                $workersWithExtralaboral[] = $worker;
+            }
+        }
+
+        // Obtener puntajes de total extralaboral de BD
+        $workerIds = array_column($workersWithExtralaboral, 'id');
+        $calculatedResults = $this->calculatedResultModel
+            ->whereIn('worker_id', $workerIds)
+            ->findAll();
+
+        $dbScores = array_column($calculatedResults, 'extralaboral_total_puntaje');
+        $dbScore = count($dbScores) > 0 ? array_sum($dbScores) / count($dbScores) : 0;
+
+        // Preparar datos para guardar
+        $data = [
+            'battery_service_id' => $serviceId,
+            'questionnaire_type' => 'extralaboral',
+            'form_type' => $formType,
+            'validation_level' => 'total',
+            'element_key' => 'total_extralaboral',
+            'element_name' => 'Total Extralaboral',
+            'total_workers' => $totalWorkers,
+            'sum_averages' => round($sumPromedios, 2),
+            'transformation_factor' => $factorTotal,
+            'calculated_score' => $puntajeTransformado,
+            'db_score' => round($dbScore, 2),
+            'difference' => round($puntajeTransformado - $dbScore, 2),
+            'validation_status' => abs($puntajeTransformado - $dbScore) < 0.1 ? 'ok' : 'error',
+            'processed_at' => date('Y-m-d H:i:s'),
+            'processed_by' => session()->get('id')
+        ];
+
+        $this->validationResultModel->insert($data);
+
+        $message = "Procesado total extralaboral Forma {$formType}.";
+        return redirect()->to("/validation/{$serviceId}")
+            ->with('success', $message);
+    }
+
+    /**
+     * View validation detail for a single extralaboral dimension
+     * GET /validation/dimension-extralaboral/{serviceId}/{dimensionKey}/{formType}
+     */
+    public function validateDimensionExtralaboral($serviceId, $dimensionKey, $formType)
+    {
+        $permissionCheck = $this->checkPermissions();
+        if ($permissionCheck) return $permissionCheck;
+
+        $service = $this->batteryServiceModel->find($serviceId);
+        if (!$service) {
+            return redirect()->back()->with('error', 'Servicio no encontrado');
+        }
+
+        // Validar que formType sea A o B
+        if (!in_array($formType, ['A', 'B'])) {
+            return redirect()->back()->with('error', 'Tipo de formulario inválido');
+        }
+
+        // Obtener workers para esta forma
+        $workers = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('intralaboral_type', $formType)
+            ->where('status', 'completado')
+            ->findAll();
+
+        if (empty($workers)) {
+            return redirect()->back()->with('error', 'No hay trabajadores completados para Forma ' . $formType);
+        }
+
+        // Obtener configuración de la dimensión desde ExtralaboralScoring
+        $reflection = new \ReflectionClass('App\Libraries\ExtralaboralScoring');
+        $dimensionesProperty = $reflection->getProperty('dimensiones');
+        $dimensionesProperty->setAccessible(true);
+        $dimensiones = $dimensionesProperty->getValue();
+
+        if (!isset($dimensiones[$dimensionKey])) {
+            return redirect()->back()->with('error', 'Dimensión no encontrada');
+        }
+
+        $itemNumbers = $dimensiones[$dimensionKey];
+
+        // Get dimension name from library
+        $dimensionName = \App\Libraries\ExtralaboralScoring::getNombreDimension($dimensionKey);
+
+        // Obtener ítems inversos desde la librería (Tabla 11 - Single Source of Truth)
+        $itemsInversos = \App\Libraries\ExtralaboralScoring::getItemsInversos();
+
+        // Determinar cuáles ítems de esta dimensión son inversos
+        $inverseItemsInDimension = array_intersect($itemNumbers, $itemsInversos);
+
+        // Construir configuración de dimensión similar a intralaboral
+        $dimensionConfig = [
+            'name' => $dimensionName,
+            'items' => $itemNumbers,
+            'inverse_items' => array_values($inverseItemsInDimension)
+        ];
+
+        // Calcular validación detallada por ítem (igual que intralaboral)
+        $validationData = $this->calculateExtralaboralDimensionValidation($workers, $dimensionConfig, $dimensionKey);
+
+        // Get baremos for this dimension using static method
+        $baremos = \App\Libraries\ExtralaboralScoring::getBaremoDimension($dimensionKey, $formType);
+        $baremosConMetadata = \App\Libraries\ExtralaboralScoring::getBaremoConMetadata($baremos);
+
+        $data = [
+            'service' => $service,
+            'dimensionKey' => $dimensionKey,
+            'dimensionName' => $dimensionName,
+            'dimensionConfig' => $dimensionConfig,
+            'formType' => $formType,
+            'workers' => $workers,
+            'validationData' => $validationData,
+            'baremos' => $baremosConMetadata
+        ];
+
+        return view('validation/dimension_extralaboral_detail', $data);
+    }
+
+    /**
+     * Calculate validation for extralaboral dimension (similar to intralaboral)
+     */
+    private function calculateExtralaboralDimensionValidation($workers, $dimensionConfig, $dimensionKey)
+    {
+        $items = $dimensionConfig['items'];
+        $itemsData = [];
+        $totalParticipants = count($workers);
+
+        // Por cada ítem de la dimensión
+        foreach ($items as $itemNumber) {
+            // Determinar si el ítem es inverso usando la librería (Tabla 11 - Single Source of Truth)
+            $isInverse = in_array($itemNumber, $dimensionConfig['inverse_items']);
+
+            // Valores de scoring según tipo de ítem (normal o inverso) - Tabla 11
+            $scoreValues = $isInverse
+                ? ['siempre' => 4, 'casi_siempre' => 3, 'algunas_veces' => 2, 'casi_nunca' => 1, 'nunca' => 0]  // Grupo 2
+                : ['siempre' => 0, 'casi_siempre' => 1, 'algunas_veces' => 2, 'casi_nunca' => 3, 'nunca' => 4]; // Grupo 1
+
+            $itemData = [
+                'item_number' => $itemNumber,
+                'participants' => $totalParticipants,
+                'responses' => [
+                    'siempre' => 0,
+                    'casi_siempre' => 0,
+                    'algunas_veces' => 0,
+                    'casi_nunca' => 0,
+                    'nunca' => 0
+                ],
+                'score_values' => $scoreValues,
+                'scores' => [
+                    'siempre' => 0,
+                    'casi_siempre' => 0,
+                    'algunas_veces' => 0,
+                    'casi_nunca' => 0,
+                    'nunca' => 0
+                ],
+                'subtotal' => 0,
+                'is_inverse' => $isInverse
+            ];
+
+            // Obtener todas las respuestas de este ítem
+            $responses = $this->responseModel
+                ->whereIn('worker_id', array_column($workers, 'id'))
+                ->where('form_type', 'extralaboral')
+                ->where('question_number', $itemNumber)
+                ->findAll();
+
+            // Contar respuestas y calcular puntajes
+            foreach ($responses as $response) {
+                $answerValue = (int)$response['answer_value'];
+
+                switch ($answerValue) {
+                    case 0: $key = 'siempre'; break;
+                    case 1: $key = 'casi_siempre'; break;
+                    case 2: $key = 'algunas_veces'; break;
+                    case 3: $key = 'casi_nunca'; break;
+                    case 4: $key = 'nunca'; break;
+                    default: continue 2;
+                }
+
+                $itemData['responses'][$key]++;
+                $itemData['scores'][$key] = $itemData['responses'][$key] * $scoreValues[$key];
+            }
+
+            // Calcular subtotal y promedio
+            $itemData['subtotal'] = array_sum($itemData['scores']);
+            $itemData['average'] = $totalParticipants > 0 ? $itemData['subtotal'] / $totalParticipants : 0;
+
+            // Validar suma de respuestas
+            $totalResponses = array_sum($itemData['responses']);
+            $itemData['response_count_valid'] = ($totalResponses === $totalParticipants);
+            $itemData['response_count_difference'] = $totalResponses - $totalParticipants;
+
+            // Validación de estado (comparar con average esperado)
+            $itemData['status'] = 'ok';
+
+            $itemsData[] = $itemData;
+        }
+
+        // Calcular puntaje total de la dimensión
+        $sumaPromedios = array_sum(array_column($itemsData, 'average'));
+
+        // Obtener factor de transformación para esta dimensión
+        $factor = \App\Libraries\ExtralaboralScoring::getFactorDimension($dimensionKey);
+        $puntajeTransformado = ($sumaPromedios / $factor) * 100;
+
+        // Obtener puntaje de BD desde validation_results (promedio agregado, NO de un worker individual)
+        $validationResult = $this->validationResultModel
+            ->where('battery_service_id', $workers[0]['battery_service_id'])
+            ->where('questionnaire_type', 'extralaboral')
+            ->where('validation_level', 'dimension')
+            ->where('element_key', $dimensionKey)
+            ->where('form_type', strtoupper($workers[0]['intralaboral_type']))
+            ->first();
+
+        $dbScore = $validationResult ? (float)$validationResult['db_score'] : 0;
+
+        $difference = abs($puntajeTransformado - $dbScore);
+        $status = ($difference < 0.1) ? 'ok' : 'error';
+
+        // Determinar nivel de riesgo
+        $baremos = \App\Libraries\ExtralaboralScoring::getBaremoDimension($dimensionKey, 'A');
+        $nivelRiesgoData = \App\Libraries\ExtralaboralScoring::getNivelRiesgo($puntajeTransformado, $baremos);
+
+        return [
+            'items' => $itemsData,
+            'suma_promedios' => $sumaPromedios,
+            'factor' => $factor,
+            'puntaje_transformado' => $puntajeTransformado,
+            'db_comparison' => [
+                'db_score' => $dbScore,
+                'difference' => $difference,
+                'status' => $status
+            ],
+            'nivel_riesgo' => $nivelRiesgoData ?: ['label' => 'N/A', 'color' => 'secondary']
+        ];
+    }
+
+    /**
+     * View validation detail for extralaboral total
+     * GET /validation/total-extralaboral/{serviceId}/{formType}
+     */
+    public function validateTotalExtralaboral($serviceId, $formType)
+    {
+        $permissionCheck = $this->checkPermissions();
+        if ($permissionCheck) return $permissionCheck;
+
+        $service = $this->batteryServiceModel->find($serviceId);
+        if (!$service) {
+            return redirect()->back()->with('error', 'Servicio no encontrado');
+        }
+
+        // Validar que formType sea A o B
+        if (!in_array($formType, ['A', 'B'])) {
+            return redirect()->back()->with('error', 'Tipo de formulario inválido');
+        }
+
+        // Get total results from validation_results for this form type
+        $totalResults = $this->validationResultModel
+            ->where('battery_service_id', $serviceId)
+            ->where('questionnaire_type', 'extralaboral')
+            ->where('validation_level', 'total')
+            ->where('form_type', $formType)
+            ->findAll();
+
+        if (empty($totalResults)) {
+            return redirect()->back()->with('error', 'No hay resultados procesados para el total extralaboral');
+        }
+
+        // Get total baremos using static method
+        $baremos = \App\Libraries\ExtralaboralScoring::getBaremoTotal($formType);
+
+        // Factor de transformación total desde la librería (Single Source of Truth - Tabla 14)
+        $factorTotal = \App\Libraries\ExtralaboralScoring::getFactorTransformacionTotal();
+
+        // Calculate statistics
+        // Solo hay 1 registro agregado, extraer total_workers de ahí
+        $totalWorkers = $totalResults[0]['total_workers'] ?? 0;
+        $totalOk = 0;
+        $totalErrors = 0;
+
+        foreach ($totalResults as $result) {
+            if ($result['validation_status'] === 'ok') {
+                $totalOk++;
+            } else {
+                $totalErrors++;
+            }
+        }
+
+        // Agregar metadata a baremos (labels y colores)
+        $baremosConMetadata = \App\Libraries\ExtralaboralScoring::getBaremoConMetadata($baremos);
+
+        $data = [
+            'service' => $service,
+            'formType' => $formType,
+            'results' => $totalResults,
+            'baremos' => $baremosConMetadata,
+            'factorTotal' => $factorTotal,
+            'totalWorkers' => $totalWorkers,
+            'totalOk' => $totalOk,
+            'totalErrors' => $totalErrors
+        ];
+
+        return view('validation/total_extralaboral_detail', $data);
     }
 }

@@ -98,6 +98,52 @@ class ValidationController extends BaseController
         $extralaboralErrorsCountA = $this->validationResultModel->countErrors($serviceId, 'extralaboral', 'A');
         $extralaboralErrorsCountB = $this->validationResultModel->countErrors($serviceId, 'extralaboral', 'B');
 
+        // Obtener dimensiones con error para mostrar en detalle
+        $extralaboralErrorsA = [];
+        $extralaboralErrorsB = [];
+        if ($extralaboralErrorsCountA > 0) {
+            $extralaboralErrorsA = $this->validationResultModel
+                ->where('battery_service_id', $serviceId)
+                ->where('questionnaire_type', 'extralaboral')
+                ->where('form_type', 'A')
+                ->where('validation_status', 'error')
+                ->findAll();
+        }
+        if ($extralaboralErrorsCountB > 0) {
+            $extralaboralErrorsB = $this->validationResultModel
+                ->where('battery_service_id', $serviceId)
+                ->where('questionnaire_type', 'extralaboral')
+                ->where('form_type', 'B')
+                ->where('validation_status', 'error')
+                ->findAll();
+        }
+
+        // Verificar estado de procesamiento estrés
+        $estresTotalProcessedA = $this->validationResultModel->areTotalsProcessed($serviceId, 'estres', 'A');
+        $estresTotalProcessedB = $this->validationResultModel->areTotalsProcessed($serviceId, 'estres', 'B');
+        $estresErrorsCountA = $this->validationResultModel->countErrors($serviceId, 'estres', 'A');
+        $estresErrorsCountB = $this->validationResultModel->countErrors($serviceId, 'estres', 'B');
+
+        // Obtener registros con error para mostrar en detalle
+        $estresErrorsA = [];
+        $estresErrorsB = [];
+        if ($estresErrorsCountA > 0) {
+            $estresErrorsA = $this->validationResultModel
+                ->where('battery_service_id', $serviceId)
+                ->where('questionnaire_type', 'estres')
+                ->where('form_type', 'A')
+                ->where('validation_status', 'error')
+                ->findAll();
+        }
+        if ($estresErrorsCountB > 0) {
+            $estresErrorsB = $this->validationResultModel
+                ->where('battery_service_id', $serviceId)
+                ->where('questionnaire_type', 'estres')
+                ->where('form_type', 'B')
+                ->where('validation_status', 'error')
+                ->findAll();
+        }
+
         $data = [
             'title' => 'Validación de Resultados - ' . $service['service_name'],
             'service' => $service,
@@ -113,7 +159,15 @@ class ValidationController extends BaseController
             'extralaboralTotalProcessedA' => $extralaboralTotalProcessedA,
             'extralaboralTotalProcessedB' => $extralaboralTotalProcessedB,
             'extralaboralErrorsCountA' => $extralaboralErrorsCountA,
-            'extralaboralErrorsCountB' => $extralaboralErrorsCountB
+            'extralaboralErrorsCountB' => $extralaboralErrorsCountB,
+            'extralaboralErrorsA' => $extralaboralErrorsA,
+            'extralaboralErrorsB' => $extralaboralErrorsB,
+            'estresTotalProcessedA' => $estresTotalProcessedA,
+            'estresTotalProcessedB' => $estresTotalProcessedB,
+            'estresErrorsCountA' => $estresErrorsCountA,
+            'estresErrorsCountB' => $estresErrorsCountB,
+            'estresErrorsA' => $estresErrorsA,
+            'estresErrorsB' => $estresErrorsB
         ];
 
         return view('validation/index', $data);
@@ -1458,6 +1512,9 @@ class ValidationController extends BaseController
             $workerCount = count($workersWithExtralaboral);
             $sumPromedios = 0;
 
+            // Obtener ítems inversos desde la librería (Tabla 11 - Single Source of Truth)
+            $itemsInversos = \App\Libraries\ExtralaboralScoring::getItemsInversos();
+
             // Procesar cada ítem de la dimensión
             foreach ($itemKeys as $itemNumber) {
                 // Obtener TODAS las respuestas de este ítem de TODOS los workers
@@ -1468,8 +1525,17 @@ class ValidationController extends BaseController
                     ->findAll();
 
                 if (count($responses) > 0) {
-                    // Subtotal = suma de todos los scores individuales
-                    $subtotal = array_sum(array_column($responses, 'answer_value'));
+                    // Determinar si el ítem es inverso (Grupo 2)
+                    $isInverse = in_array($itemNumber, $itemsInversos);
+
+                    // Subtotal = suma de todos los scores individuales CON inversión si aplica
+                    $subtotal = 0;
+                    foreach ($responses as $resp) {
+                        $rawValue = $resp['answer_value'];
+                        // Aplicar inversión si el ítem es Grupo 2 (Tabla 11)
+                        $scoredValue = $isInverse ? (4 - $rawValue) : $rawValue;
+                        $subtotal += $scoredValue;
+                    }
 
                     // Promedio del ítem = subtotal / cantidad de workers
                     $average = $subtotal / $workerCount;
@@ -1558,14 +1624,8 @@ class ValidationController extends BaseController
             return redirect()->back()->with('error', 'Debe procesar primero las dimensiones extralaboral');
         }
 
-        // Get configuration from ExtralaboralScoring library
-        $scoringLib = new \App\Libraries\ExtralaboralScoring();
-        $reflectionClass = new \ReflectionClass($scoringLib);
-
-        // Get total transformation factor
-        $factorProperty = $reflectionClass->getProperty('factorTransformacionTotal');
-        $factorProperty->setAccessible(true);
-        $factorTotal = $factorProperty->getValue($scoringLib);
+        // Get total transformation factor from library (Single Source of Truth - Tabla 14)
+        $factorTotal = \App\Libraries\ExtralaboralScoring::getFactorTransformacionTotal();
 
         // Sumar los promedios de las 7 dimensiones
         $sumPromedios = array_sum(array_column($dimensionResults, 'sum_averages'));
@@ -1630,6 +1690,184 @@ class ValidationController extends BaseController
         $message = "Procesado total extralaboral Forma {$formType}.";
         return redirect()->to("/validation/{$serviceId}")
             ->with('success', $message);
+    }
+
+    /**
+     * Process stress (estrés) total validation
+     * POST /validation/process-estres/{serviceId}/{formType}
+     *
+     * Patrón AGREGADO: UN registro total con sum_averages de TODOS los ítems (1-31)
+     * Sin dimensiones intermedias (estrés no tiene dimensiones, solo total)
+     */
+    public function processEstres($serviceId, $formType = null)
+    {
+        $this->checkPermissions();
+
+        $service = $this->batteryServiceModel->find($serviceId);
+        if (!$service) {
+            return redirect()->back()->with('error', 'Servicio no encontrado');
+        }
+
+        // Validar que formType sea A o B
+        if (!in_array($formType, ['A', 'B'])) {
+            return redirect()->back()->with('error', 'Tipo de formulario inválido');
+        }
+
+        // Eliminar validaciones anteriores de estrés para esta forma
+        $this->validationResultModel->deleteValidationLevel($serviceId, 'estres', $formType, 'total');
+
+        // Obtener workers completados con esta forma
+        $workers = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('status', 'completado')
+            ->where('intralaboral_type', $formType)
+            ->findAll();
+
+        if (empty($workers)) {
+            return redirect()->back()->with('error', "No hay trabajadores Forma {$formType}");
+        }
+
+        // Filtrar workers que tienen respuestas de estrés
+        $workersWithEstres = [];
+        foreach ($workers as $worker) {
+            $hasResponses = $this->responseModel
+                ->where('worker_id', $worker['id'])
+                ->where('form_type', 'estres')
+                ->countAllResults() > 0;
+
+            if ($hasResponses) {
+                $workersWithEstres[] = $worker;
+            }
+        }
+
+        if (empty($workersWithEstres)) {
+            return redirect()->back()->with('error', "No hay trabajadores Forma {$formType} con cuestionario de estrés completado");
+        }
+
+        // Calcular SUMA DE PROMEDIOS de TODOS los ítems (1-31)
+        // Mismo patrón que extralaboral: para cada ítem, calcular promedio de todos los workers
+        $workerIds = array_column($workersWithEstres, 'id');
+        $workerCount = count($workersWithEstres);
+        $sumPromedios = 0;
+
+        // Obtener todos los ítems del cuestionario (1-31)
+        $todosLosItems = \App\Libraries\EstresScoring::getTodosLosItems();
+
+        // Procesar cada ítem (1-31)
+        foreach ($todosLosItems as $itemNumber) {
+            // Obtener TODAS las respuestas de este ítem de TODOS los workers
+            $responses = $this->responseModel
+                ->whereIn('worker_id', $workerIds)
+                ->where('form_type', 'estres')
+                ->where('question_number', $itemNumber)
+                ->findAll();
+
+            if (count($responses) > 0) {
+                // Subtotal = suma de scores calificados según grupo del ítem
+                $subtotal = 0;
+                foreach ($responses as $resp) {
+                    $rawValue = $resp['answer_value'];
+                    // Calificar según grupo (Grupo 1: 9,6,3,0 | Grupo 2: 6,4,2,0 | Grupo 3: 3,2,1,0)
+                    $scoredValue = \App\Libraries\EstresScoring::calificarItemNumerico($itemNumber, $rawValue);
+                    $subtotal += $scoredValue;
+                }
+
+                $average = $subtotal / $workerCount;
+                $sumPromedios += $average;
+            }
+        }
+
+        // Transformar con factor 61.16 (Tabla 4)
+        $factorTotal = \App\Libraries\EstresScoring::getFactorTransformacion();
+        $puntajeTransformado = $factorTotal > 0 ? round(($sumPromedios / $factorTotal) * 100, 2) : 0;
+
+        // Obtener puntaje promedio de BD desde calculated_results
+        $calculatedResults = $this->calculatedResultModel
+            ->whereIn('worker_id', $workerIds)
+            ->findAll();
+
+        $dbScores = array_column($calculatedResults, 'estres_total_puntaje');
+        $dbScore = count($dbScores) > 0 ? array_sum($dbScores) / count($dbScores) : 0;
+
+        // Preparar datos para guardar
+        $data = [
+            'battery_service_id' => $serviceId,
+            'questionnaire_type' => 'estres',
+            'form_type' => $formType,
+            'validation_level' => 'total',
+            'element_key' => 'total_estres',
+            'element_name' => 'Total Estrés',
+            'total_workers' => $workerCount,
+            'sum_averages' => round($sumPromedios, 2),
+            'transformation_factor' => $factorTotal,
+            'calculated_score' => $puntajeTransformado,
+            'db_score' => round($dbScore, 2),
+            'difference' => round($puntajeTransformado - $dbScore, 2),
+            'validation_status' => abs($puntajeTransformado - $dbScore) < 0.1 ? 'ok' : 'error',
+            'processed_at' => date('Y-m-d H:i:s'),
+            'processed_by' => session()->get('id')
+        ];
+
+        $this->validationResultModel->insert($data);
+
+        $message = "Procesado total de estrés Forma {$formType}.";
+        return redirect()->to("/validation/{$serviceId}")
+            ->with('success', $message);
+    }
+
+    /**
+     * View total estres validation detail
+     * GET /validation/total-estres/{serviceId}/{formType}
+     */
+    public function validateTotalEstres($serviceId, $formType)
+    {
+        $permissionCheck = $this->checkPermissions();
+        if ($permissionCheck) return $permissionCheck;
+
+        // Get service
+        $service = $this->batteryServiceModel
+            ->select('battery_services.*, companies.name as company_name')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->find($serviceId);
+
+        if (!$service) {
+            return redirect()->to('/battery-services')->with('error', 'Servicio no encontrado');
+        }
+
+        // Get validation result
+        $result = $this->validationResultModel->getValidationResult(
+            $serviceId,
+            'estres',
+            $formType,
+            'total',
+            'total_estres'
+        );
+
+        if (!$result) {
+            return redirect()->back()->with('error', 'Debe procesar primero el total de estrés');
+        }
+
+        // Get workers count
+        $totalWorkers = $result['total_workers'];
+
+        // Get baremos
+        $tipoTrabajador = \App\Libraries\EstresScoring::getTipoTrabajadorPorForma($formType);
+        $baremos = \App\Libraries\EstresScoring::getBaremos($tipoTrabajador);
+
+        // Get factor
+        $factorTotal = \App\Libraries\EstresScoring::getFactorTransformacion();
+
+        $data = [
+            'title' => 'Validación Total Estrés - Forma ' . $formType,
+            'service' => $service,
+            'formType' => $formType,
+            'result' => $result,
+            'totalWorkers' => $totalWorkers,
+            'baremos' => $baremos,
+            'factorTotal' => $factorTotal
+        ];
+
+        return view('validation/total_estres_detail', $data);
     }
 
     /**
@@ -1867,6 +2105,14 @@ class ValidationController extends BaseController
         // Factor de transformación total desde la librería (Single Source of Truth - Tabla 14)
         $factorTotal = \App\Libraries\ExtralaboralScoring::getFactorTransformacionTotal();
 
+        // Get dimension results from validation_results (para mostrar el desglose)
+        $dimensionResults = $this->validationResultModel
+            ->where('battery_service_id', $serviceId)
+            ->where('questionnaire_type', 'extralaboral')
+            ->where('validation_level', 'dimension')
+            ->where('form_type', $formType)
+            ->findAll();
+
         // Calculate statistics
         // Solo hay 1 registro agregado, extraer total_workers de ahí
         $totalWorkers = $totalResults[0]['total_workers'] ?? 0;
@@ -1888,6 +2134,7 @@ class ValidationController extends BaseController
             'service' => $service,
             'formType' => $formType,
             'results' => $totalResults,
+            'dimensions' => $dimensionResults,
             'baremos' => $baremosConMetadata,
             'factorTotal' => $factorTotal,
             'totalWorkers' => $totalWorkers,

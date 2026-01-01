@@ -1703,31 +1703,48 @@ class ValidationController extends BaseController
     {
         $this->checkPermissions();
 
+        log_message('info', '========================================');
+        log_message('info', "INICIO PROCESAMIENTO ESTRÉS - Servicio: {$serviceId}, Forma: {$formType}");
+        log_message('info', '========================================');
+
         $service = $this->batteryServiceModel->find($serviceId);
         if (!$service) {
+            log_message('error', "Servicio no encontrado: {$serviceId}");
             return redirect()->back()->with('error', 'Servicio no encontrado');
         }
 
+        log_message('info', "Servicio encontrado: {$service['name']}");
+
         // Validar que formType sea A o B
         if (!in_array($formType, ['A', 'B'])) {
+            log_message('error', "Tipo de formulario inválido: {$formType}");
             return redirect()->back()->with('error', 'Tipo de formulario inválido');
         }
 
+        log_message('info', "Tipo de formulario validado: Forma {$formType}");
+
         // Eliminar validaciones anteriores de estrés para esta forma
-        $this->validationResultModel->deleteValidationLevel($serviceId, 'estres', $formType, 'total');
+        log_message('info', "Eliminando validaciones anteriores para Forma {$formType}...");
+        $this->validationResultModel->deletePreviousValidations($serviceId, 'estres', $formType, 'total');
+        log_message('info', "Validaciones anteriores eliminadas");
 
         // Obtener workers completados con esta forma
+        log_message('info', "Buscando workers con status=completado y intralaboral_type={$formType}...");
         $workers = $this->workerModel
             ->where('battery_service_id', $serviceId)
             ->where('status', 'completado')
             ->where('intralaboral_type', $formType)
             ->findAll();
 
+        log_message('info', "Workers encontrados (completados): " . count($workers));
+
         if (empty($workers)) {
+            log_message('error', "No hay trabajadores Forma {$formType}");
             return redirect()->back()->with('error', "No hay trabajadores Forma {$formType}");
         }
 
         // Filtrar workers que tienen respuestas de estrés
+        log_message('info', "Filtrando workers con respuestas de estrés...");
         $workersWithEstres = [];
         foreach ($workers as $worker) {
             $hasResponses = $this->responseModel
@@ -1737,57 +1754,157 @@ class ValidationController extends BaseController
 
             if ($hasResponses) {
                 $workersWithEstres[] = $worker;
+                log_message('debug', "  Worker {$worker['id']} ({$worker['name']}) - TIENE respuestas estrés");
+            } else {
+                log_message('debug', "  Worker {$worker['id']} ({$worker['name']}) - NO tiene respuestas estrés");
             }
         }
 
+        log_message('info', "Workers con respuestas de estrés: " . count($workersWithEstres));
+
         if (empty($workersWithEstres)) {
+            log_message('error', "No hay trabajadores Forma {$formType} con cuestionario de estrés completado");
             return redirect()->back()->with('error', "No hay trabajadores Forma {$formType} con cuestionario de estrés completado");
         }
 
-        // Calcular SUMA DE PROMEDIOS de TODOS los ítems (1-31)
-        // Mismo patrón que extralaboral: para cada ítem, calcular promedio de todos los workers
+        // Calcular PUNTAJE BRUTO según Tabla 4 - Paso 3
+        // CRÍTICO CORRECCIÓN: El factor se aplica al PROMEDIO del bloque, NO a la suma
+        // Paso 3 correcto:
+        // - Promedio ítems 1-8 × 4
+        // - Promedio ítems 9-12 × 3
+        // - Promedio ítems 13-22 × 2
+        // - Promedio ítems 23-31 × 1
         $workerIds = array_column($workersWithEstres, 'id');
         $workerCount = count($workersWithEstres);
-        $sumPromedios = 0;
 
-        // Obtener todos los ítems del cuestionario (1-31)
-        $todosLosItems = \App\Libraries\EstresScoring::getTodosLosItems();
+        log_message('info', '========================================');
+        log_message('info', "CÁLCULO DE PUNTAJE BRUTO");
+        log_message('info', "Worker IDs: [" . implode(', ', $workerIds) . "]");
+        log_message('info', "Total workers para promedios: {$workerCount}");
+        log_message('info', '========================================');
 
-        // Procesar cada ítem (1-31)
-        foreach ($todosLosItems as $itemNumber) {
-            // Obtener TODAS las respuestas de este ítem de TODOS los workers
-            $responses = $this->responseModel
-                ->whereIn('worker_id', $workerIds)
-                ->where('form_type', 'estres')
-                ->where('question_number', $itemNumber)
-                ->findAll();
+        // Obtener rangos con factores de multiplicación desde Single Source of Truth
+        $rangosMultiplicacion = \App\Libraries\EstresScoring::getRangosMultiplicacion();
 
-            if (count($responses) > 0) {
-                // Subtotal = suma de scores calificados según grupo del ítem
-                $subtotal = 0;
-                foreach ($responses as $resp) {
-                    $rawValue = $resp['answer_value'];
-                    // Calificar según grupo (Grupo 1: 9,6,3,0 | Grupo 2: 6,4,2,0 | Grupo 3: 3,2,1,0)
-                    $scoredValue = \App\Libraries\EstresScoring::calificarItemNumerico($itemNumber, $rawValue);
-                    $subtotal += $scoredValue;
+        // Inicializar suma total bruta
+        $puntajeBruto = 0;
+        $bloqueNum = 1;
+
+        // Procesar cada bloque con su factor de multiplicación
+        foreach ($rangosMultiplicacion as $rango) {
+            $items = $rango['items'];
+            $factor = $rango['factor'];
+            $sumaPromediosBloque = 0;
+            $countItems = count($items);
+
+            $itemsRange = $items[0] . '-' . end($items);
+            log_message('info', "--- BLOQUE {$bloqueNum}: Ítems {$itemsRange} (Factor ×{$factor}) ---");
+
+            // Calcular promedio de cada ítem en este bloque
+            foreach ($items as $itemNumber) {
+                // Obtener TODAS las respuestas de este ítem de TODOS los workers
+                $responses = $this->responseModel
+                    ->whereIn('worker_id', $workerIds)
+                    ->where('form_type', 'estres')
+                    ->where('question_number', $itemNumber)
+                    ->findAll();
+
+                if (count($responses) > 0) {
+                    // Subtotal = suma de scores calificados según grupo del ítem
+                    $subtotal = 0;
+                    $rawValues = [];
+                    $scoredValues = [];
+
+                    foreach ($responses as $resp) {
+                        $rawValue = $resp['answer_value'];
+                        // Calificar según grupo (Grupo 1: 9,6,3,0 | Grupo 2: 6,4,2,0 | Grupo 3: 3,2,1,0)
+                        $scoredValue = \App\Libraries\EstresScoring::calificarItemNumerico($itemNumber, $rawValue);
+                        $subtotal += $scoredValue;
+                        $rawValues[] = $rawValue;
+                        $scoredValues[] = $scoredValue;
+                    }
+
+                    $average = $subtotal / $workerCount;
+                    $sumaPromediosBloque += $average;
+
+                    // Log detallado solo para primeros 3 ítems de cada bloque
+                    if (($itemNumber - $items[0]) < 3) {
+                        log_message('debug', "  Ítem {$itemNumber}: responses=" . count($responses) . ", subtotal={$subtotal}, promedio=" . number_format($average, 4));
+                        log_message('debug', "    Raw values sample (primeros 5): [" . implode(', ', array_slice($rawValues, 0, 5)) . "]");
+                        log_message('debug', "    Scored values sample (primeros 5): [" . implode(', ', array_slice($scoredValues, 0, 5)) . "]");
+                    }
+                } else {
+                    log_message('warning', "  Ítem {$itemNumber}: NO HAY RESPUESTAS");
                 }
-
-                $average = $subtotal / $workerCount;
-                $sumPromedios += $average;
             }
+
+            // CORRECCIÓN: Calcular PROMEDIO del bloque y luego multiplicar por el factor
+            $promedioBloque = $countItems > 0 ? $sumaPromediosBloque / $countItems : 0;
+            $resultadoBloque = $promedioBloque * $factor;
+            $puntajeBruto += $resultadoBloque;
+
+            log_message('info', "  Suma de promedios: " . number_format($sumaPromediosBloque, 4));
+            log_message('info', "  Cantidad ítems: {$countItems}");
+            log_message('info', "  Promedio del bloque: " . number_format($promedioBloque, 4));
+            log_message('info', "  Promedio × Factor: " . number_format($promedioBloque, 4) . " × {$factor} = " . number_format($resultadoBloque, 4));
+            log_message('info', "  Puntaje bruto acumulado: " . number_format($puntajeBruto, 4));
+
+            $bloqueNum++;
         }
 
-        // Transformar con factor 61.16 (Tabla 4)
+        log_message('info', '========================================');
+        log_message('info', "PUNTAJE BRUTO FINAL: " . number_format($puntajeBruto, 4));
+        log_message('info', '========================================');
+
+        // Transformar con factor 61.16 (Tabla 4 - Paso 4)
+        // Fórmula: (Puntaje Bruto / Factor) × 100
         $factorTotal = \App\Libraries\EstresScoring::getFactorTransformacion();
-        $puntajeTransformado = $factorTotal > 0 ? round(($sumPromedios / $factorTotal) * 100, 2) : 0;
+        $puntajeTransformado = $factorTotal > 0 ? round(($puntajeBruto / $factorTotal) * 100, 2) : 0;
+
+        log_message('info', '========================================');
+        log_message('info', "TRANSFORMACIÓN (Tabla 4 - Paso 4)");
+        log_message('info', "Factor de transformación: {$factorTotal}");
+        log_message('info', "Fórmula: ({$puntajeBruto} / {$factorTotal}) × 100");
+        log_message('info', "Puntaje transformado calculado: {$puntajeTransformado}");
+        log_message('info', '========================================');
 
         // Obtener puntaje promedio de BD desde calculated_results
+        log_message('info', "Obteniendo puntajes de BD desde calculated_results...");
         $calculatedResults = $this->calculatedResultModel
             ->whereIn('worker_id', $workerIds)
             ->findAll();
 
+        log_message('info', "Registros encontrados en calculated_results: " . count($calculatedResults));
+
         $dbScores = array_column($calculatedResults, 'estres_total_puntaje');
-        $dbScore = count($dbScores) > 0 ? array_sum($dbScores) / count($dbScores) : 0;
+        $dbScoresFiltered = array_filter($dbScores, function($score) {
+            return $score !== null && $score !== '';
+        });
+
+        log_message('info', "Puntajes NO NULL: " . count($dbScoresFiltered));
+
+        if (count($dbScoresFiltered) > 0) {
+            $dbScore = array_sum($dbScoresFiltered) / count($dbScoresFiltered);
+            log_message('debug', "Primeros 10 puntajes de BD: [" . implode(', ', array_slice($dbScoresFiltered, 0, 10)) . "]");
+            log_message('info', "Suma de puntajes BD: " . array_sum($dbScoresFiltered));
+            log_message('info', "Cantidad para promedio: " . count($dbScoresFiltered));
+        } else {
+            $dbScore = 0;
+            log_message('warning', "NO HAY PUNTAJES EN BD");
+        }
+
+        log_message('info', "Promedio de puntajes BD: " . number_format($dbScore, 2));
+
+        $difference = round($puntajeTransformado - $dbScore, 2);
+        $validationStatus = abs($difference) < 0.1 ? 'ok' : 'error';
+
+        log_message('info', '========================================');
+        log_message('info', "COMPARACIÓN FINAL");
+        log_message('info', "Puntaje calculado (Validador): {$puntajeTransformado}");
+        log_message('info', "Puntaje promedio BD (Aplicativo): " . number_format($dbScore, 2));
+        log_message('info', "Diferencia: {$difference}");
+        log_message('info', "Estado: {$validationStatus}");
+        log_message('info', '========================================');
 
         // Preparar datos para guardar
         $data = [
@@ -1798,17 +1915,31 @@ class ValidationController extends BaseController
             'element_key' => 'total_estres',
             'element_name' => 'Total Estrés',
             'total_workers' => $workerCount,
-            'sum_averages' => round($sumPromedios, 2),
+            'sum_averages' => round($puntajeBruto, 2), // Puntaje Bruto (con factores aplicados)
             'transformation_factor' => $factorTotal,
             'calculated_score' => $puntajeTransformado,
             'db_score' => round($dbScore, 2),
-            'difference' => round($puntajeTransformado - $dbScore, 2),
-            'validation_status' => abs($puntajeTransformado - $dbScore) < 0.1 ? 'ok' : 'error',
+            'difference' => $difference,
+            'validation_status' => $validationStatus,
             'processed_at' => date('Y-m-d H:i:s'),
             'processed_by' => session()->get('id')
         ];
 
-        $this->validationResultModel->insert($data);
+        log_message('info', "Guardando en validation_results...");
+        log_message('debug', "Datos a guardar: " . json_encode($data, JSON_PRETTY_PRINT));
+
+        $insertId = $this->validationResultModel->insert($data);
+
+        if ($insertId) {
+            log_message('info', "✓ Registro insertado con ID: {$insertId}");
+        } else {
+            log_message('error', "✗ Error al insertar en validation_results");
+            log_message('error', "Errores del modelo: " . json_encode($this->validationResultModel->errors()));
+        }
+
+        log_message('info', '========================================');
+        log_message('info', "FIN PROCESAMIENTO ESTRÉS - Forma {$formType}");
+        log_message('info', '========================================');
 
         $message = "Procesado total de estrés Forma {$formType}.";
         return redirect()->to("/validation/{$serviceId}")
@@ -1818,6 +1949,8 @@ class ValidationController extends BaseController
     /**
      * View total estres validation detail
      * GET /validation/total-estres/{serviceId}/{formType}
+     *
+     * NÚCLEO VALIDADOR - Recalcula detalles por ítem desde responses
      */
     public function validateTotalEstres($serviceId, $formType)
     {
@@ -1834,7 +1967,7 @@ class ValidationController extends BaseController
             return redirect()->to('/battery-services')->with('error', 'Servicio no encontrado');
         }
 
-        // Get validation result
+        // Get validation result total
         $result = $this->validationResultModel->getValidationResult(
             $serviceId,
             'estres',
@@ -1847,24 +1980,182 @@ class ValidationController extends BaseController
             return redirect()->back()->with('error', 'Debe procesar primero el total de estrés');
         }
 
-        // Get workers count
-        $totalWorkers = $result['total_workers'];
+        // Get workers with stress responses for this form
+        $workers = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('status', 'completado')
+            ->where('intralaboral_type', $formType)
+            ->findAll();
 
-        // Get baremos
+        // Filter workers that have stress responses
+        $workersWithEstres = [];
+        foreach ($workers as $worker) {
+            $hasEstres = $this->responseModel
+                ->where('worker_id', $worker['id'])
+                ->where('form_type', 'estres')
+                ->countAllResults() > 0;
+
+            if ($hasEstres) {
+                $workersWithEstres[] = $worker;
+            }
+        }
+
+        $workerIds = array_column($workersWithEstres, 'id');
+        $workerCount = count($workersWithEstres);
+
+        // RECALCULAR DETALLES POR ÍTEM (Núcleo Validador)
+        $todosLosItems = \App\Libraries\EstresScoring::getTodosLosItems();
+        $itemsData = [];
+
+        foreach ($todosLosItems as $itemNumber) {
+            // Obtener TODAS las respuestas para este ítem
+            $responses = $this->responseModel
+                ->whereIn('worker_id', $workerIds)
+                ->where('form_type', 'estres')
+                ->where('question_number', $itemNumber)
+                ->findAll();
+
+            // Detectar qué workers respondieron este ítem
+            $workersQueRespondieron = array_column($responses, 'worker_id');
+            $workersSinRespuesta = array_diff($workerIds, $workersQueRespondieron);
+
+            // Obtener detalles de workers sin respuesta
+            $workersFaltantes = [];
+            if (!empty($workersSinRespuesta)) {
+                foreach ($workersSinRespuesta as $workerId) {
+                    // Buscar el worker en el array de workersWithEstres
+                    foreach ($workersWithEstres as $w) {
+                        if ($w['id'] == $workerId) {
+                            $workersFaltantes[] = [
+                                'id' => $w['id'],
+                                'document' => $w['document'],
+                                'name' => $w['name']
+                            ];
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Obtener grupo y valores de calificación PRIMERO
+            $grupo = \App\Libraries\EstresScoring::getGrupoItem($itemNumber);
+            $scoreValues = \App\Libraries\EstresScoring::getValoresGrupo($grupo);
+
+            // Contar respuestas por VALOR CALIFICADO (no por valor RAW)
+            // IMPORTANTE: Los valores RAW varían según el grupo (0,3,6,9 o 0,2,4,6 o 0,1,2,3)
+            // Pero TODOS se califican a una escala común según el grupo del ítem
+            $responseCount = [
+                'siempre' => 0,        // Máximo estrés (scoreValues[0])
+                'casi_siempre' => 0,   // Medio-alto (scoreValues[1])
+                'algunas_veces' => 0,  // Medio-bajo (scoreValues[2])
+                'nunca' => 0           // Mínimo estrés (scoreValues[3])
+            ];
+
+            foreach ($responses as $resp) {
+                $rawValue = $resp['answer_value'];
+                // Calificar el valor RAW para obtener el valor calificado (0-9 según grupo)
+                $scoredValue = \App\Libraries\EstresScoring::calificarItemNumerico($itemNumber, $rawValue);
+
+                // Clasificar según el PUNTAJE CALIFICADO (no según valor raw)
+                // Esto permite manejar diferentes escalas raw correctamente
+                if ($scoredValue == $scoreValues[0]) {
+                    $responseCount['siempre']++;
+                } elseif ($scoredValue == $scoreValues[1]) {
+                    $responseCount['casi_siempre']++;
+                } elseif ($scoredValue == $scoreValues[2]) {
+                    $responseCount['algunas_veces']++;
+                } elseif ($scoredValue == $scoreValues[3]) {
+                    $responseCount['nunca']++;
+                }
+            }
+
+            // Calcular puntajes (personas × valor)
+            $scores = [
+                'siempre' => $responseCount['siempre'] * ($scoreValues[0] ?? 0),
+                'casi_siempre' => $responseCount['casi_siempre'] * ($scoreValues[1] ?? 0),
+                'algunas_veces' => $responseCount['algunas_veces'] * ($scoreValues[2] ?? 0),
+                'nunca' => $responseCount['nunca'] * ($scoreValues[3] ?? 0)
+            ];
+
+            $subtotal = array_sum($scores);
+            $average = $workerCount > 0 ? $subtotal / $workerCount : 0;
+
+            // Validar coherencia de respuestas
+            $totalResponses = array_sum($responseCount);
+            $responseCountValid = ($totalResponses == $workerCount);
+            $responseCountDifference = $totalResponses - $workerCount;
+
+            $itemsData[] = [
+                'item_number' => $itemNumber,
+                'grupo' => $grupo,
+                'participants' => $totalResponses, // Suma real de respuestas para este ítem
+                'responses' => $responseCount,
+                'score_values' => [
+                    'siempre' => $scoreValues[0] ?? 0,
+                    'casi_siempre' => $scoreValues[1] ?? 0,
+                    'algunas_veces' => $scoreValues[2] ?? 0,
+                    'nunca' => $scoreValues[3] ?? 0
+                ],
+                'scores' => $scores,
+                'subtotal' => $subtotal,
+                'average' => $average,
+                'response_count_valid' => $responseCountValid,
+                'response_count_difference' => $responseCountDifference,
+                'workers_faltantes' => $workersFaltantes // Workers que no respondieron este ítem
+            ];
+        }
+
+        // CORRECCIÓN: Calcular PROMEDIOS por bloque (no sumas)
+        // Paso 3 correcto: promedio del bloque × factor
+        $rangosMultiplicacion = \App\Libraries\EstresScoring::getRangosMultiplicacion();
+        $bloquesPorGrupo = [];
+
+        foreach ($rangosMultiplicacion as $rango) {
+            $items = $rango['items'];
+            $factor = $rango['factor'];
+            $sumaPromedios = 0;
+            $countItems = count($items);
+
+            foreach ($items as $itemNum) {
+                // Buscar el promedio de este ítem en itemsData
+                foreach ($itemsData as $itemData) {
+                    if ($itemData['item_number'] == $itemNum) {
+                        $sumaPromedios += $itemData['average'];
+                        break;
+                    }
+                }
+            }
+
+            // CORRECCIÓN: Calcular el PROMEDIO del bloque
+            $promedioBloque = $countItems > 0 ? $sumaPromedios / $countItems : 0;
+
+            $bloquesPorGrupo[] = [
+                'items_range' => $items[0] . '-' . end($items),
+                'count_items' => $countItems,
+                'suma_promedios' => $sumaPromedios,
+                'promedio_bloque' => $promedioBloque,
+                'factor' => $factor,
+                'resultado' => $promedioBloque * $factor  // CORRECCIÓN: multiplicar el promedio, no la suma
+            ];
+        }
+
+        // Get baremos and factor
         $tipoTrabajador = \App\Libraries\EstresScoring::getTipoTrabajadorPorForma($formType);
         $baremos = \App\Libraries\EstresScoring::getBaremos($tipoTrabajador);
-
-        // Get factor
         $factorTotal = \App\Libraries\EstresScoring::getFactorTransformacion();
+        $gruposMultiplicacion = \App\Libraries\EstresScoring::getGruposMultiplicacionInfo();
 
         $data = [
             'title' => 'Validación Total Estrés - Forma ' . $formType,
             'service' => $service,
             'formType' => $formType,
             'result' => $result,
-            'totalWorkers' => $totalWorkers,
+            'totalWorkers' => $workerCount,
             'baremos' => $baremos,
-            'factorTotal' => $factorTotal
+            'factorTotal' => $factorTotal,
+            'itemsData' => $itemsData,
+            'gruposMultiplicacion' => $gruposMultiplicacion,
+            'bloquesPorGrupo' => $bloquesPorGrupo  // CORRECCIÓN: Bloques con promedios
         ];
 
         return view('validation/total_estres_detail', $data);

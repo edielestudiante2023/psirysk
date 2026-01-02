@@ -129,19 +129,15 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
     protected $actionPlans = [];
 
     /**
-     * Constructor - Inicializa el modelo de max_risk_results
-     */
-    public function __construct()
-    {
-        parent::__construct();
-        $this->maxRiskModel = new MaxRiskResultModel();
-    }
-
-    /**
      * Preview HTML de la sección
      */
     public function preview($batteryServiceId)
     {
+        // Inicializar modelo de max_risk_results
+        if (!isset($this->maxRiskModel)) {
+            $this->maxRiskModel = new MaxRiskResultModel();
+        }
+
         $this->initializeData($batteryServiceId);
         $this->loadResults();
         $this->loadActionPlans();
@@ -156,6 +152,11 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
      */
     public function download($batteryServiceId)
     {
+        // Inicializar modelo de max_risk_results
+        if (!isset($this->maxRiskModel)) {
+            $this->maxRiskModel = new MaxRiskResultModel();
+        }
+
         $this->initializeData($batteryServiceId);
         $this->loadResults();
         $this->loadActionPlans();
@@ -171,6 +172,11 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
      */
     public function render($batteryServiceId)
     {
+        // Inicializar modelo de max_risk_results
+        if (!isset($this->maxRiskModel)) {
+            $this->maxRiskModel = new MaxRiskResultModel();
+        }
+
         if (empty($this->resultsFormaA) && empty($this->resultsFormaB)) {
             $this->initializeData($batteryServiceId);
             $this->loadResults();

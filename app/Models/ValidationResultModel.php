@@ -191,4 +191,54 @@ class ValidationResultModel extends Model
         return $builder->orderBy('abs(difference)', 'DESC')
             ->findAll();
     }
+
+    /**
+     * Obtiene resultados de dimensiones
+     * @param int $serviceId
+     * @param string $questionnaireType
+     * @param string $formType
+     * @return array
+     */
+    public function getDimensionResults($serviceId, $questionnaireType, $formType)
+    {
+        return $this->where('battery_service_id', $serviceId)
+            ->where('questionnaire_type', $questionnaireType)
+            ->where('form_type', $formType)
+            ->where('validation_level', 'dimension')
+            ->orderBy('element_key', 'ASC')
+            ->findAll();
+    }
+
+    /**
+     * Obtiene resultados de dominios
+     * @param int $serviceId
+     * @param string $questionnaireType
+     * @param string $formType
+     * @return array
+     */
+    public function getDomainResults($serviceId, $questionnaireType, $formType)
+    {
+        return $this->where('battery_service_id', $serviceId)
+            ->where('questionnaire_type', $questionnaireType)
+            ->where('form_type', $formType)
+            ->where('validation_level', 'domain')
+            ->orderBy('element_key', 'ASC')
+            ->findAll();
+    }
+
+    /**
+     * Obtiene resultado total
+     * @param int $serviceId
+     * @param string $questionnaireType
+     * @param string $formType
+     * @return array|null
+     */
+    public function getTotalResult($serviceId, $questionnaireType, $formType)
+    {
+        return $this->where('battery_service_id', $serviceId)
+            ->where('questionnaire_type', $questionnaireType)
+            ->where('form_type', $formType)
+            ->where('validation_level', 'total')
+            ->first();
+    }
 }

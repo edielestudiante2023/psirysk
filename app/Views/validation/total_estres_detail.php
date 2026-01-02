@@ -10,12 +10,10 @@
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; }
         .validation-header { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 2rem; margin-bottom: 2rem; border-radius: 8px; }
         .stats-card { border-left: 4px solid #f093fb; }
-        .match { background-color: #d4edda !important; }
-        .mismatch { background-color: #f8d7da !important; }
-        .baremo-table th { background-color: #f093fb; color: white; font-size: 0.9rem; }
         .badge-grupo1 { background-color: #0d6efd; }
         .badge-grupo2 { background-color: #198754; }
         .badge-grupo3 { background-color: #ffc107; color: #000; }
+        .baremo-actual { background-color: #fff3cd; font-weight: bold; border-left: 4px solid #ffc107; }
     </style>
 </head>
 <body>
@@ -39,41 +37,9 @@
         <!-- Estadísticas Generales -->
         <?php
         $match = $result['validation_status'] === 'ok';
-        ?>
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="card shadow-sm h-100 stats-card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Total Participantes</h5>
-                    </div>
-                    <div class="card-body text-center">
-                        <h1 class="display-4 text-primary mb-0"><?= $totalWorkers ?></h1>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6">
-                <div class="card shadow-sm h-100 stats-card">
-                    <div class="card-header bg-<?= $match ? 'success' : 'danger' ?> text-white">
-                        <h5 class="mb-0"><i class="fas fa-<?= $match ? 'check-circle' : 'exclamation-triangle' ?> me-2"></i>Estado de Validación</h5>
-                    </div>
-                    <div class="card-body text-center">
-                        <h1 class="display-4 text-<?= $match ? 'success' : 'danger' ?> mb-0">
-                            <?= $match ? 'OK' : 'ERROR' ?>
-                        </h1>
-                        <p class="text-muted mt-2 mb-0">
-                            Diferencia: <?= number_format(abs($result['difference']), 2) ?>
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Baremos Oficiales -->
-        <?php if ($baremos): ?>
-        <?php
-        // Determinar el rango donde cae el puntaje calculado
         $calculatedScore = $result['calculated_score'];
+
+        // Determinar el rango donde cae el puntaje calculado
         $nivelActual = null;
         foreach ($baremos as $nivel => $rango) {
             if ($calculatedScore >= $rango['min'] && $calculatedScore <= $rango['max']) {
@@ -82,137 +48,194 @@
             }
         }
         ?>
-        <div class="card shadow-sm mb-4">
-            <div class="card-header text-white" style="background-color: #f093fb;">
-                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Baremos Oficiales - Total Estrés (Tabla 6)</h5>
-                <small>Tercera versión del cuestionario - <?= $formType === 'A' ? 'Jefes, Profesionales y Técnicos' : 'Auxiliares y Operarios' ?></small>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100 stats-card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <?php if ($match): ?>
+                                <i class="fas fa-check-circle text-success me-2"></i>Validación Exitosa
+                            <?php else: ?>
+                                <i class="fas fa-exclamation-triangle text-danger me-2"></i>Discrepancia Detectada
+                            <?php endif; ?>
+                        </h5>
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <p class="mb-1 text-muted small">Puntaje Calculado</p>
+                                <h4 class="text-primary"><?= number_format($calculatedScore, 2) ?></h4>
+                            </div>
+                            <div class="col-6">
+                                <p class="mb-1 text-muted small">Puntaje en BD</p>
+                                <h4 class="text-info"><?= number_format($result['db_score'], 2) ?></h4>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <p class="mb-1 text-muted small">Diferencia</p>
+                                <h4 class="<?= $match ? 'text-success' : 'text-danger' ?>">
+                                    <?= number_format($result['difference'], 2) ?>
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <table class="table table-bordered baremo-table">
-                    <thead>
-                        <tr>
-                            <?php foreach ($baremos as $nivel => $rango): ?>
-                                <th class="text-center <?= $nivel === $nivelActual ? 'bg-' . $rango['color'] . ' text-white' : 'bg-light' ?>"><?= esc($rango['label']) ?></th>
-                            <?php endforeach; ?>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="text-center">
-                            <?php foreach ($baremos as $nivel => $rango): ?>
-                                <td class="<?= $nivel === $nivelActual ? 'table-' . $rango['color'] : '' ?>">
-                                    <?= $rango['min'] ?> - <?= $rango['max'] ?>
-                                    <?php if ($nivel === $nivelActual): ?>
-                                        <br><strong class="text-<?= $rango['color'] ?>"><?= number_format($calculatedScore, 2) ?></strong>
-                                    <?php endif; ?>
-                                </td>
-                            <?php endforeach; ?>
-                        </tr>
-                    </tbody>
-                </table>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100 stats-card">
+                    <div class="card-body text-center">
+                        <p class="mb-1 text-muted small">Nivel de Riesgo</p>
+                        <h3>
+                            <span class="badge bg-<?= $baremos[$nivelActual]['color'] ?? 'secondary' ?> badge-status">
+                                <?= esc($baremos[$nivelActual]['label'] ?? 'N/A') ?>
+                            </span>
+                        </h3>
+                        <small class="text-muted">Según baremos oficiales (Tabla 6)</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100 stats-card">
+                    <div class="card-body text-center">
+                        <p class="mb-1 text-muted small">Total Participantes</p>
+                        <h1 class="display-4 text-primary mb-0"><?= $totalWorkers ?></h1>
+                    </div>
+                </div>
             </div>
         </div>
-        <?php endif; ?>
 
-        <!-- Resumen de Validación -->
+        <!-- Tabla de Baremos (Tabla 6) -->
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Resumen de Validación del Total Estrés</h5>
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Baremos de la Tercera Versión del "Cuestionario para la Evaluación del Estrés"</h5>
             </div>
-            <div class="card-body p-0">
+            <div class="card-body">
+                <p class="text-muted mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    <strong>Puntaje total transformado:</strong> Según Resolución 2404/2019 - Tabla 6
+                </p>
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-bordered table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th>Métrica</th>
-                                <th class="text-center">Valor</th>
-                                <th>Descripción</th>
+                                <th>Nivel de Síntomas de Estrés</th>
+                                <th class="text-center">Rango de Puntaje</th>
+                                <th class="text-center">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td><strong>Puntaje Bruto (Sum Averages)</strong></td>
-                                <td class="text-center"><strong><?= number_format($result['sum_averages'], 2) ?></strong></td>
-                                <td>Suma de promedios de los 31 ítems</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Factor de Transformación</strong></td>
-                                <td class="text-center"><strong><?= $result['transformation_factor'] ?></strong></td>
-                                <td>Factor oficial (Tabla 4)</td>
-                            </tr>
-                            <tr class="<?= $match ? 'match' : 'mismatch' ?>">
-                                <td><strong>Puntaje Transformado (Calculado)</strong></td>
-                                <td class="text-center">
-                                    <strong><?= number_format($result['calculated_score'], 2) ?></strong>
-                                    <?php if ($nivelActual): ?>
-                                        <br><span class="badge bg-<?= $baremos[$nivelActual]['color'] ?>"><?= esc($baremos[$nivelActual]['label']) ?></span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>Puntaje calculado por el Núcleo Validador desde responses</td>
-                            </tr>
-                            <tr class="<?= $match ? 'match' : 'mismatch' ?>">
-                                <td><strong>Puntaje BD (Promedio Real)</strong></td>
-                                <td class="text-center"><strong><?= number_format($result['db_score'], 2) ?></strong></td>
-                                <td>Promedio de calculated_results.estres_total_puntaje</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Diferencia</strong></td>
-                                <td class="text-center">
-                                    <strong class="text-<?= $match ? 'success' : 'danger' ?>"><?= number_format($result['difference'], 2) ?></strong>
-                                </td>
-                                <td>Calculated - DB Score (Tolerancia: ±0.1)</td>
-                            </tr>
-                            <tr>
-                                <td><strong>Estado de Validación</strong></td>
-                                <td class="text-center">
-                                    <?php if ($match): ?>
-                                        <i class="fas fa-check-circle text-success fa-2x"></i>
-                                    <?php else: ?>
-                                        <i class="fas fa-exclamation-triangle text-danger fa-2x"></i>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php if ($match): ?>
-                                        <span class="text-success">✓ OK - Los puntajes coinciden</span>
-                                    <?php else: ?>
-                                        <span class="text-danger">✗ ERROR - Discrepancia detectada. Ejecutar: <code>php spark recalculate:estres</code></span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
+                            <?php foreach ($baremos as $nivel => $rango): ?>
+                                <tr class="<?= $nivel === $nivelActual ? 'baremo-actual' : '' ?>">
+                                    <td>
+                                        <span class="badge bg-<?= $rango['color'] ?> me-2"><?= esc($rango['label']) ?></span>
+                                    </td>
+                                    <td class="text-center">
+                                        <?= number_format($rango['min'], 1) ?> - <?= number_format($rango['max'], 1) ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($nivel === $nivelActual): ?>
+                                            <i class="fas fa-arrow-left text-warning me-2"></i>
+                                            <strong>Puntaje actual: <?= number_format($calculatedScore, 2) ?></strong>
+                                        <?php else: ?>
+                                            <span class="text-muted">-</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Información de Grupos de Ítems -->
+        <!-- Resumen de Validación -->
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Resumen de Validación</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-3">
+                    <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Metodología de Validación</h6>
+                    <p class="mb-2">El validador calcula el puntaje de cada trabajador individual aplicando la metodología oficial (a-b-c-d), luego promedia todos los puntajes transformados individuales y compara con el promedio almacenado en la base de datos.</p>
+                    <code class="d-block bg-white p-2">
+                        Por cada worker: Puntaje = [(Promedio ítems 1-8 × 4) + (Promedio ítems 9-12 × 3) + (Promedio ítems 13-22 × 2) + (Promedio ítems 23-31 × 1)] / <?= $factorTotal ?> × 100
+                    </code>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-light h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">Transformación Final</h6>
+                                <p class="mb-2"><strong>Factor de Transformación:</strong> <?= $factorTotal ?></p>
+                                <p class="mb-2"><strong>Promedio de Puntajes Individuales:</strong></p>
+                                <p class="mb-0"><strong>Puntaje Transformado:</strong>
+                                    <span class="badge bg-success fs-6"><?= number_format($calculatedScore, 2) ?></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">Comparación con BD</h6>
+                                <p class="mb-2"><strong>Calculado (Validador):</strong> <?= number_format($calculatedScore, 2) ?></p>
+                                <p class="mb-2"><strong>Promedio BD:</strong> <?= number_format($result['db_score'], 2) ?></p>
+                                <p class="mb-0"><strong>Diferencia:</strong>
+                                    <span class="badge <?= $match ? 'bg-success' : 'bg-danger' ?>">
+                                        <?= number_format($result['difference'], 2) ?>
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grupos de Calificación (Tabla 4) -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
                 <h5 class="mb-0"><i class="fas fa-layer-group me-2"></i>Grupos de Calificación (Tabla 4)</h5>
             </div>
             <div class="card-body">
-                <?php
-                $gruposInfo = \App\Libraries\EstresScoring::getItemsPorGrupo();
-                $coloresBadge = ['grupo1' => 'badge-grupo1', 'grupo2' => 'badge-grupo2', 'grupo3' => 'badge-grupo3'];
-                $valoresPorGrupo = [
-                    'grupo1' => 'Siempre=9, Casi siempre=6, A veces=3, Nunca=0',
-                    'grupo2' => 'Siempre=6, Casi siempre=4, A veces=2, Nunca=0',
-                    'grupo3' => 'Siempre=3, Casi siempre=2, A veces=1, Nunca=0'
-                ];
-                ?>
-
                 <div class="row">
-                    <?php foreach ($gruposInfo as $grupoKey => $items): ?>
+                    <?php
+                    $gruposData = [
+                        [
+                            'numero' => 1,
+                            'items' => '1, 2, 3, 9, 13, 14, 15, 23, 24',
+                            'valores' => 'Siempre=9, Casi siempre=6, A veces=3, Nunca=0',
+                            'color' => 'primary'
+                        ],
+                        [
+                            'numero' => 2,
+                            'items' => '4, 5, 6, 10, 11, 16, 17, 18, 19, 25, 26, 27, 28',
+                            'valores' => 'Siempre=6, Casi siempre=4, A veces=2, Nunca=0',
+                            'color' => 'success'
+                        ],
+                        [
+                            'numero' => 3,
+                            'items' => '7, 8, 12, 20, 21, 22, 29, 30, 31',
+                            'valores' => 'Siempre=3, Casi siempre=2, A veces=1, Nunca=0',
+                            'color' => 'warning'
+                        ]
+                    ];
+                    ?>
+                    <?php foreach ($gruposData as $grupo): ?>
                         <div class="col-md-4 mb-3">
-                            <div class="card h-100">
+                            <div class="card h-100 border-<?= $grupo['color'] ?>">
                                 <div class="card-body">
                                     <h6 class="card-title">
-                                        <span class="badge <?= $coloresBadge[$grupoKey] ?>">
-                                            <?= strtoupper(str_replace('grupo', 'Grupo ', $grupoKey)) ?>
+                                        <span class="badge bg-<?= $grupo['color'] ?> <?= $grupo['color'] === 'warning' ? 'text-dark' : '' ?>">
+                                            GRUPO <?= $grupo['numero'] ?>
                                         </span>
                                     </h6>
                                     <p class="card-text small">
-                                        <strong>Ítems:</strong> <?= implode(', ', $items) ?><br>
-                                        <strong>Valores:</strong> <?= $valoresPorGrupo[$grupoKey] ?>
+                                        <strong>Ítems:</strong> <?= $grupo['items'] ?><br>
+                                        <strong>Valores:</strong> <?= $grupo['valores'] ?>
                                     </p>
                                 </div>
                             </div>
@@ -222,33 +245,49 @@
             </div>
         </div>
 
-        <!-- Fórmula de Cálculo -->
+        <!-- Factores de Multiplicación (Tabla 4 - Paso 3) -->
         <div class="card shadow-sm mb-4">
-            <div class="card-header bg-secondary text-white">
-                <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Fórmula de Cálculo del Total Estrés</h5>
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Factores de Multiplicación (Tabla 4 - Paso 3)</h5>
             </div>
             <div class="card-body">
-                <p class="mb-2"><strong>Paso 1:</strong> Para cada ítem (1-31), calcular promedio de TODOS los workers</p>
-                <pre class="bg-light p-3 rounded">Para cada ítem:
-  - Obtener respuestas de todos los workers
-  - Calificar según grupo (Grupo 1: 9,6,3,0 | Grupo 2: 6,4,2,0 | Grupo 3: 3,2,1,0)
-  - Calcular promedio del ítem
-</pre>
-
-                <p class="mb-2 mt-3"><strong>Paso 2:</strong> Sumar los promedios de los 31 ítems</p>
-                <pre class="bg-light p-3 rounded">Suma = Promedio Ítem1 + Promedio Ítem2 + ... + Promedio Ítem31
-Suma = <?= number_format($result['sum_averages'], 2) ?></pre>
-
-                <p class="mb-2 mt-3"><strong>Paso 3:</strong> Transformar con el factor total (Tabla 4)</p>
-                <pre class="bg-light p-3 rounded">Puntaje Total Transformado = (Suma / <?= $factorTotal ?>) × 100
-Puntaje Total Transformado = (<?= number_format($result['sum_averages'], 2) ?> / <?= $factorTotal ?>) × 100 = <?= number_format($result['calculated_score'], 2) ?></pre>
-
-                <p class="text-muted mt-3 mb-0"><small><strong>Nota:</strong> El Núcleo Validador re-calcula desde responses raw (tabla responses), NO confía en calculated_results. Esto permite detectar bugs en el Núcleo del Aplicativo.</small></p>
+                <p class="text-muted small mb-3">
+                    <i class="fas fa-info-circle me-1"></i>
+                    El Puntaje Bruto se calcula promediando los ítems de cada bloque y luego aplicando el factor correspondiente.
+                </p>
+                <div class="row">
+                    <?php foreach ($gruposMultiplicacion as $grupo): ?>
+                        <div class="col-md-3 mb-3">
+                            <div class="card h-100 border-<?= $grupo['color'] ?>">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title">
+                                        <span class="badge bg-<?= $grupo['color'] ?> <?= $grupo['color'] === 'warning' ? 'text-dark' : '' ?>">
+                                            <?= $grupo['label'] ?>
+                                        </span>
+                                    </h6>
+                                    <p class="card-text small">
+                                        <strong>Ítems:</strong> <?= $grupo['items'][0] ?>-<?= end($grupo['items']) ?><br>
+                                        <strong>Factor:</strong> <span class="fs-5 fw-bold text-<?= $grupo['color'] ?>">×<?= $grupo['factor'] ?></span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="alert alert-success mt-3 mb-0">
+                    <strong>Fórmula del Puntaje Bruto (por trabajador individual):</strong><br>
+                    <code class="bg-white p-2 d-block mt-2">
+                        Puntaje Bruto = (Promedio ítems 1-8 × 4) + (Promedio ítems 9-12 × 3) + (Promedio ítems 13-22 × 2) + (Promedio ítems 23-31 × 1)
+                    </code>
+                    <small class="text-muted d-block mt-2">
+                        <strong>Importante:</strong> El factor se aplica al <strong>promedio del bloque</strong>, NO a cada ítem individual.
+                    </small>
+                </div>
             </div>
         </div>
 
         <!-- Botón Volver -->
-        <div class="text-center mt-4">
+        <div class="text-center mt-4 mb-4">
             <button onclick="window.close()" class="btn btn-secondary btn-lg">
                 <i class="fas fa-arrow-left me-2"></i>Volver
             </button>

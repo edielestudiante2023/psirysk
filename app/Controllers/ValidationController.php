@@ -88,7 +88,31 @@ class ValidationController extends BaseController
         // Verificar estado de procesamiento intralaboral
         $dimensionsProcessed = $this->validationResultModel->areDimensionsProcessed($serviceId, 'intralaboral', null);
         $domainsProcessed = $this->validationResultModel->areDomainsProcessed($serviceId, 'intralaboral', null);
+        $intralaboralTotalProcessedA = $this->validationResultModel->areTotalsProcessed($serviceId, 'intralaboral', 'A');
+        $intralaboralTotalProcessedB = $this->validationResultModel->areTotalsProcessed($serviceId, 'intralaboral', 'B');
         $errorsCount = $this->validationResultModel->countErrors($serviceId, 'intralaboral');
+
+        // Obtener registros con error de intralaboral para mostrar en detalle
+        $intralaboralErrorsCountA = $this->validationResultModel->countErrors($serviceId, 'intralaboral', 'A');
+        $intralaboralErrorsCountB = $this->validationResultModel->countErrors($serviceId, 'intralaboral', 'B');
+        $intralaboralErrorsA = [];
+        $intralaboralErrorsB = [];
+        if ($intralaboralErrorsCountA > 0) {
+            $intralaboralErrorsA = $this->validationResultModel
+                ->where('battery_service_id', $serviceId)
+                ->where('questionnaire_type', 'intralaboral')
+                ->where('form_type', 'A')
+                ->where('validation_status', 'error')
+                ->findAll();
+        }
+        if ($intralaboralErrorsCountB > 0) {
+            $intralaboralErrorsB = $this->validationResultModel
+                ->where('battery_service_id', $serviceId)
+                ->where('questionnaire_type', 'intralaboral')
+                ->where('form_type', 'B')
+                ->where('validation_status', 'error')
+                ->findAll();
+        }
 
         // Verificar estado de procesamiento extralaboral
         $extralaboralDimensionsProcessedA = $this->validationResultModel->areDimensionsProcessed($serviceId, 'extralaboral', 'A');
@@ -153,6 +177,12 @@ class ValidationController extends BaseController
             'extralaboralDimensions' => $extralaboralDimensions,
             'dimensionsProcessed' => $dimensionsProcessed,
             'domainsProcessed' => $domainsProcessed,
+            'intralaboralTotalProcessedA' => $intralaboralTotalProcessedA,
+            'intralaboralTotalProcessedB' => $intralaboralTotalProcessedB,
+            'intralaboralErrorsCountA' => $intralaboralErrorsCountA,
+            'intralaboralErrorsCountB' => $intralaboralErrorsCountB,
+            'intralaboralErrorsA' => $intralaboralErrorsA,
+            'intralaboralErrorsB' => $intralaboralErrorsB,
             'errorsCount' => $errorsCount,
             'extralaboralDimensionsProcessedA' => $extralaboralDimensionsProcessedA,
             'extralaboralDimensionsProcessedB' => $extralaboralDimensionsProcessedB,
@@ -1420,6 +1450,103 @@ class ValidationController extends BaseController
     }
 
     /**
+     * Process intralaboral total validation (cascade from domains)
+     * POST /validation/process-total-intralaboral/{serviceId}/{formType}
+     *
+     * Patrón CASCADE: Suma los promedios de los dominios ya procesados
+     */
+    public function processIntralaboralTotal($serviceId, $formType = null)
+    {
+        $this->checkPermissions();
+
+        $service = $this->batteryServiceModel->find($serviceId);
+        if (!$service) {
+            return redirect()->back()->with('error', 'Servicio no encontrado');
+        }
+
+        // Validar que formType sea A o B
+        if (!in_array($formType, ['A', 'B'])) {
+            return redirect()->back()->with('error', 'Tipo de formulario inválido');
+        }
+
+        // Verificar que los dominios estén procesados
+        $domainsProcessed = $this->validationResultModel->areDomainsProcessed($serviceId, 'intralaboral', $formType);
+        if (!$domainsProcessed) {
+            return redirect()->back()->with('error', 'Debe procesar primero los dominios intralaboral');
+        }
+
+        // Eliminar validaciones anteriores de total para esta forma
+        $this->validationResultModel->deletePreviousValidations($serviceId, 'intralaboral', $formType, 'total');
+
+        // Get domain results from validation_results (CASCADE) for this form type
+        $domainResults = $this->validationResultModel->getDomainResults($serviceId, 'intralaboral', $formType);
+
+        if (empty($domainResults)) {
+            return redirect()->back()->with('error', 'Debe procesar primero los dominios intralaboral');
+        }
+
+        // Get total transformation factor from library (Single Source of Truth - Tabla 27)
+        $scoringClass = ($formType === 'A') ? IntralaboralAScoring::class : IntralaboralBScoring::class;
+        $factorTotal = $scoringClass::getFactorTransformacionIntralaboral();
+
+        // Sumar los promedios de los 4 dominios
+        $sumPromedios = array_sum(array_column($domainResults, 'sum_averages'));
+
+        // Calcular puntaje transformado total
+        $puntajeTransformado = $factorTotal > 0 ? round(($sumPromedios / $factorTotal) * 100, 2) : 0;
+
+        // Obtener puntaje promedio de BD desde calculated_results
+        // Usar los mismos workers que se usaron para dominios
+        $totalWorkers = $domainResults[0]['total_workers'] ?? 0;
+
+        // Obtener workers completados con esta forma
+        $workers = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('status', 'completado')
+            ->where('intralaboral_type', $formType)
+            ->findAll();
+
+        // Obtener puntajes de total intralaboral de BD
+        $workerIds = array_column($workers, 'id');
+        $calculatedResults = $this->calculatedResultModel
+            ->whereIn('worker_id', $workerIds)
+            ->findAll();
+
+        $dbScores = array_column($calculatedResults, 'intralaboral_total_puntaje');
+        $dbScore = count($dbScores) > 0 ? array_sum($dbScores) / count($dbScores) : 0;
+
+        // Redondear valores PRIMERO, luego calcular diferencia
+        $calculatedScoreRounded = round($puntajeTransformado, 2);
+        $dbScoreRounded = round($dbScore, 2);
+        $difference = round($calculatedScoreRounded - $dbScoreRounded, 2);
+
+        // Preparar datos para guardar
+        $data = [
+            'battery_service_id' => $serviceId,
+            'questionnaire_type' => 'intralaboral',
+            'form_type' => $formType,
+            'validation_level' => 'total',
+            'element_key' => 'total_intralaboral',
+            'element_name' => 'Total Intralaboral',
+            'total_workers' => $totalWorkers,
+            'sum_averages' => round($sumPromedios, 2),
+            'transformation_factor' => $factorTotal,
+            'calculated_score' => $calculatedScoreRounded,
+            'db_score' => $dbScoreRounded,
+            'difference' => $difference,
+            'validation_status' => abs($difference) < 0.1 ? 'ok' : 'error',
+            'processed_at' => date('Y-m-d H:i:s'),
+            'processed_by' => session()->get('id')
+        ];
+
+        $this->validationResultModel->insert($data);
+
+        $message = "Procesado total intralaboral Forma {$formType}.";
+        return redirect()->to("/validation/{$serviceId}")
+            ->with('success', $message);
+    }
+
+    /**
      * Process extralaboral dimensions validation and save to validation_results
      * POST /validation/process-dimensions-extralaboral/{serviceId}/{formType}
      *
@@ -1904,13 +2031,18 @@ class ValidationController extends BaseController
 
         log_message('info', "Promedio de puntajes BD: " . number_format($dbScore, 2));
 
-        $difference = round($puntajeTransformado - $dbScore, 2);
+        // Redondear los valores PRIMERO
+        $calculatedScoreRounded = round($puntajeTransformado, 2);
+        $dbScoreRounded = round($dbScore, 2);
+
+        // Calcular la diferencia SOBRE LOS VALORES REDONDEADOS
+        $difference = round($calculatedScoreRounded - $dbScoreRounded, 2);
         $validationStatus = abs($difference) < 0.1 ? 'ok' : 'error';
 
         log_message('info', '========================================');
         log_message('info', "COMPARACIÓN FINAL");
-        log_message('info', "Puntaje calculado (Validador): {$puntajeTransformado}");
-        log_message('info', "Puntaje promedio BD (Aplicativo): " . number_format($dbScore, 2));
+        log_message('info', "Puntaje calculado (Validador): {$puntajeTransformado} → redondeado: {$calculatedScoreRounded}");
+        log_message('info', "Puntaje promedio BD (Aplicativo): {$dbScore} → redondeado: {$dbScoreRounded}");
         log_message('info', "Diferencia: {$difference}");
         log_message('info', "Estado: {$validationStatus}");
         log_message('info', '========================================');
@@ -1924,10 +2056,10 @@ class ValidationController extends BaseController
             'element_key' => 'total_estres',
             'element_name' => 'Total Estrés',
             'total_workers' => $workerCount,
-            'sum_averages' => round($puntajeTransformado, 2), // Promedio de puntajes transformados individuales
+            'sum_averages' => $calculatedScoreRounded, // Promedio de puntajes transformados individuales
             'transformation_factor' => \App\Libraries\EstresScoring::getFactorTransformacion(),
-            'calculated_score' => round($puntajeTransformado, 2),
-            'db_score' => round($dbScore, 2),
+            'calculated_score' => $calculatedScoreRounded,
+            'db_score' => $dbScoreRounded,
             'difference' => $difference,
             'validation_status' => $validationStatus,
             'processed_at' => date('Y-m-d H:i:s'),
@@ -2009,144 +2141,11 @@ class ValidationController extends BaseController
             }
         }
 
-        $workerIds = array_column($workersWithEstres, 'id');
         $workerCount = count($workersWithEstres);
 
-        // RECALCULAR DETALLES POR ÍTEM (Núcleo Validador)
-        $todosLosItems = \App\Libraries\EstresScoring::getTodosLosItems();
-        $itemsData = [];
-
-        foreach ($todosLosItems as $itemNumber) {
-            // Obtener TODAS las respuestas para este ítem
-            $responses = $this->responseModel
-                ->whereIn('worker_id', $workerIds)
-                ->where('form_type', 'estres')
-                ->where('question_number', $itemNumber)
-                ->findAll();
-
-            // Detectar qué workers respondieron este ítem
-            $workersQueRespondieron = array_column($responses, 'worker_id');
-            $workersSinRespuesta = array_diff($workerIds, $workersQueRespondieron);
-
-            // Obtener detalles de workers sin respuesta
-            $workersFaltantes = [];
-            if (!empty($workersSinRespuesta)) {
-                foreach ($workersSinRespuesta as $workerId) {
-                    // Buscar el worker en el array de workersWithEstres
-                    foreach ($workersWithEstres as $w) {
-                        if ($w['id'] == $workerId) {
-                            $workersFaltantes[] = [
-                                'id' => $w['id'],
-                                'document' => $w['document'],
-                                'name' => $w['name']
-                            ];
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // Obtener grupo y valores de calificación PRIMERO
-            $grupo = \App\Libraries\EstresScoring::getGrupoItem($itemNumber);
-            $scoreValues = \App\Libraries\EstresScoring::getValoresGrupo($grupo);
-
-            // Contar respuestas por VALOR CALIFICADO (no por valor RAW)
-            // IMPORTANTE: Los valores RAW varían según el grupo (0,3,6,9 o 0,2,4,6 o 0,1,2,3)
-            // Pero TODOS se califican a una escala común según el grupo del ítem
-            $responseCount = [
-                'siempre' => 0,        // Máximo estrés (scoreValues[0])
-                'casi_siempre' => 0,   // Medio-alto (scoreValues[1])
-                'algunas_veces' => 0,  // Medio-bajo (scoreValues[2])
-                'nunca' => 0           // Mínimo estrés (scoreValues[3])
-            ];
-
-            foreach ($responses as $resp) {
-                $rawValue = $resp['answer_value'];
-                // Calificar el valor RAW para obtener el valor calificado (0-9 según grupo)
-                $scoredValue = \App\Libraries\EstresScoring::calificarItemNumerico($itemNumber, $rawValue);
-
-                // Clasificar según el PUNTAJE CALIFICADO (no según valor raw)
-                // Esto permite manejar diferentes escalas raw correctamente
-                if ($scoredValue == $scoreValues[0]) {
-                    $responseCount['siempre']++;
-                } elseif ($scoredValue == $scoreValues[1]) {
-                    $responseCount['casi_siempre']++;
-                } elseif ($scoredValue == $scoreValues[2]) {
-                    $responseCount['algunas_veces']++;
-                } elseif ($scoredValue == $scoreValues[3]) {
-                    $responseCount['nunca']++;
-                }
-            }
-
-            // Calcular puntajes (personas × valor)
-            $scores = [
-                'siempre' => $responseCount['siempre'] * ($scoreValues[0] ?? 0),
-                'casi_siempre' => $responseCount['casi_siempre'] * ($scoreValues[1] ?? 0),
-                'algunas_veces' => $responseCount['algunas_veces'] * ($scoreValues[2] ?? 0),
-                'nunca' => $responseCount['nunca'] * ($scoreValues[3] ?? 0)
-            ];
-
-            $subtotal = array_sum($scores);
-            $average = $workerCount > 0 ? $subtotal / $workerCount : 0;
-
-            // Validar coherencia de respuestas
-            $totalResponses = array_sum($responseCount);
-            $responseCountValid = ($totalResponses == $workerCount);
-            $responseCountDifference = $totalResponses - $workerCount;
-
-            $itemsData[] = [
-                'item_number' => $itemNumber,
-                'grupo' => $grupo,
-                'participants' => $totalResponses, // Suma real de respuestas para este ítem
-                'responses' => $responseCount,
-                'score_values' => [
-                    'siempre' => $scoreValues[0] ?? 0,
-                    'casi_siempre' => $scoreValues[1] ?? 0,
-                    'algunas_veces' => $scoreValues[2] ?? 0,
-                    'nunca' => $scoreValues[3] ?? 0
-                ],
-                'scores' => $scores,
-                'subtotal' => $subtotal,
-                'average' => $average,
-                'response_count_valid' => $responseCountValid,
-                'response_count_difference' => $responseCountDifference,
-                'workers_faltantes' => $workersFaltantes // Workers que no respondieron este ítem
-            ];
-        }
-
-        // CORRECCIÓN: Calcular PROMEDIOS por bloque (no sumas)
-        // Paso 3 correcto: promedio del bloque × factor
-        $rangosMultiplicacion = \App\Libraries\EstresScoring::getRangosMultiplicacion();
-        $bloquesPorGrupo = [];
-
-        foreach ($rangosMultiplicacion as $rango) {
-            $items = $rango['items'];
-            $factor = $rango['factor'];
-            $sumaPromedios = 0;
-            $countItems = count($items);
-
-            foreach ($items as $itemNum) {
-                // Buscar el promedio de este ítem en itemsData
-                foreach ($itemsData as $itemData) {
-                    if ($itemData['item_number'] == $itemNum) {
-                        $sumaPromedios += $itemData['average'];
-                        break;
-                    }
-                }
-            }
-
-            // CORRECCIÓN: Calcular el PROMEDIO del bloque
-            $promedioBloque = $countItems > 0 ? $sumaPromedios / $countItems : 0;
-
-            $bloquesPorGrupo[] = [
-                'items_range' => $items[0] . '-' . end($items),
-                'count_items' => $countItems,
-                'suma_promedios' => $sumaPromedios,
-                'promedio_bloque' => $promedioBloque,
-                'factor' => $factor,
-                'resultado' => $promedioBloque * $factor  // CORRECCIÓN: multiplicar el promedio, no la suma
-            ];
-        }
+        // NOTA: Ya NO calculamos agregados por ítem aquí
+        // La validación se hace calculando puntajes individuales (ver processEstres)
+        // Esta vista solo muestra el resultado ya procesado en $result
 
         // Get baremos and factor
         $tipoTrabajador = \App\Libraries\EstresScoring::getTipoTrabajadorPorForma($formType);
@@ -2162,12 +2161,148 @@ class ValidationController extends BaseController
             'totalWorkers' => $workerCount,
             'baremos' => $baremos,
             'factorTotal' => $factorTotal,
-            'itemsData' => $itemsData,
-            'gruposMultiplicacion' => $gruposMultiplicacion,
-            'bloquesPorGrupo' => $bloquesPorGrupo  // CORRECCIÓN: Bloques con promedios
+            'gruposMultiplicacion' => $gruposMultiplicacion
         ];
 
         return view('validation/total_estres_detail', $data);
+    }
+
+    /**
+     * View complete validation history for a service
+     * GET /validation/history/{serviceId}
+     */
+    public function validationHistory($serviceId)
+    {
+        log_message('info', '🔍 [validationHistory] INICIO - ServiceId: ' . $serviceId);
+
+        $permissionCheck = $this->checkPermissions();
+        if ($permissionCheck) {
+            log_message('info', '🔍 [validationHistory] Permission check failed');
+            return $permissionCheck;
+        }
+
+        log_message('info', '🔍 [validationHistory] Permissions OK, obteniendo servicio...');
+
+        // Obtener información del servicio
+        $service = $this->batteryServiceModel
+            ->select('battery_services.*, companies.name as company_name')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->find($serviceId);
+
+        if (!$service) {
+            log_message('error', '🔍 [validationHistory] Servicio NO encontrado');
+            return redirect()->back()->with('error', 'Servicio no encontrado');
+        }
+
+        log_message('info', '🔍 [validationHistory] Servicio encontrado: ' . $service['service_name']);
+
+        // Obtener TODOS los registros de validation_results para este servicio
+        $validationModel = new \App\Models\ValidationResultModel();
+        $builder = $validationModel->builder();
+
+        log_message('info', '🔍 [validationHistory] Obteniendo registros de validation_results...');
+
+        $results = $builder
+            ->where('battery_service_id', $serviceId)
+            ->orderBy('processed_at', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        log_message('info', '🔍 [validationHistory] Total registros: ' . count($results));
+
+        $data = [
+            'title' => 'Historial de Validaciones',
+            'service' => $service,
+            'results' => $results
+        ];
+
+        log_message('info', '🔍 [validationHistory] Renderizando vista validation_history...');
+
+        return view('validation/validation_history', $data);
+    }
+
+    /**
+     * Export validation history to Excel
+     * GET /validation/history-export/{serviceId}
+     */
+    public function validationHistoryExport($serviceId)
+    {
+        $permissionCheck = $this->checkPermissions();
+        if ($permissionCheck) return $permissionCheck;
+
+        // Obtener información del servicio
+        $service = $this->batteryServiceModel
+            ->select('battery_services.*, companies.name as company_name')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->find($serviceId);
+
+        if (!$service) {
+            return redirect()->back()->with('error', 'Servicio no encontrado');
+        }
+
+        // Obtener TODOS los registros
+        $validationModel = new \App\Models\ValidationResultModel();
+        $builder = $validationModel->builder();
+
+        $results = $builder
+            ->where('battery_service_id', $serviceId)
+            ->orderBy('processed_at', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        // Crear CSV
+        $filename = 'validation_history_service_' . $serviceId . '_' . date('Y-m-d_His') . '.csv';
+
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+        $output = fopen('php://output', 'w');
+
+        // BOM para UTF-8
+        fprintf($output, chr(0xEF).chr(0xBB).chr(0xBF));
+
+        // Encabezados
+        fputcsv($output, [
+            'ID',
+            'Tipo de Cuestionario',
+            'Forma',
+            'Nivel',
+            'Clave Elemento',
+            'Nombre Elemento',
+            'Total Trabajadores',
+            'Suma Promedios',
+            'Factor Transformación',
+            'Puntaje Calculado',
+            'Puntaje BD',
+            'Diferencia',
+            'Estado Validación',
+            'Procesado Por',
+            'Fecha Procesamiento'
+        ], ';');
+
+        // Datos
+        foreach ($results as $row) {
+            fputcsv($output, [
+                $row['id'],
+                $row['questionnaire_type'],
+                $row['form_type'],
+                $row['validation_level'],
+                $row['element_key'],
+                $row['element_name'],
+                $row['total_workers'],
+                $row['sum_averages'],
+                $row['transformation_factor'],
+                $row['calculated_score'],
+                $row['db_score'],
+                $row['difference'],
+                $row['validation_status'],
+                $row['processed_by'],
+                $row['processed_at']
+            ], ';');
+        }
+
+        fclose($output);
+        exit;
     }
 
     /**

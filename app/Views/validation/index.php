@@ -212,14 +212,76 @@
                     </div>
 
                     <!-- Validación Intralaboral Forma A -->
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <div class="card shadow-sm mb-4" id="intralaboral-section-a">
+                        <div class="card-header bg-primary text-white">
                             <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Cuestionario de Factores de Riesgo Psicosocial Intralaboral - Forma A</h5>
-                            <a href="<?= base_url('validation/total/' . $service['id'] . '/A') ?>" target="_blank" class="btn btn-light btn-sm">
-                                <i class="fas fa-check-circle me-1"></i>Validar Total
-                            </a>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card <?= $intralaboralTotalProcessedA ? 'border-success' : 'border-secondary' ?> h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <?php if ($intralaboralTotalProcessedA): ?>
+                                                    <i class="fas fa-check-circle text-success me-2"></i>Total Procesado
+                                                <?php elseif ($domainsProcessed): ?>
+                                                    <i class="fas fa-exclamation-circle text-warning me-2"></i>Total Pendiente
+                                                <?php else: ?>
+                                                    <i class="fas fa-lock text-secondary me-2"></i>Total Bloqueado
+                                                <?php endif; ?>
+                                            </h6>
+                                            <p class="card-text small text-muted">
+                                                <?php if ($intralaboralTotalProcessedA): ?>
+                                                    El total intralaboral Forma A ya ha sido procesado.
+                                                <?php elseif ($domainsProcessed): ?>
+                                                    Procese el total intralaboral Forma A.
+                                                <?php else: ?>
+                                                    Debe procesar los dominios primero.
+                                                <?php endif; ?>
+                                            </p>
+                                            <form action="<?= base_url('validation/process-total-intralaboral/' . $service['id'] . '/A') ?>" method="post" class="d-inline" onsubmit="return false;">
+                                                <?= csrf_field() ?>
+                                                <button type="button" onclick="submitFormWithoutScroll(this.form, '#intralaboral-section-a')" class="btn <?= $intralaboralTotalProcessedA ? 'btn-outline-primary' : 'btn-primary' ?> btn-sm" <?= !$domainsProcessed ? 'disabled' : '' ?>>
+                                                    <i class="fas fa-sync-alt me-1"></i><?= $intralaboralTotalProcessedA ? 'Re-procesar' : 'Procesar' ?> Total
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-info h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fas fa-eye text-info me-2"></i>Ver Validación Total
+                                            </h6>
+                                            <p class="card-text small text-muted">
+                                                <?php if ($intralaboralTotalProcessedA): ?>
+                                                    Revise los resultados de la validación total.
+                                                <?php else: ?>
+                                                    Debe procesar el total primero para ver los resultados.
+                                                <?php endif; ?>
+                                            </p>
+                                            <a href="<?= base_url('validation/total/' . $service['id'] . '/A') ?>" target="_blank" class="btn btn-outline-info btn-sm" <?= !$intralaboralTotalProcessedA ? 'disabled' : '' ?>>
+                                                <i class="fas fa-check-circle me-1"></i>Validar Total
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <?php if ($intralaboralErrorsCountA > 0): ?>
+                                <div class="alert alert-warning mt-3 mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Se encontraron <strong><?= $intralaboralErrorsCountA ?></strong> discrepancias en intralaboral Forma A:
+                                    <ul class="mb-0 mt-2">
+                                        <?php foreach ($intralaboralErrorsA as $error): ?>
+                                            <li><strong><?= esc($error['element_name']) ?></strong> (Diferencia: <?= number_format($error['difference'], 2) ?>)</li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="card-body p-0 border-top">
                             <?php foreach ($domainsFormaA as $domainIndex => $domain): ?>
                                 <div class="domain-section <?= $domainIndex > 0 ? 'border-top' : '' ?>">
                                     <div class="domain-header bg-light p-3 d-flex justify-content-between align-items-center">
@@ -252,14 +314,76 @@
                     </div>
 
                     <!-- Validación Forma B -->
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <div class="card shadow-sm" id="intralaboral-section-b">
+                        <div class="card-header bg-success text-white">
                             <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>Cuestionario de Factores de Riesgo Psicosocial Intralaboral - Forma B</h5>
-                            <a href="<?= base_url('validation/total/' . $service['id'] . '/B') ?>" target="_blank" class="btn btn-light btn-sm">
-                                <i class="fas fa-check-circle me-1"></i>Validar Total
-                            </a>
                         </div>
-                        <div class="card-body p-0">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card <?= $intralaboralTotalProcessedB ? 'border-success' : 'border-secondary' ?> h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <?php if ($intralaboralTotalProcessedB): ?>
+                                                    <i class="fas fa-check-circle text-success me-2"></i>Total Procesado
+                                                <?php elseif ($domainsProcessed): ?>
+                                                    <i class="fas fa-exclamation-circle text-warning me-2"></i>Total Pendiente
+                                                <?php else: ?>
+                                                    <i class="fas fa-lock text-secondary me-2"></i>Total Bloqueado
+                                                <?php endif; ?>
+                                            </h6>
+                                            <p class="card-text small text-muted">
+                                                <?php if ($intralaboralTotalProcessedB): ?>
+                                                    El total intralaboral Forma B ya ha sido procesado.
+                                                <?php elseif ($domainsProcessed): ?>
+                                                    Procese el total intralaboral Forma B.
+                                                <?php else: ?>
+                                                    Debe procesar los dominios primero.
+                                                <?php endif; ?>
+                                            </p>
+                                            <form action="<?= base_url('validation/process-total-intralaboral/' . $service['id'] . '/B') ?>" method="post" class="d-inline" onsubmit="return false;">
+                                                <?= csrf_field() ?>
+                                                <button type="button" onclick="submitFormWithoutScroll(this.form, '#intralaboral-section-b')" class="btn <?= $intralaboralTotalProcessedB ? 'btn-outline-success' : 'btn-success' ?> btn-sm" <?= !$domainsProcessed ? 'disabled' : '' ?>>
+                                                    <i class="fas fa-sync-alt me-1"></i><?= $intralaboralTotalProcessedB ? 'Re-procesar' : 'Procesar' ?> Total
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-info h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fas fa-eye text-info me-2"></i>Ver Validación Total
+                                            </h6>
+                                            <p class="card-text small text-muted">
+                                                <?php if ($intralaboralTotalProcessedB): ?>
+                                                    Revise los resultados de la validación total.
+                                                <?php else: ?>
+                                                    Debe procesar el total primero para ver los resultados.
+                                                <?php endif; ?>
+                                            </p>
+                                            <a href="<?= base_url('validation/total/' . $service['id'] . '/B') ?>" target="_blank" class="btn btn-outline-info btn-sm" <?= !$intralaboralTotalProcessedB ? 'disabled' : '' ?>>
+                                                <i class="fas fa-check-circle me-1"></i>Validar Total
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <?php if ($intralaboralErrorsCountB > 0): ?>
+                                <div class="alert alert-warning mt-3 mb-0">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Se encontraron <strong><?= $intralaboralErrorsCountB ?></strong> discrepancias en intralaboral Forma B:
+                                    <ul class="mb-0 mt-2">
+                                        <?php foreach ($intralaboralErrorsB as $error): ?>
+                                            <li><strong><?= esc($error['element_name']) ?></strong> (Diferencia: <?= number_format($error['difference'], 2) ?>)</li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="card-body p-0 border-top">
                             <?php foreach ($domainsFormaB as $domainIndex => $domain): ?>
                                 <div class="domain-section <?= $domainIndex > 0 ? 'border-top' : '' ?>">
                                     <div class="domain-header bg-light p-3 d-flex justify-content-between align-items-center">
@@ -622,6 +746,80 @@
                                     </p>
                                 </div>
                             <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección: Historial Completo de Validaciones (RESPALDO) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-dark">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-history me-2"></i>Historial Completo de Validaciones
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Respaldo de Seguridad:</strong> Accede al historial completo de todas las validaciones procesadas
+                        en este servicio. Puedes filtrar, buscar y descargar los datos en formato Excel para análisis externo.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5><i class="fas fa-database me-2"></i>Base de Datos de Validaciones</h5>
+                            <p class="text-muted mb-2">
+                                Esta vista muestra todos los registros almacenados en la tabla <code>validation_results</code>
+                                para este servicio, incluyendo:
+                            </p>
+                            <ul class="small text-muted">
+                                <li>Todas las validaciones de <strong>Intralaboral</strong> (dimensiones, dominios y total)</li>
+                                <li>Todas las validaciones de <strong>Extralaboral</strong> (dimensiones y total)</li>
+                                <li>Todas las validaciones de <strong>Estrés</strong> (total)</li>
+                                <li>Información completa: puntajes calculados, puntajes en BD, diferencias, estado, fecha de procesamiento</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="<?= base_url('validation/history/' . $service['id']) ?>"
+                               class="btn btn-dark btn-lg"
+                               target="_blank">
+                                <i class="fas fa-eye me-2"></i>Ver Historial Completo
+                            </a>
+                            <p class="text-muted small mt-2 mb-0">
+                                <i class="fas fa-external-link-alt me-1"></i>Se abre en nueva pestaña
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <div class="row">
+                        <div class="col-12">
+                            <h6 class="mb-2"><i class="fas fa-download me-2"></i>Características del Historial:</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6 class="text-primary"><i class="fas fa-filter me-2"></i>Filtros Avanzados</h6>
+                                        <p class="small mb-0">DataTables con búsqueda en todos los campos, ordenamiento y paginación</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6 class="text-success"><i class="fas fa-file-excel me-2"></i>Descarga Excel</h6>
+                                        <p class="small mb-0">Exporta todos los datos a formato CSV para análisis externo</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="border rounded p-3 h-100">
+                                        <h6 class="text-info"><i class="fas fa-save me-2"></i>Respaldo Completo</h6>
+                                        <p class="small mb-0">Garantiza trazabilidad de todas las validaciones procesadas</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -1261,7 +1261,7 @@ class ValidationController extends BaseController
         $processed = 0;
 
         // Eliminar validaciones anteriores de dimensiones para esta forma
-        $this->validationResultModel->deleteValidationLevel($serviceId, 'intralaboral', $formType, 'dimension');
+        $this->validationResultModel->deletePreviousValidations($serviceId, 'intralaboral', $formType, 'dimension');
 
         // Convertir formType para consultas de responses (A -> intralaboral_A)
         $responseFormType = 'intralaboral_' . $formType;
@@ -1381,7 +1381,7 @@ class ValidationController extends BaseController
         $processed = 0;
 
         // Eliminar validaciones anteriores de dominios para esta forma
-        $this->validationResultModel->deleteValidationLevel($serviceId, 'intralaboral', $formType, 'domain');
+        $this->validationResultModel->deletePreviousValidations($serviceId, 'intralaboral', $formType, 'domain');
 
         // Procesar cada dominio
         foreach ($dominios as $domainKey => $dimensionsInDomain) {
@@ -1597,7 +1597,7 @@ class ValidationController extends BaseController
         $processed = 0;
 
         // Eliminar validaciones anteriores de dimensiones para esta forma
-        $this->validationResultModel->deleteValidationLevel($serviceId, 'extralaboral', $formType, 'dimension');
+        $this->validationResultModel->deletePreviousValidations($serviceId, 'extralaboral', $formType, 'dimension');
 
         // Get configuration from ExtralaboralScoring library
         $scoringLib = new \App\Libraries\ExtralaboralScoring();
@@ -1742,7 +1742,7 @@ class ValidationController extends BaseController
         }
 
         // Eliminar validaciones anteriores de total para esta forma
-        $this->validationResultModel->deleteValidationLevel($serviceId, 'extralaboral', $formType, 'total');
+        $this->validationResultModel->deletePreviousValidations($serviceId, 'extralaboral', $formType, 'total');
 
         // Get dimension results from validation_results (CASCADE) for this form type
         $dimensionResults = $this->validationResultModel->getDimensionResults($serviceId, 'extralaboral', $formType);

@@ -6,10 +6,10 @@ use CodeIgniter\Router\RouteCollection;
  * @var RouteCollection $routes
  */
 
-// DEBUG: Log todas las peticiones
-if (isset($_SERVER['REQUEST_URI'])) {
-    log_message('error', '🌐 [ROUTES.PHP] REQUEST_URI: ' . $_SERVER['REQUEST_URI']);
-    log_message('error', '🌐 [ROUTES.PHP] REQUEST_METHOD: ' . $_SERVER['REQUEST_METHOD']);
+// DEBUG: Log todas las peticiones (solo en desarrollo)
+if (isset($_SERVER['REQUEST_URI']) && ENVIRONMENT === 'development') {
+    log_message('debug', '🌐 [ROUTES.PHP] REQUEST_URI: ' . $_SERVER['REQUEST_URI']);
+    log_message('debug', '🌐 [ROUTES.PHP] REQUEST_METHOD: ' . $_SERVER['REQUEST_METHOD']);
 }
 
 // Ruta principal redirige al login
@@ -239,10 +239,23 @@ $routes->group('satisfaction', function($routes) {
 });
 
 // Rutas de Validación de Resultados
+$routes->post('validation/process-dimensions/(:num)', 'ValidationController::processDimensions/$1'); // Procesar dimensiones intralaboral
+$routes->post('validation/process-domains/(:num)', 'ValidationController::processDomains/$1'); // Procesar dominios intralaboral
+$routes->post('validation/process-total-intralaboral/(:num)/(:alpha)', 'ValidationController::processIntralaboralTotal/$1/$2'); // Procesar total intralaboral por forma (A o B)
+$routes->post('validation/process-dimensions-extralaboral/(:num)/(:alpha)', 'ValidationController::processDimensionsExtralaboral/$1/$2'); // Procesar dimensiones extralaboral por forma (A o B)
+$routes->post('validation/process-total-extralaboral/(:num)/(:alpha)', 'ValidationController::processTotalExtralaboral/$1/$2'); // Procesar total extralaboral por forma (A o B)
+$routes->post('validation/process-estres/(:num)/(:alpha)', 'ValidationController::processEstres/$1/$2'); // Procesar total estrés por forma (A o B)
 $routes->get('validation/dimension/(:num)/(:segment)/(:alpha)', 'ValidationController::validateDimension/$1/$2/$3'); // Validar dimensión con forma específica (A o B)
+$routes->get('validation/domain/(:num)/(:segment)/(:alpha)', 'ValidationController::validateDomain/$1/$2/$3'); // Validar dominio con forma específica (A o B)
+$routes->get('validation/total/(:num)/(:alpha)', 'ValidationController::validateTotal/$1/$2'); // Validar total intralaboral por forma (A o B)
+$routes->get('validation/dimension-extralaboral/(:num)/(:segment)/(:alpha)', 'ValidationController::validateDimensionExtralaboral/$1/$2/$3'); // Validar dimensión extralaboral por forma (A o B)
+$routes->get('validation/total-extralaboral/(:num)/(:alpha)', 'ValidationController::validateTotalExtralaboral/$1/$2'); // Validar total extralaboral por forma (A o B)
+$routes->get('validation/total-estres/(:num)/(:alpha)', 'ValidationController::validateTotalEstres/$1/$2'); // Validar total estrés por forma (A o B)
 $routes->get('validation/conditional/forma-a-i/(:num)', 'ValidationController::conditionalFormaA_I/$1'); // Pregunta condicional I Forma A
 $routes->get('validation/conditional/forma-a-ii/(:num)', 'ValidationController::conditionalFormaA_II/$1'); // Pregunta condicional II Forma A
 $routes->get('validation/conditional/forma-b-i/(:num)', 'ValidationController::conditionalFormaB_I/$1'); // Pregunta condicional I Forma B
+$routes->get('validation/history/(:num)', 'ValidationController::validationHistory/$1'); // Historial completo de validaciones
+$routes->get('validation/history-export/(:num)', 'ValidationController::validationHistoryExport/$1'); // Exportar historial a Excel
 $routes->get('validation/(:num)', 'ValidationController::index/$1'); // Vista principal de validación
 
 // ============================================

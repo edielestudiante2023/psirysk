@@ -984,10 +984,14 @@ class BatteryServiceController extends BaseController
 
             // Puntaje Total General según Tabla 28 - Resolución 2404/2019
             // Fórmula: (Bruto_Intra + Bruto_Extra) / Factor × 100
-            // Factores Forma A: Intra=492, Extra=124, Total=616
-            $brutoIntraA = ($intralaPromedioA * 492) / 100;
-            $brutoExtraA = ($extralPromedioA * 124) / 100;
-            $puntajeTotalGeneralA = (($brutoIntraA + $brutoExtraA) / 616) * 100;
+            // Factores desde Single Source of Truth
+            $factorIntraA = IntralaboralAScoring::getFactorTransformacionIntralaboral(); // 492
+            $factorExtraA = 124; // ExtralaboralScoring - Tabla 28
+            $factorTotalA = IntralaboralAScoring::getFactorTransformacionGeneral(); // 616
+
+            $brutoIntraA = ($intralaPromedioA * $factorIntraA) / 100;
+            $brutoExtraA = ($extralPromedioA * $factorExtraA) / 100;
+            $puntajeTotalGeneralA = (($brutoIntraA + $brutoExtraA) / $factorTotalA) * 100;
 
             // Dominios
             $domLiderazgoPromedioA = $calcularPromedio(array_column($resultsFormaA, 'dom_liderazgo_puntaje'));
@@ -1134,10 +1138,14 @@ class BatteryServiceController extends BaseController
 
             // Puntaje Total General según Tabla 28 - Resolución 2404/2019
             // Fórmula: (Bruto_Intra + Bruto_Extra) / Factor × 100
-            // Factores Forma B: Intra=388, Extra=124, Total=512
-            $brutoIntraB = ($intralaPromedioB * 388) / 100;
-            $brutoExtraB = ($extralPromedioB * 124) / 100;
-            $puntajeTotalGeneralB = (($brutoIntraB + $brutoExtraB) / 512) * 100;
+            // Factores desde Single Source of Truth
+            $factorIntraB = IntralaboralBScoring::getFactorTransformacionIntralaboral(); // 388
+            $factorExtraB = 124; // ExtralaboralScoring - Tabla 28
+            $factorTotalB = IntralaboralBScoring::getFactorTransformacionGeneral(); // 512
+
+            $brutoIntraB = ($intralaPromedioB * $factorIntraB) / 100;
+            $brutoExtraB = ($extralPromedioB * $factorExtraB) / 100;
+            $puntajeTotalGeneralB = (($brutoIntraB + $brutoExtraB) / $factorTotalB) * 100;
 
             // Dominios
             $domLiderazgoPromedioB = $calcularPromedio(array_column($resultsFormaB, 'dom_liderazgo_puntaje'));

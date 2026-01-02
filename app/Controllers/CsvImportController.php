@@ -916,9 +916,10 @@ class CsvImportController extends BaseController
         // Procesar atiende_clientes (va a workers, no a worker_demographics)
         // Si la columna existe en el CSV, procesarla
         if (isset($data['atiende_clientes'])) {
-            $atiendeClientes = strtolower(trim($data['atiende_clientes']));
-            // Solo es 1 (Sí) si explícitamente dice "Sí" o "Si"
+            $atiendeClientes = mb_strtolower(trim($data['atiende_clientes']), 'UTF-8');
+            // Solo es 1 (Sí) si explícitamente dice "Sí" o "Si" (en cualquier combinación de mayúsculas/minúsculas)
             // Cualquier otro valor (vacío, "No", "no", etc.) es 0
+            // Usar mb_strtolower para convertir correctamente "SÍ" → "sí"
             $newValue = ($atiendeClientes === 'sí' || $atiendeClientes === 'si') ? 1 : 0;
 
             // Normalizar valor actual (NULL se trata como 0)
@@ -934,9 +935,10 @@ class CsvImportController extends BaseController
         // Procesar es_jefe (va a workers, no a worker_demographics)
         // Si la columna existe en el CSV, procesarla
         if (isset($data['es_jefe'])) {
-            $esJefe = strtolower(trim($data['es_jefe']));
-            // Solo es 1 (Sí) si explícitamente dice "Sí" o "Si"
+            $esJefe = mb_strtolower(trim($data['es_jefe']), 'UTF-8');
+            // Solo es 1 (Sí) si explícitamente dice "Sí" o "Si" (en cualquier combinación de mayúsculas/minúsculas)
             // Cualquier otro valor (vacío, "No", "no", etc.) es 0
+            // Usar mb_strtolower para convertir correctamente "SÍ" → "sí"
             $newValue = ($esJefe === 'sí' || $esJefe === 'si') ? 1 : 0;
 
             // Normalizar valor actual (NULL se trata como 0)

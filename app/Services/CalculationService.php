@@ -382,8 +382,8 @@ class CalculationService
     /**
      * Calcula el puntaje total general según metodología del Ministerio
      * Tabla 28: Factor de transformación puntaje general
-     * - Forma A: 616
-     * - Forma B: 512
+     * - Forma A: 616 (492 intralaboral + 124 extralaboral)
+     * - Forma B: 512 (388 intralaboral + 124 extralaboral)
      */
     protected function calculateTotalGeneral($intralaboralResults, $extralaboralResults, $estresResults, $intralaboralType)
     {
@@ -392,7 +392,10 @@ class CalculationService
                         $extralaboralResults['puntajes_brutos']['total'];
 
         // Determinar factor de transformación según tipo de formulario (Tabla 28)
-        $factorTransformacion = ($intralaboralType === 'A') ? 616 : 512;
+        // Obtenemos el factor desde las librerías oficiales (Single Source of Truth)
+        $factorTransformacion = ($intralaboralType === 'A')
+            ? IntralaboralAScoring::getFactorTransformacionGeneral()
+            : IntralaboralBScoring::getFactorTransformacionGeneral();
 
         $puntajeTransformado = round(($puntajeBruto / $factorTransformacion) * 100, 1);
 

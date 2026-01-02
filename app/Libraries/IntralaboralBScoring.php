@@ -769,4 +769,32 @@ class IntralaboralBScoring
     {
         return self::$baremoTotal;
     }
+
+    /**
+     * Obtiene el factor de transformación total intralaboral (Tabla 27 - Forma B)
+     * @return int Factor de transformación (388)
+     */
+    public static function getFactorTransformacionIntralaboral()
+    {
+        return self::$factorTransformacionTotal;
+    }
+
+    /**
+     * Obtiene el factor de transformación para evaluación general (Tabla 28 - Forma B)
+     * Suma de factores intralaboral (388) + extralaboral (124)
+     * @return int Factor de transformación total (512)
+     */
+    public static function getFactorTransformacionGeneral()
+    {
+        return 512; // 388 (intralaboral) + 124 (extralaboral) - Tabla 28
+    }
+
+    /**
+     * Obtiene el mapeo de dominios y sus dimensiones (Tabla 23)
+     * @return array Mapeo de dominios
+     */
+    public static function getDominios()
+    {
+        return self::$dominios;
+    }
 }

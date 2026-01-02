@@ -22,10 +22,10 @@ class RecalculateEstres extends BaseCommand
         $responseModel = new \App\Models\ResponseModel();
         $calculatedResultModel = new \App\Models\CalculatedResultModel();
 
-        // Get all completed workers with estres form_type
+        // Get all completed workers with intralaboral_type A or B
         $workers = $workerModel
-            ->where('status', 'completed')
-            ->whereIn('form_type', ['A', 'B'])
+            ->where('status', 'completado')
+            ->whereIn('intralaboral_type', ['A', 'B'])
             ->findAll();
 
         if (empty($workers)) {
@@ -42,7 +42,7 @@ class RecalculateEstres extends BaseCommand
         $errors = 0;
 
         foreach ($workers as $worker) {
-            CLI::write("Procesando worker #{$worker['id']} - {$worker['name']} (Forma {$worker['form_type']})...", 'cyan');
+            CLI::write("Procesando worker #{$worker['id']} - {$worker['name']} (Forma {$worker['intralaboral_type']})...", 'cyan');
 
             try {
                 // Verificar si tiene respuestas de estrés
@@ -70,8 +70,9 @@ class RecalculateEstres extends BaseCommand
                     continue;
                 }
 
-                // Calcular con EstresScoring
-                $resultado = \App\Libraries\EstresScoring::calificar($respuestas, $worker['form_type']);
+                // Calcular con EstresScoring (tipo baremo según intralaboral_type)
+                $tipoBaremo = ($worker['intralaboral_type'] == 'A') ? 'jefes' : 'auxiliares';
+                $resultado = \App\Libraries\EstresScoring::calificar($respuestas, $tipoBaremo);
 
                 // Obtener calculated_result existente
                 $existingResult = $calculatedResultModel
@@ -86,21 +87,22 @@ class RecalculateEstres extends BaseCommand
 
                 // Comparar valores
                 $oldPuntaje = $existingResult['estres_total_puntaje'] ?? 0;
-                $newPuntaje = $resultado['puntajeTransformado'];
+                $newPuntaje = $resultado['puntaje_transformado_total'];
+                $newNivel = $resultado['nivel_estres'];
                 $diff = abs($newPuntaje - $oldPuntaje);
 
                 // Actualizar si hay diferencia
                 if ($diff > 0.01) {
                     $calculatedResultModel->update($existingResult['id'], [
                         'estres_total_puntaje' => $newPuntaje,
-                        'estres_total_nivel' => $resultado['nivelRiesgo'],
+                        'estres_total_nivel' => $newNivel,
                         'updated_at' => date('Y-m-d H:i:s')
                     ]);
 
-                    CLI::write("  ✓ Updated - Puntaje: {$oldPuntaje} → {$newPuntaje} (diff: " . round($diff, 2) . ") - Nivel: {$resultado['nivelRiesgo']}", 'green');
+                    CLI::write("  ✓ Updated - Puntaje: {$oldPuntaje} → {$newPuntaje} (diff: " . round($diff, 2) . ") - Nivel: {$newNivel}", 'green');
                     $updated++;
                 } else {
-                    CLI::write("  ○ No change - Puntaje: {$newPuntaje} - Nivel: {$resultado['nivelRiesgo']}", 'white');
+                    CLI::write("  ○ No change - Puntaje: {$newPuntaje} - Nivel: {$newNivel}", 'white');
                 }
 
                 $processed++;

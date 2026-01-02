@@ -42,39 +42,45 @@
         <!-- Estadísticas y Baremos -->
         <div class="row mb-4">
             <!-- Estadísticas Calculadas -->
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="card shadow-sm h-100 stats-card">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Puntaje Total Calculado</h5>
                     </div>
                     <div class="card-body text-center">
-                        <h1 class="display-4 text-primary mb-2"><?= number_format($promedioCalculado, 1) ?></h1>
-                        <span class="badge badge-<?= $nivelCalculado ?> fs-5">
-                            <?= strtoupper(str_replace('_', ' ', $nivelCalculado)) ?>
-                        </span>
-                        <p class="text-muted mt-3 mb-0">Promedio de <?= $totalWorkers ?> trabajadores</p>
+                        <h1 class="display-4 text-primary mb-2"><?= number_format($validation['puntaje_transformado'], 2) ?></h1>
+                        <p class="text-muted mt-3 mb-0">Suma de dominios: <?= number_format($validation['sum_promedios'], 2) ?></p>
+                        <p class="text-muted mb-0">Factor: <?= $validation['transformation_factor'] ?></p>
                     </div>
                 </div>
             </div>
 
             <!-- Estadísticas BD -->
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="card shadow-sm h-100 stats-card">
                     <div class="card-header bg-info text-white">
                         <h5 class="mb-0"><i class="fas fa-database me-2"></i>Puntaje Total en BD</h5>
                     </div>
                     <div class="card-body text-center">
-                        <h1 class="display-4 text-info mb-2"><?= number_format($promedioFromDB, 1) ?></h1>
-                        <?php
-                            $diff = abs($promedioCalculado - $promedioFromDB);
-                            $isMatch = $diff < 0.1;
-                        ?>
-                        <?php if ($isMatch): ?>
-                            <span class="badge bg-success fs-5"><i class="fas fa-check-circle me-1"></i>COINCIDE</span>
+                        <h1 class="display-4 text-info mb-2"><?= number_format($validation['db_comparison']['db_score'], 2) ?></h1>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card shadow-sm h-100 stats-card">
+                    <div class="card-header <?= $validation['db_comparison']['status'] === 'ok' ? 'bg-success' : 'bg-danger' ?> text-white">
+                        <h5 class="mb-0"><i class="fas fa-balance-scale me-2"></i>Diferencia</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <h1 class="display-4 <?= $validation['db_comparison']['status'] === 'ok' ? 'text-success' : 'text-danger' ?> mb-2">
+                            <?= number_format($validation['db_comparison']['difference'], 2) ?>
+                        </h1>
+                        <?php if ($validation['db_comparison']['status'] === 'ok'): ?>
+                            <span class="badge bg-success fs-5"><i class="fas fa-check-circle me-1"></i>VALIDACIÓN OK</span>
                         <?php else: ?>
-                            <span class="badge bg-danger fs-5"><i class="fas fa-exclamation-triangle me-1"></i>DIFERENCIA: <?= number_format($diff, 2) ?></span>
+                            <span class="badge bg-danger fs-5"><i class="fas fa-exclamation-triangle me-1"></i>DISCREPANCIA</span>
                         <?php endif; ?>
-                        <p class="text-muted mt-3 mb-0">Promedio almacenado en base de datos</p>
                     </div>
                 </div>
             </div>
@@ -82,6 +88,23 @@
 
         <!-- Baremos Oficiales Tabla 33 -->
         <?php if ($baremos): ?>
+            <?php
+                // Determinar en qué nivel se encuentra el puntaje
+                $puntaje = $validation['puntaje_transformado'];
+                $nivelActual = null;
+
+                if ($puntaje >= $baremos['sin_riesgo'][0] && $puntaje <= $baremos['sin_riesgo'][1]) {
+                    $nivelActual = 'sin_riesgo';
+                } elseif ($puntaje >= $baremos['riesgo_bajo'][0] && $puntaje <= $baremos['riesgo_bajo'][1]) {
+                    $nivelActual = 'riesgo_bajo';
+                } elseif ($puntaje >= $baremos['riesgo_medio'][0] && $puntaje <= $baremos['riesgo_medio'][1]) {
+                    $nivelActual = 'riesgo_medio';
+                } elseif ($puntaje >= $baremos['riesgo_alto'][0] && $puntaje <= $baremos['riesgo_alto'][1]) {
+                    $nivelActual = 'riesgo_alto';
+                } elseif ($puntaje >= $baremos['riesgo_muy_alto'][0] && $puntaje <= $baremos['riesgo_muy_alto'][1]) {
+                    $nivelActual = 'riesgo_muy_alto';
+                }
+            ?>
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-success text-white">
                 <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Baremos Oficiales - Tabla 33 (Puntaje Total Intralaboral)</h5>
@@ -99,17 +122,121 @@
                     </thead>
                     <tbody>
                         <tr class="text-center">
-                            <td><?= $baremos['sin_riesgo']['min'] ?> - <?= $baremos['sin_riesgo']['max'] ?></td>
-                            <td><?= $baremos['riesgo_bajo']['min'] ?> - <?= $baremos['riesgo_bajo']['max'] ?></td>
-                            <td><?= $baremos['riesgo_medio']['min'] ?> - <?= $baremos['riesgo_medio']['max'] ?></td>
-                            <td><?= $baremos['riesgo_alto']['min'] ?> - <?= $baremos['riesgo_alto']['max'] ?></td>
-                            <td><?= $baremos['riesgo_muy_alto']['min'] ?> - <?= $baremos['riesgo_muy_alto']['max'] ?></td>
+                            <td <?= $nivelActual === 'sin_riesgo' ? 'style="background-color: #28a745; color: white; font-weight: bold;"' : '' ?>>
+                                <?= $baremos['sin_riesgo'][0] ?> - <?= $baremos['sin_riesgo'][1] ?>
+                                <?php if ($nivelActual === 'sin_riesgo'): ?>
+                                    <br><span class="badge bg-light text-dark mt-1">← Puntaje: <?= number_format($puntaje, 2) ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td <?= $nivelActual === 'riesgo_bajo' ? 'style="background-color: #28a745; color: white; font-weight: bold;"' : '' ?>>
+                                <?= $baremos['riesgo_bajo'][0] ?> - <?= $baremos['riesgo_bajo'][1] ?>
+                                <?php if ($nivelActual === 'riesgo_bajo'): ?>
+                                    <br><span class="badge bg-light text-dark mt-1">← Puntaje: <?= number_format($puntaje, 2) ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td <?= $nivelActual === 'riesgo_medio' ? 'style="background-color: #ffc107; color: black; font-weight: bold;"' : '' ?>>
+                                <?= $baremos['riesgo_medio'][0] ?> - <?= $baremos['riesgo_medio'][1] ?>
+                                <?php if ($nivelActual === 'riesgo_medio'): ?>
+                                    <br><span class="badge bg-dark text-white mt-1">← Puntaje: <?= number_format($puntaje, 2) ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td <?= $nivelActual === 'riesgo_alto' ? 'style="background-color: #dc3545; color: white; font-weight: bold;"' : '' ?>>
+                                <?= $baremos['riesgo_alto'][0] ?> - <?= $baremos['riesgo_alto'][1] ?>
+                                <?php if ($nivelActual === 'riesgo_alto'): ?>
+                                    <br><span class="badge bg-light text-dark mt-1">← Puntaje: <?= number_format($puntaje, 2) ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td <?= $nivelActual === 'riesgo_muy_alto' ? 'style="background-color: #dc3545; color: white; font-weight: bold;"' : '' ?>>
+                                <?= $baremos['riesgo_muy_alto'][0] ?> - <?= $baremos['riesgo_muy_alto'][1] ?>
+                                <?php if ($nivelActual === 'riesgo_muy_alto'): ?>
+                                    <br><span class="badge bg-light text-dark mt-1">← Puntaje: <?= number_format($puntaje, 2) ?></span>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
         <?php endif; ?>
+
+        <!-- Dominios que componen el Total -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-layer-group me-2"></i>Dominios que Componen el Total Intralaboral</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Dominio</th>
+                                <th class="text-center">Puntaje Bruto<br><small class="text-muted">(sum_averages)</small></th>
+                                <th class="text-center">Factor Transformación</th>
+                                <th class="text-center">Puntaje Transformado<br><small class="text-muted">(Calculado)</small></th>
+                                <th class="text-center">Puntaje BD</th>
+                                <th class="text-center">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($validation['domains'] as $dom): ?>
+                                <?php
+                                    $match = abs($dom['calculated_score'] - $dom['db_score']) < 0.1;
+                                    $rowClass = $match ? 'match' : 'mismatch';
+                                ?>
+                                <tr class="<?= $rowClass ?>">
+                                    <td><strong><?= esc($dom['name']) ?></strong></td>
+                                    <td class="text-center"><?= number_format($dom['sum_averages'], 2) ?></td>
+                                    <td class="text-center"><?= $dom['transformation_factor'] ?></td>
+                                    <td class="text-center"><strong><?= number_format($dom['calculated_score'], 2) ?></strong></td>
+                                    <td class="text-center"><?= number_format($dom['db_score'], 2) ?></td>
+                                    <td class="text-center">
+                                        <?php if ($match): ?>
+                                            <i class="fas fa-check-circle text-success fa-lg"></i>
+                                        <?php else: ?>
+                                            <i class="fas fa-exclamation-triangle text-danger fa-lg"></i>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            <tr class="table-primary">
+                                <td><strong>SUMA TOTAL (Puntaje Bruto del Total Intralaboral)</strong></td>
+                                <td class="text-center"><strong><?= number_format($validation['sum_promedios'], 2) ?></strong></td>
+                                <td class="text-center"><strong><?= $validation['transformation_factor'] ?></strong></td>
+                                <td class="text-center"><strong><?= number_format($validation['puntaje_transformado'], 2) ?></strong></td>
+                                <td class="text-center"><strong><?= number_format($validation['db_comparison']['db_score'], 2) ?></strong></td>
+                                <td class="text-center">
+                                    <?php if ($validation['db_comparison']['status'] === 'ok'): ?>
+                                        <i class="fas fa-check-circle text-success fa-lg"></i>
+                                    <?php else: ?>
+                                        <i class="fas fa-exclamation-triangle text-danger fa-lg"></i>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fórmula de Cálculo -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Fórmula de Cálculo del Total Intralaboral</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><strong>Paso 1:</strong> Sumar los puntajes brutos de los 4 dominios</p>
+                <pre class="bg-light p-3 rounded">Suma = <?php
+                    $parts = [];
+                    foreach ($validation['domains'] as $dom) {
+                        $parts[] = number_format($dom['sum_averages'], 2);
+                    }
+                    echo implode(' + ', $parts);
+                ?> = <?= number_format($validation['sum_promedios'], 2) ?></pre>
+
+                <p class="mb-2 mt-3"><strong>Paso 2:</strong> Transformar con el factor del total intralaboral (Tabla 27)</p>
+                <pre class="bg-light p-3 rounded">Puntaje Transformado = (<?= number_format($validation['sum_promedios'], 2) ?> / <?= $validation['transformation_factor'] ?>) × 100 = <?= number_format($validation['puntaje_transformado'], 2) ?></pre>
+            </div>
+        </div>
 
         <!-- Tabla de Puntajes por Trabajador -->
         <div class="card shadow-sm">

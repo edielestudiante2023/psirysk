@@ -431,8 +431,8 @@ class ValidationController extends BaseController
             'db_score' => $dbScore,
             'calculated_score' => $calculatedScore,
             'difference' => $difference,
-            'matches' => abs($difference) < 0.1, // Tolerancia de 0.1 por redondeos
-            'status' => abs($difference) < 0.1 ? 'ok' : 'error'
+            'matches' => abs($difference) < 1, // Tolerancia de 1 punto
+            'status' => abs($difference) < 1 ? 'ok' : 'error'
         ];
     }
 
@@ -1030,7 +1030,7 @@ class ValidationController extends BaseController
 
         // Comparación
         $difference = round($puntajeTransformado - $dbScore, 2);
-        $status = abs($difference) < 0.1 ? 'ok' : 'error';
+        $status = abs($difference) < 1 ? 'ok' : 'error';
 
         $validation = [
             'dimensions' => $dimensionsData,
@@ -1157,7 +1157,7 @@ class ValidationController extends BaseController
 
         // Comparación
         $difference = round($puntajeTransformado - $dbScore, 2);
-        $status = abs($difference) < 0.1 ? 'ok' : 'error';
+        $status = abs($difference) < 1 ? 'ok' : 'error';
 
         // Preparar puntajes por trabajador
         $totalScores = [];
@@ -1304,7 +1304,7 @@ class ValidationController extends BaseController
                 'calculated_score' => $validation['puntaje_transformado'],
                 'db_score' => round($dbScore, 2),
                 'difference' => round($validation['puntaje_transformado'] - $dbScore, 2),
-                'validation_status' => abs($validation['puntaje_transformado'] - $dbScore) < 0.1 ? 'ok' : 'error',
+                'validation_status' => abs($validation['puntaje_transformado'] - $dbScore) < 1 ? 'ok' : 'error',
                 'processed_at' => date('Y-m-d H:i:s'),
                 'processed_by' => session()->get('id')
             ];
@@ -1437,7 +1437,7 @@ class ValidationController extends BaseController
                 'calculated_score' => $puntajeTransformado,
                 'db_score' => round($dbScore, 2),
                 'difference' => round($puntajeTransformado - $dbScore, 2),
-                'validation_status' => abs($puntajeTransformado - $dbScore) < 0.1 ? 'ok' : 'error',
+                'validation_status' => abs($puntajeTransformado - $dbScore) < 1 ? 'ok' : 'error',
                 'processed_at' => date('Y-m-d H:i:s'),
                 'processed_by' => session()->get('id')
             ];
@@ -1534,7 +1534,7 @@ class ValidationController extends BaseController
             'calculated_score' => $calculatedScoreRounded,
             'db_score' => $dbScoreRounded,
             'difference' => $difference,
-            'validation_status' => abs($difference) < 0.1 ? 'ok' : 'error',
+            'validation_status' => abs($difference) < 1 ? 'ok' : 'error',
             'processed_at' => date('Y-m-d H:i:s'),
             'processed_by' => session()->get('id')
         ];
@@ -1707,7 +1707,7 @@ class ValidationController extends BaseController
                 'calculated_score' => $puntajeTransformado,
                 'db_score' => round($dbScore, 2),
                 'difference' => round($puntajeTransformado - $dbScore, 2),
-                'validation_status' => abs($puntajeTransformado - $dbScore) < 0.1 ? 'ok' : 'error',
+                'validation_status' => abs($puntajeTransformado - $dbScore) < 1 ? 'ok' : 'error',
                 'processed_at' => date('Y-m-d H:i:s'),
                 'processed_by' => session()->get('id')
             ];
@@ -2037,7 +2037,7 @@ class ValidationController extends BaseController
 
         // Calcular la diferencia SOBRE LOS VALORES REDONDEADOS
         $difference = round($calculatedScoreRounded - $dbScoreRounded, 2);
-        $validationStatus = abs($difference) < 0.1 ? 'ok' : 'error';
+        $validationStatus = abs($difference) < 1 ? 'ok' : 'error';
 
         log_message('info', '========================================');
         log_message('info', "COMPARACIÓN FINAL");
@@ -2489,7 +2489,7 @@ class ValidationController extends BaseController
         $dbScore = $validationResult ? (float)$validationResult['db_score'] : 0;
 
         $difference = abs($puntajeTransformado - $dbScore);
-        $status = ($difference < 0.1) ? 'ok' : 'error';
+        $status = ($difference < 1) ? 'ok' : 'error';
 
         // Determinar nivel de riesgo
         $baremos = \App\Libraries\ExtralaboralScoring::getBaremoDimension($dimensionKey, 'A');

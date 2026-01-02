@@ -788,4 +788,13 @@ class IntralaboralBScoring
     {
         return 512; // 388 (intralaboral) + 124 (extralaboral) - Tabla 28
     }
+
+    /**
+     * Obtiene el mapeo de dominios y sus dimensiones (Tabla 23)
+     * @return array Mapeo de dominios
+     */
+    public static function getDominios()
+    {
+        return self::$dominios;
+    }
 }

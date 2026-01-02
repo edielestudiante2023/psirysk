@@ -110,53 +110,71 @@
         </div>
         <?php endif; ?>
 
-        <!-- Tabla de Trabajadores con Dimensiones -->
+        <!-- Dimensiones que componen el Total Extralaboral -->
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="fas fa-table me-2"></i>Resultado Agregado</h5>
+                <h5 class="mb-0"><i class="fas fa-layer-group me-2"></i>Dimensiones que Componen el Total Extralaboral</h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-striped table-hover mb-0">
                         <thead class="table-light">
                             <tr>
-                                <th class="text-center">Total Workers</th>
-                                <th class="text-center">Suma Promedios<br><small class="text-muted">(sum_averages)</small></th>
-                                <th class="text-center">Factor Total</th>
-                                <th class="text-center">Puntaje Calculado</th>
+                                <th>Dimensión</th>
+                                <th class="text-center">Puntaje Bruto<br><small class="text-muted">(sum_averages)</small></th>
+                                <th class="text-center">Factor Transformación</th>
+                                <th class="text-center">Puntaje Transformado<br><small class="text-muted">(Calculado)</small></th>
                                 <th class="text-center">Puntaje BD</th>
-                                <th class="text-center">Diferencia</th>
                                 <th class="text-center">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php
-                            $rowClass = $match ? 'match' : 'mismatch';
-
-                            // Determinar nivel de riesgo usando el método de la librería
-                            $nivelRiesgoData = null;
-                            if ($baremos) {
-                                foreach ($baremos as $nivel => $rango) {
-                                    $score = $result['calculated_score'];
-                                    if ($score >= $rango['min'] && $score <= $rango['max']) {
-                                        $nivelRiesgoData = $rango;
-                                        break;
-                                    }
-                                }
-                            }
-                            ?>
-                            <tr class="<?= $rowClass ?>">
-                                <td class="text-center"><?= $result['total_workers'] ?></td>
-                                <td class="text-center"><?= number_format($result['sum_averages'], 2) ?></td>
-                                <td class="text-center"><?= $result['transformation_factor'] ?></td>
+                            <?php if (!empty($dimensions)): ?>
+                                <?php foreach ($dimensions as $dim): ?>
+                                    <?php
+                                        $match = abs($dim['calculated_score'] - $dim['db_score']) < 0.1;
+                                        $rowClass = $match ? 'match' : 'mismatch';
+                                    ?>
+                                    <tr class="<?= $rowClass ?>">
+                                        <td><strong><?= esc($dim['element_name']) ?></strong></td>
+                                        <td class="text-center"><?= number_format($dim['sum_averages'], 2) ?></td>
+                                        <td class="text-center"><?= $dim['transformation_factor'] ?></td>
+                                        <td class="text-center"><strong><?= number_format($dim['calculated_score'], 2) ?></strong></td>
+                                        <td class="text-center"><?= number_format($dim['db_score'], 2) ?></td>
+                                        <td class="text-center">
+                                            <?php if ($match): ?>
+                                                <i class="fas fa-check-circle text-success fa-lg"></i>
+                                            <?php else: ?>
+                                                <i class="fas fa-exclamation-triangle text-danger fa-lg"></i>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                            <tr class="table-primary">
+                                <td><strong>SUMA TOTAL (Puntaje Bruto del Total Extralaboral)</strong></td>
+                                <td class="text-center"><strong><?= number_format($result['sum_averages'], 2) ?></strong></td>
+                                <td class="text-center"><strong><?= $result['transformation_factor'] ?></strong></td>
                                 <td class="text-center">
                                     <strong><?= number_format($result['calculated_score'], 2) ?></strong>
+                                    <?php
+                                    // Determinar nivel de riesgo
+                                    $nivelRiesgoData = null;
+                                    if ($baremos) {
+                                        foreach ($baremos as $nivel => $rango) {
+                                            $score = $result['calculated_score'];
+                                            if ($score >= $rango['min'] && $score <= $rango['max']) {
+                                                $nivelRiesgoData = $rango;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    ?>
                                     <?php if ($nivelRiesgoData): ?>
                                         <br><span class="badge bg-<?= $nivelRiesgoData['color'] ?>"><?= esc($nivelRiesgoData['label']) ?></span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="text-center"><?= number_format($result['db_score'], 2) ?></td>
-                                <td class="text-center"><?= number_format($result['difference'], 2) ?></td>
+                                <td class="text-center"><strong><?= number_format($result['db_score'], 2) ?></strong></td>
                                 <td class="text-center">
                                     <?php if ($match): ?>
                                         <i class="fas fa-check-circle text-success fa-lg"></i>

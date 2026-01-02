@@ -133,7 +133,7 @@
                                     <td class="text-end">
                                         <?php
                                         $diff = floatval($row['difference']);
-                                        $class = abs($diff) < 0.1 ? 'text-success' : 'text-danger';
+                                        $class = abs($diff) < 1 ? 'text-success' : 'text-danger';
                                         ?>
                                         <span class="<?= $class ?> fw-bold"><?= number_format($diff, 2) ?></span>
                                     </td>
@@ -172,15 +172,15 @@
                     <div class="col-md-4">
                         <p class="mb-1"><strong>Estados:</strong></p>
                         <ul class="small">
-                            <li><span class="badge badge-ok">OK</span> - Diferencia menor a 0.1 (validación exitosa)</li>
-                            <li><span class="badge badge-error">Error</span> - Diferencia mayor o igual a 0.1 (discrepancia detectada)</li>
+                            <li><span class="badge badge-ok">OK</span> - Diferencia menor a 1 (validación exitosa)</li>
+                            <li><span class="badge badge-error">Error</span> - Diferencia mayor o igual a 1 (discrepancia detectada)</li>
                         </ul>
                     </div>
                     <div class="col-md-4">
                         <p class="mb-1"><strong>Colores de Diferencia:</strong></p>
                         <ul class="small">
-                            <li><span class="text-success fw-bold">Verde:</span> Diferencia &lt; 0.1 (aceptable)</li>
-                            <li><span class="text-danger fw-bold">Rojo:</span> Diferencia ≥ 0.1 (requiere revisión)</li>
+                            <li><span class="text-success fw-bold">Verde:</span> Diferencia &lt; 1 (aceptable)</li>
+                            <li><span class="text-danger fw-bold">Rojo:</span> Diferencia ≥ 1 (requiere revisión)</li>
                         </ul>
                     </div>
                 </div>

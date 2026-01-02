@@ -141,15 +141,13 @@ class EstresScoring
      * Califica el cuestionario de Estrés
      *
      * @param array $respuestas Array asociativo [numero_pregunta => valor_respuesta]
-     *                          Valores: 'siempre', 'casi_siempre', 'a_veces', 'nunca'
+     *                          Valores numéricos: 0 (Siempre), 1 (Casi siempre), 2 (A veces), 3 (Nunca)
      * @param string $tipoBaremo 'jefes' o 'auxiliares' (determina qué baremo usar)
      *
      * @return array [
-     *   'puntaje_bruto_total' => float,
-     *   'puntaje_transformado_total' => float,
-     *   'nivel_estres' => string,
-     *   'tipo_baremo' => string,
-     *   'puntajes_por_dimension' => [],
+     *   'puntaje_bruto' => float,
+     *   'puntaje_transformado' => float,
+     *   'nivel_riesgo' => string,
      *   'error' => string|null
      * ]
      */
@@ -523,5 +521,219 @@ class EstresScoring
     public static function getBaremoGeneral($forma = 'A')
     {
         return ($forma === 'A') ? self::$baremosGeneralA : self::$baremosGeneralB;
+    }
+
+    // =========================================================================
+    // MÉTODOS PÚBLICOS PARA VALIDADOR (Patrón Extralaboral)
+    // Single Source of Truth - NO hardcodear en ValidationController
+    // =========================================================================
+
+    /**
+     * Califica un ítem con valores numéricos (0-3)
+     * Para uso en el Núcleo Validador
+     *
+     * @param int $numeroItem Número del ítem (1-31)
+     * @param int $respuesta Valor numérico: 0=Siempre, 1=Casi siempre, 2=A veces, 3=Nunca
+     * @return int Puntaje calificado según grupo
+     */
+    public static function calificarItemNumerico($numeroItem, $respuesta)
+    {
+        if (in_array($numeroItem, self::$itemsGrupo1)) {
+            // Grupo 1: [9, 6, 3, 0]
+            $valores = [9, 6, 3, 0];
+            return $valores[$respuesta] ?? 0;
+        } elseif (in_array($numeroItem, self::$itemsGrupo2)) {
+            // Grupo 2: [6, 4, 2, 0]
+            $valores = [6, 4, 2, 0];
+            return $valores[$respuesta] ?? 0;
+        } elseif (in_array($numeroItem, self::$itemsGrupo3)) {
+            // Grupo 3: [3, 2, 1, 0]
+            $valores = [3, 2, 1, 0];
+            return $valores[$respuesta] ?? 0;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Obtiene ítems por grupo (para validación)
+     * @return array ['grupo1' => [...], 'grupo2' => [...], 'grupo3' => [...]]
+     */
+    public static function getItemsPorGrupo()
+    {
+        return [
+            'grupo1' => self::$itemsGrupo1,
+            'grupo2' => self::$itemsGrupo2,
+            'grupo3' => self::$itemsGrupo3
+        ];
+    }
+
+    /**
+     * Verifica a qué grupo pertenece un ítem
+     * @param int $itemNumber Número del ítem (1-31)
+     * @return string|null 'grupo1', 'grupo2', 'grupo3' o null
+     */
+    public static function getGrupoItem($itemNumber)
+    {
+        if (in_array($itemNumber, self::$itemsGrupo1)) return 'grupo1';
+        if (in_array($itemNumber, self::$itemsGrupo2)) return 'grupo2';
+        if (in_array($itemNumber, self::$itemsGrupo3)) return 'grupo3';
+        return null;
+    }
+
+    /**
+     * Obtiene valores de calificación para un grupo
+     * @param string $grupo 'grupo1', 'grupo2' o 'grupo3'
+     * @return array Valores [Siempre, Casi siempre, A veces, Nunca]
+     */
+    public static function getValoresGrupo($grupo)
+    {
+        $valores = [
+            'grupo1' => [9, 6, 3, 0],
+            'grupo2' => [6, 4, 2, 0],
+            'grupo3' => [3, 2, 1, 0]
+        ];
+
+        return $valores[$grupo] ?? [];
+    }
+
+    /**
+     * Factor de transformación (Tabla 4)
+     * @return float 61.16 o 61.1666666666666 según precisión requerida
+     */
+    public static function getFactorTransformacion()
+    {
+        return self::$factorTransformacion;
+    }
+
+    /**
+     * Obtiene baremos en formato estándar para vista (Tabla 6)
+     * @param string $tipoTrabajador 'jefes' o 'auxiliares'
+     * @return array Baremos con min, max, label, color
+     */
+    public static function getBaremos($tipoTrabajador)
+    {
+        $baremasRaw = ($tipoTrabajador === 'auxiliares')
+            ? self::$baremosAuxiliares
+            : self::$baremosJefes;
+
+        // Convertir formato [min, max] a formato estándar
+        $baremosFormatted = [];
+        $colores = [
+            'muy_bajo' => 'success',
+            'bajo' => 'info',
+            'medio' => 'warning',
+            'alto' => 'danger',
+            'muy_alto' => 'danger'
+        ];
+
+        $labels = [
+            'muy_bajo' => 'Muy bajo',
+            'bajo' => 'Bajo',
+            'medio' => 'Medio',
+            'alto' => 'Alto',
+            'muy_alto' => 'Muy alto'
+        ];
+
+        foreach ($baremasRaw as $nivel => $rango) {
+            $baremosFormatted[$nivel] = [
+                'min' => $rango[0],
+                'max' => $rango[1],
+                'label' => $labels[$nivel] ?? ucfirst(str_replace('_', ' ', $nivel)),
+                'color' => $colores[$nivel] ?? 'secondary'
+            ];
+        }
+
+        return $baremosFormatted;
+    }
+
+    /**
+     * Obtiene todos los ítems del cuestionario (1-31)
+     * @return array Array con números de ítems
+     */
+    public static function getTodosLosItems()
+    {
+        return range(1, 31);
+    }
+
+    /**
+     * Obtiene tipo de trabajador según forma
+     * @param string $formType 'A' o 'B'
+     * @return string 'jefes' o 'auxiliares'
+     */
+    public static function getTipoTrabajadorPorForma($formType)
+    {
+        return $formType === 'A' ? 'jefes' : 'auxiliares';
+    }
+
+    /**
+     * Obtiene los rangos de ítems con sus factores de multiplicación (Tabla 4 - Paso 3)
+     *
+     * Según Tabla 4 del Manual de Calificación:
+     * - Ítems 1-8: suma de promedios × 4
+     * - Ítems 9-12: suma de promedios × 3
+     * - Ítems 13-22: suma de promedios × 2
+     * - Ítems 23-31: suma de promedios × 1
+     *
+     * @return array Array de rangos con 'items' (array) y 'factor' (int)
+     */
+    public static function getRangosMultiplicacion()
+    {
+        return [
+            ['items' => range(1, 8), 'factor' => 4],
+            ['items' => range(9, 12), 'factor' => 3],
+            ['items' => range(13, 22), 'factor' => 2],
+            ['items' => range(23, 31), 'factor' => 1]
+        ];
+    }
+
+    /**
+     * Obtiene el factor de multiplicación para un ítem específico (Tabla 4)
+     *
+     * @param int $itemNumber Número del ítem (1-31)
+     * @return int Factor de multiplicación (1, 2, 3 o 4)
+     */
+    public static function getFactorMultiplicacion($itemNumber)
+    {
+        if ($itemNumber >= 1 && $itemNumber <= 8) return 4;
+        if ($itemNumber >= 9 && $itemNumber <= 12) return 3;
+        if ($itemNumber >= 13 && $itemNumber <= 22) return 2;
+        if ($itemNumber >= 23 && $itemNumber <= 31) return 1;
+        return 0; // Ítem inválido
+    }
+
+    /**
+     * Obtiene información de grupos de multiplicación para display (vista)
+     *
+     * @return array Array con keys 'label', 'items', 'factor', 'color'
+     */
+    public static function getGruposMultiplicacionInfo()
+    {
+        return [
+            [
+                'label' => 'Grupo ×4',
+                'items' => range(1, 8),
+                'factor' => 4,
+                'color' => 'primary'
+            ],
+            [
+                'label' => 'Grupo ×3',
+                'items' => range(9, 12),
+                'factor' => 3,
+                'color' => 'success'
+            ],
+            [
+                'label' => 'Grupo ×2',
+                'items' => range(13, 22),
+                'factor' => 2,
+                'color' => 'warning'
+            ],
+            [
+                'label' => 'Grupo ×1',
+                'items' => range(23, 31),
+                'factor' => 1,
+                'color' => 'info'
+            ]
+        ];
     }
 }

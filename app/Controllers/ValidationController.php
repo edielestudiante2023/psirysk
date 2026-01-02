@@ -1541,7 +1541,7 @@ class ValidationController extends BaseController
 
         $this->validationResultModel->insert($data);
 
-        $message = "Procesado total intralaboral Forma {$formType}.";
+        $message = "Total intralaboral procesado correctamente: Forma {$formType} guardada";
         return redirect()->to("/validation/{$serviceId}")
             ->with('success', $message);
     }
@@ -1716,7 +1716,7 @@ class ValidationController extends BaseController
             $processed++;
         }
 
-        $message = "Procesadas {$processed} dimensiones extralaboral Forma {$formType}.";
+        $message = "Dimensiones extralaboral procesadas correctamente: {$processed} dimensiones Forma {$formType} guardadas";
         return redirect()->to("/validation/{$serviceId}")
             ->with('success', $message);
     }
@@ -1814,7 +1814,7 @@ class ValidationController extends BaseController
 
         $this->validationResultModel->insert($data);
 
-        $message = "Procesado total extralaboral Forma {$formType}.";
+        $message = "Total extralaboral procesado correctamente: Forma {$formType} guardada";
         return redirect()->to("/validation/{$serviceId}")
             ->with('success', $message);
     }
@@ -2082,7 +2082,7 @@ class ValidationController extends BaseController
         log_message('info', "FIN PROCESAMIENTO ESTRÉS - Forma {$formType}");
         log_message('info', '========================================');
 
-        $message = "Procesado total de estrés Forma {$formType}.";
+        $message = "Total estrés procesado correctamente: Forma {$formType} guardada";
         return redirect()->to("/validation/{$serviceId}")
             ->with('success', $message);
     }
@@ -2240,11 +2240,13 @@ class ValidationController extends BaseController
             return redirect()->back()->with('error', 'Servicio no encontrado');
         }
 
-        // Obtener TODOS los registros
+        // Obtener TODOS los registros con JOINs para nombres
         $validationModel = new \App\Models\ValidationResultModel();
         $builder = $validationModel->builder();
 
         $results = $builder
+            ->select('validation_results.*, users.name as consultor_name')
+            ->join('users', 'users.id = validation_results.processed_by', 'left')
             ->where('battery_service_id', $serviceId)
             ->orderBy('processed_at', 'DESC')
             ->get()
@@ -2264,6 +2266,8 @@ class ValidationController extends BaseController
         // Encabezados
         fputcsv($output, [
             'ID',
+            'Cliente',
+            'Servicio',
             'Tipo de Cuestionario',
             'Forma',
             'Nivel',
@@ -2284,6 +2288,8 @@ class ValidationController extends BaseController
         foreach ($results as $row) {
             fputcsv($output, [
                 $row['id'],
+                $service['company_name'],
+                $service['service_name'],
                 $row['questionnaire_type'],
                 $row['form_type'],
                 $row['validation_level'],
@@ -2296,7 +2302,7 @@ class ValidationController extends BaseController
                 $row['db_score'],
                 $row['difference'],
                 $row['validation_status'],
-                $row['processed_by'],
+                $row['consultor_name'] ?? 'N/A',
                 $row['processed_at']
             ], ';');
         }

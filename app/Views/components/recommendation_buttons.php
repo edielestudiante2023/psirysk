@@ -109,7 +109,7 @@ $totalEstres = count($grouped['estres']);
                                         ?>
                                         <?php if ($otherScore !== null): ?>
                                             <div class="small text-success">
-                                                <?= $otherForm ?>: <?= $otherScore ?>)
+                                                <?= $otherForm ?>: <?= $otherScore ?>
                                             </div>
                                         <?php endif; ?>
                                     <?php endif; ?>
@@ -191,7 +191,7 @@ $totalEstres = count($grouped['estres']);
                                         ?>
                                         <?php if ($otherScore !== null): ?>
                                             <div class="small text-success">
-                                                <?= $otherForm ?>: <?= $otherScore ?>)
+                                                <?= $otherForm ?>: <?= $otherScore ?>
                                             </div>
                                         <?php endif; ?>
                                     <?php endif; ?>
@@ -273,7 +273,7 @@ $totalEstres = count($grouped['estres']);
                                         ?>
                                         <?php if ($otherScore !== null): ?>
                                             <div class="small text-success">
-                                                <?= $otherForm ?>: <?= $otherScore ?>)
+                                                <?= $otherForm ?>: <?= $otherScore ?>
                                             </div>
                                         <?php endif; ?>
                                     <?php endif; ?>

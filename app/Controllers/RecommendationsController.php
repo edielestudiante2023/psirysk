@@ -4,16 +4,22 @@ namespace App\Controllers;
 
 use App\Models\ActionPlanModel;
 use App\Models\CalculatedResultModel;
+use App\Models\MaxRiskResultModel;
+use App\Models\BatteryServiceModel;
 
 class RecommendationsController extends BaseController
 {
     protected $actionPlanModel;
     protected $resultModel;
+    protected $maxRiskModel;
+    protected $batteryServiceModel;
 
     public function __construct()
     {
         $this->actionPlanModel = new ActionPlanModel();
         $this->resultModel = new CalculatedResultModel();
+        $this->maxRiskModel = new MaxRiskResultModel();
+        $this->batteryServiceModel = new BatteryServiceModel();
     }
 
     /**
@@ -170,20 +176,13 @@ class RecommendationsController extends BaseController
      * Get recommendation buttons for risky dimensions in a service
      * Returns HTML component that can be included in views
      *
-     * @param int $serviceId ID del servicio
+     * @param int $serviceId ID del servicio (battery_service_id)
      * @return string HTML with recommendation buttons
      */
     public function getRecommendationButtons($serviceId)
     {
-        // Get all results for this service
-        $results = $this->resultModel->getResultsByService($serviceId);
-
-        if (empty($results)) {
-            return '';
-        }
-
-        // Get all risky dimensions
-        $riskyDimensions = $this->identifyAllRiskyDimensions($results);
+        // Get all risky dimensions from max_risk_results
+        $riskyDimensions = $this->identifyAllRiskyDimensions($serviceId);
 
         if (empty($riskyDimensions)) {
             return '';
@@ -197,100 +196,94 @@ class RecommendationsController extends BaseController
     }
 
     /**
-     * Identify ALL 27 dimensions with risk (not just domains)
+     * Identify ALL dimensions with risk from max_risk_results table
      * Returns detailed array with dimension codes for action plans
+     *
+     * @param int $batteryServiceId ID del servicio de batería
+     * @return array Array de dimensiones en riesgo con datos de Forma A y B
      */
-    private function identifyAllRiskyDimensions($results)
+    private function identifyAllRiskyDimensions($batteryServiceId)
     {
+        // Obtener todas las dimensiones desde max_risk_results
+        $maxRiskResults = $this->maxRiskModel
+            ->where('battery_service_id', $batteryServiceId)
+            ->where('element_type', 'dimension')
+            ->whereIn('worst_risk_level', ['riesgo_medio', 'riesgo_alto', 'riesgo_muy_alto', 'medio', 'alto', 'muy_alto'])
+            ->findAll();
+
+        if (empty($maxRiskResults)) {
+            return [];
+        }
+
         $riskyDimensions = [];
 
-        // Map calculated_results fields to action plan dimension codes
-        // IMPORTANT: Field prefixes MUST match exact database column names (without _puntaje/_nivel suffix)
-        $dimensionMapping = [
-            // INTRALABORAL - Liderazgo y Relaciones Sociales (4 dimensiones)
-            'dim_caracteristicas_liderazgo' => ['code' => 'caracteristicas_liderazgo', 'name' => 'Características del Liderazgo'],
-            'dim_relaciones_sociales' => ['code' => 'relaciones_sociales_trabajo', 'name' => 'Relaciones Sociales en el Trabajo'],
-            'dim_retroalimentacion' => ['code' => 'retroalimentacion_desempeno', 'name' => 'Retroalimentación del Desempeño'],
-            'dim_relacion_colaboradores' => ['code' => 'relacion_colaboradores', 'name' => 'Relación con los Colaboradores'],
+        // Mapeo de element_code a action plan codes
+        $codeMapping = [
+            // INTRALABORAL
+            'dim_caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
+            'dim_relaciones_sociales' => 'relaciones_sociales_trabajo',
+            'dim_retroalimentacion' => 'retroalimentacion_desempeno',
+            'dim_relacion_colaboradores' => 'relacion_colaboradores',
+            'dim_claridad_rol' => 'claridad_rol',
+            'dim_capacitacion' => 'capacitacion',
+            'dim_participacion_manejo_cambio' => 'participacion_manejo_cambio',
+            'dim_oportunidades_desarrollo' => 'oportunidades_desarrollo_habilidades',
+            'dim_control_autonomia' => 'control_autonomia_trabajo',
+            'dim_demandas_ambientales' => 'demandas_ambientales_esfuerzo_fisico',
+            'dim_demandas_emocionales' => 'demandas_emocionales',
+            'dim_demandas_cuantitativas' => 'demandas_cuantitativas',
+            'dim_influencia_trabajo_entorno' => 'influencia_trabajo_entorno_extralaboral',
+            'dim_demandas_responsabilidad' => 'exigencias_responsabilidad_cargo',
+            'dim_carga_mental' => 'demandas_carga_mental',
+            'dim_consistencia_rol' => 'consistencia_rol',
+            'dim_demandas_jornada' => 'demandas_jornada_trabajo',
+            'dim_recompensas_pertenencia' => 'recompensas_pertenencia_organizacion',
+            'dim_reconocimiento_compensacion' => 'reconocimiento_compensacion',
 
-            // INTRALABORAL - Control sobre el Trabajo (5 dimensiones)
-            'dim_claridad_rol' => ['code' => 'claridad_rol', 'name' => 'Claridad del Rol'],
-            'dim_capacitacion' => ['code' => 'capacitacion', 'name' => 'Capacitación'],
-            'dim_participacion_manejo_cambio' => ['code' => 'participacion_manejo_cambio', 'name' => 'Participación y Manejo del Cambio'],
-            'dim_oportunidades_desarrollo' => ['code' => 'oportunidades_desarrollo_habilidades', 'name' => 'Oportunidades Desarrollo Habilidades'],
-            'dim_control_autonomia' => ['code' => 'control_autonomia_trabajo', 'name' => 'Control y Autonomía'],
-
-            // INTRALABORAL - Demandas de Trabajo (8 dimensiones)
-            'dim_demandas_ambientales' => ['code' => 'demandas_ambientales_esfuerzo_fisico', 'name' => 'Demandas Ambientales y Esfuerzo Físico'],
-            'dim_demandas_emocionales' => ['code' => 'demandas_emocionales', 'name' => 'Demandas Emocionales'],
-            'dim_demandas_cuantitativas' => ['code' => 'demandas_cuantitativas', 'name' => 'Demandas Cuantitativas'],
-            'dim_influencia_trabajo_entorno_extralaboral' => ['code' => 'influencia_trabajo_entorno_extralaboral', 'name' => 'Influencia Trabajo sobre Entorno'],
-            'dim_demandas_responsabilidad' => ['code' => 'exigencias_responsabilidad_cargo', 'name' => 'Exigencias de Responsabilidad'],
-            'dim_demandas_carga_mental' => ['code' => 'demandas_carga_mental', 'name' => 'Demandas de Carga Mental'],
-            'dim_consistencia_rol' => ['code' => 'consistencia_rol', 'name' => 'Consistencia del Rol'],
-            'dim_demandas_jornada_trabajo' => ['code' => 'demandas_jornada_trabajo', 'name' => 'Demandas Jornada Trabajo'],
-
-            // INTRALABORAL - Recompensas (2 dimensiones)
-            'dim_recompensas_pertenencia' => ['code' => 'recompensas_pertenencia_organizacion', 'name' => 'Recompensas Pertenencia'],
-            'dim_reconocimiento_compensacion' => ['code' => 'reconocimiento_compensacion', 'name' => 'Reconocimiento y Compensación'],
-
-            // EXTRALABORAL (7 dimensiones)
-            'extralaboral_tiempo_fuera' => ['code' => 'tiempo_fuera_trabajo', 'name' => 'Tiempo fuera del trabajo'],
-            'extralaboral_relaciones_familiares' => ['code' => 'relaciones_familiares', 'name' => 'Relaciones familiares'],
-            'extralaboral_comunicacion' => ['code' => 'comunicacion_relaciones_interpersonales', 'name' => 'Comunicación Interpersonal'],
-            'extralaboral_situacion_economica' => ['code' => 'situacion_economica_familiar', 'name' => 'Situación Económica Familiar'],
-            'extralaboral_caracteristicas_vivienda' => ['code' => 'caracteristicas_vivienda_entorno', 'name' => 'Características Vivienda'],
-            'extralaboral_influencia_entorno' => ['code' => 'influencia_entorno_extralaboral', 'name' => 'Influencia Entorno Extralaboral'],
-            'extralaboral_desplazamiento' => ['code' => 'desplazamiento_vivienda_trabajo', 'name' => 'Desplazamiento Vivienda-Trabajo'],
-
-            // ESTRÉS (1 dimensión)
-            'estres_total' => ['code' => 'estres', 'name' => 'Estrés']
+            // EXTRALABORAL
+            'dim_tiempo_fuera' => 'tiempo_fuera_trabajo',
+            'dim_relaciones_familiares_extra' => 'relaciones_familiares',
+            'dim_comunicacion' => 'comunicacion_relaciones_interpersonales',
+            'dim_situacion_economica' => 'situacion_economica_familiar',
+            'dim_caracteristicas_vivienda' => 'caracteristicas_vivienda_entorno',
+            'dim_influencia_entorno_extra' => 'influencia_entorno_extralaboral',
+            'dim_desplazamiento' => 'desplazamiento_vivienda_trabajo',
         ];
 
-        foreach ($dimensionMapping as $fieldPrefix => $dimensionInfo) {
-            $nivelField = $fieldPrefix . '_nivel';
-            $puntajeField = $fieldPrefix . '_puntaje';
+        foreach ($maxRiskResults as $result) {
+            $elementCode = $result['element_code'];
 
-            $riskCount = 0;
-            $totalCount = 0;
-            $scores = [];
+            // Mapear a código de action plan
+            $actionPlanCode = $codeMapping[$elementCode] ?? $elementCode;
 
-            foreach ($results as $result) {
-                if (isset($result[$nivelField])) {
-                    $nivel = $result[$nivelField];
-                    $totalCount++;
+            $riskyDimensions[] = [
+                'code' => $actionPlanCode,
+                'name' => $result['element_name'],
+                'level' => $result['worst_risk_level'],
+                'level_label' => $this->getRiskLevelLabel($result['worst_risk_level']),
+                'level_color' => $this->getRiskLevelColor($result['worst_risk_level']),
 
-                    // Count if AMARILLO (medio) or ROJO (alto, muy_alto)
-                    // For estres: medio, alto, muy_alto (without "riesgo_" prefix)
-                    // For others: riesgo_medio, riesgo_alto, riesgo_muy_alto
-                    $isRisky = in_array($nivel, ['riesgo_medio', 'riesgo_alto', 'riesgo_muy_alto', 'medio', 'alto', 'muy_alto']);
+                // Datos agregados (peor entre A y B)
+                'worst_score' => round($result['worst_score'], 2),
+                'worst_form' => $result['worst_form'],
 
-                    if ($isRisky) {
-                        $riskCount++;
-                        if (isset($result[$puntajeField])) {
-                            $scores[] = $result[$puntajeField];
-                        }
-                    }
-                }
-            }
+                // Datos específicos por forma
+                'form_a_score' => $result['form_a_score'] ? round($result['form_a_score'], 2) : null,
+                'form_a_risk_level' => $result['form_a_risk_level'],
+                'form_a_count' => $result['form_a_count'],
 
-            // If dimension has risk (at least 1 worker in risk)
-            if ($riskCount > 0) {
-                $avgScore = !empty($scores) ? array_sum($scores) / count($scores) : 0;
-                $mostCommonLevel = $this->getMostCommonRiskLevel($results, $nivelField);
+                'form_b_score' => $result['form_b_score'] ? round($result['form_b_score'], 2) : null,
+                'form_b_risk_level' => $result['form_b_risk_level'],
+                'form_b_count' => $result['form_b_count'],
 
-                $riskyDimensions[] = [
-                    'code' => $dimensionInfo['code'],
-                    'name' => $dimensionInfo['name'],
-                    'level' => $mostCommonLevel,
-                    'level_label' => $this->getRiskLevelLabel($mostCommonLevel),
-                    'level_color' => $this->getRiskLevelColor($mostCommonLevel),
-                    'average_score' => round($avgScore, 1),
-                    'affected_workers' => $riskCount,
-                    'total_workers' => $totalCount,
-                    'percentage' => round(($riskCount / $totalCount) * 100, 1)
-                ];
-            }
+                'has_both_forms' => $result['has_both_forms'],
+
+                // Para compatibilidad con vista anterior
+                'average_score' => round($result['worst_score'], 1),
+                'affected_workers' => ($result['form_a_count'] ?? 0) + ($result['form_b_count'] ?? 0),
+                'total_workers' => ($result['form_a_count'] ?? 0) + ($result['form_b_count'] ?? 0),
+                'percentage' => 100 // Ya están en riesgo (filtrados por WHERE)
+            ];
         }
 
         return $riskyDimensions;

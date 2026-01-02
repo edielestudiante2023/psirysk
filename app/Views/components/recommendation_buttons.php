@@ -95,11 +95,37 @@ $totalEstres = count($grouped['estres']);
                                     <?= esc($dimension['name']) ?>
                                 </h6>
 
+                                <!-- Score Display (like heatmap) -->
+                                <div class="text-center mb-3">
+                                    <div class="fs-5 fw-bold text-dark">
+                                        (<?= $dimension['worst_score'] ?>
+                                        <span class="text-primary">(<?= $dimension['worst_form'] ?>)</span>)
+                                    </div>
+                                    <?php if ($dimension['has_both_forms']): ?>
+                                        <?php
+                                        // Mostrar el puntaje de la otra forma
+                                        $otherForm = $dimension['worst_form'] === 'A' ? 'B' : 'A';
+                                        $otherScore = $dimension['worst_form'] === 'A' ? $dimension['form_b_score'] : $dimension['form_a_score'];
+                                        ?>
+                                        <?php if ($otherScore !== null): ?>
+                                            <div class="small text-success">
+                                                <?= $otherForm ?>: <?= $otherScore ?>)
+                                            </div>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
+
                                 <!-- Statistics -->
                                 <div class="small text-muted mb-3">
                                     <div class="d-flex justify-content-between">
-                                        <span><i class="fas fa-users me-1"></i>Afectados:</span>
-                                        <strong><?= $dimension['affected_workers'] ?>/<?= $dimension['total_workers'] ?></strong>
+                                        <span><i class="fas fa-users me-1"></i>Evaluados:</span>
+                                        <strong>
+                                            <?php if ($dimension['has_both_forms']): ?>
+                                                A: <?= $dimension['form_a_count'] ?? 0 ?> | B: <?= $dimension['form_b_count'] ?? 0 ?>
+                                            <?php else: ?>
+                                                <?= $dimension['total_workers'] ?>
+                                            <?php endif; ?>
+                                        </strong>
                                     </div>
                                 </div>
 
@@ -151,11 +177,37 @@ $totalEstres = count($grouped['estres']);
                                     <?= esc($dimension['name']) ?>
                                 </h6>
 
+                                <!-- Score Display (like heatmap) -->
+                                <div class="text-center mb-3">
+                                    <div class="fs-5 fw-bold text-dark">
+                                        (<?= $dimension['worst_score'] ?>
+                                        <span class="text-primary">(<?= $dimension['worst_form'] ?>)</span>)
+                                    </div>
+                                    <?php if ($dimension['has_both_forms']): ?>
+                                        <?php
+                                        // Mostrar el puntaje de la otra forma
+                                        $otherForm = $dimension['worst_form'] === 'A' ? 'B' : 'A';
+                                        $otherScore = $dimension['worst_form'] === 'A' ? $dimension['form_b_score'] : $dimension['form_a_score'];
+                                        ?>
+                                        <?php if ($otherScore !== null): ?>
+                                            <div class="small text-success">
+                                                <?= $otherForm ?>: <?= $otherScore ?>)
+                                            </div>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
+
                                 <!-- Statistics -->
                                 <div class="small text-muted mb-3">
                                     <div class="d-flex justify-content-between">
-                                        <span><i class="fas fa-users me-1"></i>Afectados:</span>
-                                        <strong><?= $dimension['affected_workers'] ?>/<?= $dimension['total_workers'] ?></strong>
+                                        <span><i class="fas fa-users me-1"></i>Evaluados:</span>
+                                        <strong>
+                                            <?php if ($dimension['has_both_forms']): ?>
+                                                A: <?= $dimension['form_a_count'] ?? 0 ?> | B: <?= $dimension['form_b_count'] ?? 0 ?>
+                                            <?php else: ?>
+                                                <?= $dimension['total_workers'] ?>
+                                            <?php endif; ?>
+                                        </strong>
                                     </div>
                                 </div>
 
@@ -207,11 +259,37 @@ $totalEstres = count($grouped['estres']);
                                     <?= esc($dimension['name']) ?>
                                 </h6>
 
+                                <!-- Score Display (like heatmap) -->
+                                <div class="text-center mb-3">
+                                    <div class="fs-5 fw-bold text-dark">
+                                        (<?= $dimension['worst_score'] ?>
+                                        <span class="text-primary">(<?= $dimension['worst_form'] ?>)</span>)
+                                    </div>
+                                    <?php if ($dimension['has_both_forms']): ?>
+                                        <?php
+                                        // Mostrar el puntaje de la otra forma
+                                        $otherForm = $dimension['worst_form'] === 'A' ? 'B' : 'A';
+                                        $otherScore = $dimension['worst_form'] === 'A' ? $dimension['form_b_score'] : $dimension['form_a_score'];
+                                        ?>
+                                        <?php if ($otherScore !== null): ?>
+                                            <div class="small text-success">
+                                                <?= $otherForm ?>: <?= $otherScore ?>)
+                                            </div>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                </div>
+
                                 <!-- Statistics -->
                                 <div class="small text-muted mb-3">
                                     <div class="d-flex justify-content-between">
-                                        <span><i class="fas fa-users me-1"></i>Afectados:</span>
-                                        <strong><?= $dimension['affected_workers'] ?>/<?= $dimension['total_workers'] ?></strong>
+                                        <span><i class="fas fa-users me-1"></i>Evaluados:</span>
+                                        <strong>
+                                            <?php if ($dimension['has_both_forms']): ?>
+                                                A: <?= $dimension['form_a_count'] ?? 0 ?> | B: <?= $dimension['form_b_count'] ?? 0 ?>
+                                            <?php else: ?>
+                                                <?= $dimension['total_workers'] ?>
+                                            <?php endif; ?>
+                                        </strong>
                                     </div>
                                 </div>
 

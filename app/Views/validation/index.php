@@ -881,6 +881,10 @@
             })
             .then(response => {
                 if (response.redirected) {
+                    // Restaurar botón inmediatamente
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
+
                     // Mostrar mensaje de éxito
                     showSuccessToast('✓ Procesado correctamente');
 
@@ -892,7 +896,7 @@
                         setTimeout(() => {
                             window.scrollTo(0, currentScrollPosition);
                         }, 100);
-                    }, 1000);
+                    }, 800);
                 } else {
                     // Si no hay redirección, simplemente recargar
                     submitButton.disabled = false;

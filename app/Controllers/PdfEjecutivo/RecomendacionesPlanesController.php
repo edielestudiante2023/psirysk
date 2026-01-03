@@ -357,15 +357,27 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
         $countEstres = 0;
         $countPrioridad = 0;
 
+        // Códigos de dimensiones extralaborales
+        $codigosExtralaborales = [
+            'dim_tiempo_fuera',
+            'dim_relaciones_familiares_extra',
+            'dim_comunicacion',
+            'dim_situacion_economica',
+            'dim_caracteristicas_vivienda',
+            'dim_influencia_entorno_extra',
+            'dim_desplazamiento',
+        ];
+
         foreach ($maxRiskResults as $result) {
             $elementCode = $result['element_code'];
 
             // Determinar el tipo de dimensión
-            $tipo = 'intralaboral';
-            if (strpos($elementCode, 'extralaboral') !== false || strpos($elementCode, 'tiempo_fuera') !== false) {
-                $tipo = 'extralaboral';
-            } elseif (strpos($elementCode, 'estres') !== false) {
+            if ($elementCode === 'estres_total') {
                 $tipo = 'estres';
+            } elseif (in_array($elementCode, $codigosExtralaborales)) {
+                $tipo = 'extralaboral';
+            } else {
+                $tipo = 'intralaboral';
             }
 
             if ($tipo === 'intralaboral') $countIntra++;
@@ -482,9 +494,8 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
         $html .= '
 <div style="background-color: ' . $this->themeColorLight . '; border: 1pt solid ' . $this->themeColor . '; padding: 8pt; margin-top: 10pt;">
     <p style="font-size: 8pt; margin: 0; color: #333;">
-        <strong>Nota:</strong> Las dimensiones con nivel de riesgo ALTO y MUY ALTO requieren intervención prioritaria.
-        En las siguientes páginas se detallan los planes de acción específicos para ' . $countPrioridad . ' dimensiones
-        que requieren atención inmediata.
+        <strong>Nota:</strong> Las dimensiones con nivel de riesgo MEDIO, ALTO y MUY ALTO requieren intervención.
+        En las siguientes páginas se detallan los planes de acción específicos para todas las dimensiones identificadas.
     </p>
 </div>';
 
@@ -634,9 +645,8 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
         $html .= '
 <div style="background-color: ' . $this->themeColorLight . '; border: 1pt solid ' . $this->themeColor . '; padding: 8pt; margin-top: 10pt;">
     <p style="font-size: 8pt; margin: 0; color: #333;">
-        <strong>Nota:</strong> Las dimensiones con nivel de riesgo ALTO y MUY ALTO requieren intervención prioritaria.
-        En las siguientes páginas se detallan los planes de acción específicos para ' . $countPrioridad . ' dimensiones
-        que requieren atención inmediata.
+        <strong>Nota:</strong> Las dimensiones con nivel de riesgo MEDIO, ALTO y MUY ALTO requieren intervención.
+        En las siguientes páginas se detallan los planes de acción específicos para todas las dimensiones identificadas.
     </p>
 </div>';
 
@@ -656,11 +666,14 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
 
         $html = '';
 
-        // Obtener dimensiones en riesgo ALTO o MUY ALTO desde max_risk_results
+        // Obtener dimensiones y estrés en riesgo MEDIO, ALTO o MUY ALTO desde max_risk_results
         $maxRiskResults = $this->maxRiskModel
             ->where('battery_service_id', $this->batteryServiceId)
-            ->where('element_type', 'dimension')
-            ->whereIn('worst_risk_level', ['riesgo_alto', 'riesgo_muy_alto', 'alto', 'muy_alto'])
+            ->groupStart()
+                ->where('element_type', 'dimension')
+                ->orWhere('element_code', 'estres_total')
+            ->groupEnd()
+            ->whereIn('worst_risk_level', ['riesgo_medio', 'riesgo_alto', 'riesgo_muy_alto', 'medio', 'alto', 'muy_alto'])
             ->findAll();
 
         if (empty($maxRiskResults)) {
@@ -684,11 +697,11 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
             'dim_demandas_ambientales' => 'demandas_ambientales_esfuerzo_fisico',
             'dim_demandas_emocionales' => 'demandas_emocionales',
             'dim_demandas_cuantitativas' => 'demandas_cuantitativas',
-            'dim_influencia_trabajo_entorno_extralaboral' => 'influencia_trabajo_entorno_extralaboral',
+            'dim_influencia_trabajo_entorno' => 'influencia_trabajo_entorno_extralaboral', // Corregido: sin _extralaboral
             'dim_demandas_responsabilidad' => 'exigencias_responsabilidad_cargo',
-            'dim_demandas_carga_mental' => 'demandas_carga_mental',
+            'dim_carga_mental' => 'demandas_carga_mental', // Corregido: sin dim_demandas_
             'dim_consistencia_rol' => 'consistencia_rol',
-            'dim_demandas_jornada_trabajo' => 'demandas_jornada_trabajo',
+            'dim_demandas_jornada' => 'demandas_jornada_trabajo', // Corregido: sin _trabajo
             'dim_recompensas_pertenencia' => 'recompensas_pertenencia_organizacion',
             'dim_reconocimiento_compensacion' => 'reconocimiento_compensacion',
 
@@ -700,6 +713,20 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
             'dim_caracteristicas_vivienda' => 'caracteristicas_vivienda_entorno',
             'dim_influencia_entorno_extra' => 'influencia_entorno_extralaboral',
             'dim_desplazamiento' => 'desplazamiento_vivienda_trabajo',
+
+            // ESTRÉS (es un total, no una dimensión)
+            'estres_total' => 'estres',
+        ];
+
+        // Códigos de dimensiones extralaborales
+        $codigosExtralaborales = [
+            'dim_tiempo_fuera',
+            'dim_relaciones_familiares_extra',
+            'dim_comunicacion',
+            'dim_situacion_economica',
+            'dim_caracteristicas_vivienda',
+            'dim_influencia_entorno_extra',
+            'dim_desplazamiento',
         ];
 
         foreach ($maxRiskResults as $result) {
@@ -711,11 +738,12 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
             // SOLO incluir si existe plan de acción
             if ($planCode && isset($this->actionPlans[$planCode])) {
                 // Determinar el tipo de dimensión
-                $tipo = 'intralaboral';
-                if (strpos($elementCode, 'extralaboral') !== false || strpos($elementCode, 'tiempo_fuera') !== false) {
-                    $tipo = 'extralaboral';
-                } elseif (strpos($elementCode, 'estres') !== false) {
+                if ($elementCode === 'estres_total') {
                     $tipo = 'estres';
+                } elseif (in_array($elementCode, $codigosExtralaborales)) {
+                    $tipo = 'extralaboral';
+                } else {
+                    $tipo = 'intralaboral';
                 }
 
                 $dimensionesDetalle[] = [
@@ -980,6 +1008,17 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
             'dim_desplazamiento' => 'desplazamiento',
         ];
 
+        // Códigos de dimensiones extralaborales
+        $codigosExtralaborales = [
+            'dim_tiempo_fuera',
+            'dim_relaciones_familiares_extra',
+            'dim_comunicacion',
+            'dim_situacion_economica',
+            'dim_caracteristicas_vivienda',
+            'dim_influencia_entorno_extra',
+            'dim_desplazamiento',
+        ];
+
         foreach ($maxRiskResults as $result) {
             // Determinar si esta dimensión tiene datos para la forma especificada
             $hasFormaA = !empty($result['form_a_score']);
@@ -993,11 +1032,12 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
             $codigoInterno = $elementCodeMapping[$elementCode] ?? $elementCode;
 
             // Determinar el tipo de dimensión
-            $tipo = 'intralaboral'; // default
-            if (strpos($elementCode, 'extralaboral') !== false || strpos($elementCode, 'tiempo_fuera') !== false) {
-                $tipo = 'extralaboral';
-            } elseif (strpos($elementCode, 'estres') !== false) {
+            if ($elementCode === 'estres_total') {
                 $tipo = 'estres';
+            } elseif (in_array($elementCode, $codigosExtralaborales)) {
+                $tipo = 'extralaboral';
+            } else {
+                $tipo = 'intralaboral';
             }
 
             // Usar el puntaje de la forma específica si está disponible

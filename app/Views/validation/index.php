@@ -860,8 +860,13 @@
             // Guardar posición actual de scroll
             const currentScrollPosition = window.scrollY || window.pageYOffset;
 
-            // Mostrar indicador de carga
-            const submitButton = form.querySelector('button[type="submit"]');
+            // Mostrar indicador de carga (buscar cualquier botón en el form)
+            const submitButton = form.querySelector('button');
+            if (!submitButton) {
+                console.error('No se encontró botón en el formulario');
+                return;
+            }
+
             const originalButtonText = submitButton.innerHTML;
             submitButton.disabled = true;
             submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
@@ -877,7 +882,7 @@
             .then(response => {
                 if (response.redirected) {
                     // Mostrar mensaje de éxito
-                    showSuccessToast('✓ Procesado correctamente. Recargando...');
+                    showSuccessToast('✓ Procesado correctamente');
 
                     // Recargar la página manteniendo la posición de scroll
                     setTimeout(() => {
@@ -890,6 +895,8 @@
                     }, 1000);
                 } else {
                     // Si no hay redirección, simplemente recargar
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalButtonText;
                     location.reload();
                 }
             })
@@ -897,7 +904,18 @@
                 console.error('Error:', error);
                 submitButton.disabled = false;
                 submitButton.innerHTML = originalButtonText;
+
+                // Cambiar el toast a rojo para errores
+                const toastElement = document.getElementById('successToast');
+                toastElement.classList.remove('bg-success');
+                toastElement.classList.add('bg-danger');
                 showSuccessToast('❌ Error al procesar. Intente nuevamente.');
+
+                // Restaurar color después de mostrar
+                setTimeout(() => {
+                    toastElement.classList.remove('bg-danger');
+                    toastElement.classList.add('bg-success');
+                }, 6000);
             });
         }
 

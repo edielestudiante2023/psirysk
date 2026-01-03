@@ -2,6 +2,8 @@
 
 namespace App\Controllers\PdfEjecutivo;
 
+use App\Models\MaxRiskResultModel;
+
 /**
  * Controlador de Recomendaciones y Planes de Acción para el PDF Ejecutivo
  *
@@ -14,6 +16,7 @@ namespace App\Controllers\PdfEjecutivo;
  */
 class RecomendacionesPlanesController extends PdfEjecutivoBaseController
 {
+    protected $maxRiskModel;
     /**
      * Color temático para Recomendaciones (naranja)
      */
@@ -130,6 +133,11 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
      */
     public function preview($batteryServiceId)
     {
+        // Inicializar modelo de max_risk_results
+        if (!isset($this->maxRiskModel)) {
+            $this->maxRiskModel = new MaxRiskResultModel();
+        }
+
         $this->initializeData($batteryServiceId);
         $this->loadResults();
         $this->loadActionPlans();
@@ -144,6 +152,11 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
      */
     public function download($batteryServiceId)
     {
+        // Inicializar modelo de max_risk_results
+        if (!isset($this->maxRiskModel)) {
+            $this->maxRiskModel = new MaxRiskResultModel();
+        }
+
         $this->initializeData($batteryServiceId);
         $this->loadResults();
         $this->loadActionPlans();
@@ -159,6 +172,11 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
      */
     public function render($batteryServiceId)
     {
+        // Inicializar modelo de max_risk_results
+        if (!isset($this->maxRiskModel)) {
+            $this->maxRiskModel = new MaxRiskResultModel();
+        }
+
         if (empty($this->resultsFormaA) && empty($this->resultsFormaB)) {
             $this->initializeData($batteryServiceId);
             $this->loadResults();
@@ -167,17 +185,9 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
 
         $html = $this->renderSeparador();
 
-        // Resumen Forma A
-        if (!empty($this->resultsFormaA)) {
-            $html .= '<div class="page-break"></div>';
-            $html .= $this->renderResumen('A');
-        }
-
-        // Resumen Forma B
-        if (!empty($this->resultsFormaB)) {
-            $html .= '<div class="page-break"></div>';
-            $html .= $this->renderResumen('B');
-        }
+        // Resumen consolidado de MÁXIMO RIESGO (una sola tabla)
+        $html .= '<div class="page-break"></div>';
+        $html .= $this->renderResumenConsolidado();
 
         // Páginas de detalle para dimensiones en riesgo alto/muy alto
         $html .= $this->renderPaginasDetalle();
@@ -302,7 +312,198 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
     }
 
     /**
-     * Renderiza la página de resumen para una forma
+     * Renderiza la página de resumen CONSOLIDADO (máximo riesgo entre A y B)
+     */
+    protected function renderResumenConsolidado()
+    {
+        // Inicializar modelo si no está ya
+        if (!isset($this->maxRiskModel)) {
+            $this->maxRiskModel = new MaxRiskResultModel();
+        }
+
+        // Obtener TODAS las dimensiones en riesgo desde max_risk_results (sin filtrar por forma)
+        $maxRiskResults = $this->maxRiskModel
+            ->where('battery_service_id', $this->batteryServiceId)
+            ->where('element_type', 'dimension')
+            ->whereIn('worst_risk_level', ['riesgo_medio', 'riesgo_alto', 'riesgo_muy_alto', 'medio', 'alto', 'muy_alto'])
+            ->findAll();
+
+        $html = '
+<h1 style="font-size: 14pt; color: ' . $this->themeColor . '; margin: 0 0 5pt 0; padding-bottom: 5pt; border-bottom: 2pt solid ' . $this->themeColor . ';">
+    Resumen de Recomendaciones - Máximo Riesgo Identificado
+</h1>
+
+<p style="font-size: 9pt; text-align: justify; margin-bottom: 10pt;">
+    A continuación se presentan las dimensiones que requieren atención según los niveles de riesgo
+    identificados en la evaluación. Se muestra el <strong>peor escenario entre Forma A y Forma B</strong>,
+    siguiendo el criterio del mapa de calor.
+</p>';
+
+        if (empty($maxRiskResults)) {
+            $html .= '
+<div style="background-color: #e8f5e9; border: 1pt solid #4CAF50; padding: 20pt; text-align: center; margin: 30pt 0;">
+    <p style="font-size: 14pt; color: #2E7D32; margin: 0;">
+        <strong>¡Excelente!</strong><br>
+        No se identificaron dimensiones con riesgo medio, alto o muy alto.
+    </p>
+</div>';
+            return $html;
+        }
+
+        // Mapeo de element_code a nombres legibles
+        $dimensionesRiesgo = [];
+        $countIntra = 0;
+        $countExtra = 0;
+        $countEstres = 0;
+        $countPrioridad = 0;
+
+        // Códigos de dimensiones extralaborales
+        $codigosExtralaborales = [
+            'dim_tiempo_fuera',
+            'dim_relaciones_familiares_extra',
+            'dim_comunicacion',
+            'dim_situacion_economica',
+            'dim_caracteristicas_vivienda',
+            'dim_influencia_entorno_extra',
+            'dim_desplazamiento',
+        ];
+
+        foreach ($maxRiskResults as $result) {
+            $elementCode = $result['element_code'];
+
+            // Determinar el tipo de dimensión
+            if ($elementCode === 'estres_total') {
+                $tipo = 'estres';
+            } elseif (in_array($elementCode, $codigosExtralaborales)) {
+                $tipo = 'extralaboral';
+            } else {
+                $tipo = 'intralaboral';
+            }
+
+            if ($tipo === 'intralaboral') $countIntra++;
+            elseif ($tipo === 'extralaboral') $countExtra++;
+            elseif ($tipo === 'estres') $countEstres++;
+
+            if (in_array($result['worst_risk_level'], ['riesgo_alto', 'riesgo_muy_alto', 'alto', 'muy_alto'])) {
+                $countPrioridad++;
+            }
+
+            $dimensionesRiesgo[] = [
+                'nombre'         => $result['element_name'],
+                'tipo'           => $tipo,
+                'worst_score'    => $result['worst_score'],
+                'worst_form'     => $result['worst_form'],
+                'nivel'          => $result['worst_risk_level'],
+                'has_both_forms' => $result['has_both_forms'],
+                'form_a_score'   => $result['form_a_score'],
+                'form_b_score'   => $result['form_b_score'],
+                'form_a_count'   => $result['form_a_count'],
+                'form_b_count'   => $result['form_b_count'],
+            ];
+        }
+
+        // Ordenar por nivel de riesgo
+        usort($dimensionesRiesgo, function($a, $b) {
+            $order = ['riesgo_muy_alto' => 0, 'muy_alto' => 0, 'riesgo_alto' => 1, 'alto' => 1, 'riesgo_medio' => 2, 'medio' => 2];
+            $orderA = $order[$a['nivel']] ?? 3;
+            $orderB = $order[$b['nivel']] ?? 3;
+            if ($orderA !== $orderB) return $orderA - $orderB;
+            return $b['worst_score'] - $a['worst_score'];
+        });
+
+        // Tabla de dimensiones en riesgo
+        $html .= '
+<table style="width: 100%; font-size: 8pt; border-collapse: collapse; margin-bottom: 10pt;">
+    <tr>
+        <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 20pt;">#</th>
+        <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333;">Dimensión</th>
+        <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 60pt;">Tipo</th>
+        <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 60pt;">Puntaje</th>
+        <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 60pt;">Evaluados</th>
+        <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 55pt;">Nivel</th>
+    </tr>';
+
+        $i = 1;
+        foreach ($dimensionesRiesgo as $dim) {
+            $nivelColor = $this->riskColors[$dim['nivel']] ?? '#999';
+            $nivelNombre = $this->getNivelNombre($dim['nivel']);
+            $tipoColor = $this->typeColors[$dim['tipo']] ?? '#666';
+            $textColor = ($dim['nivel'] === 'riesgo_medio' || $dim['nivel'] === 'medio') ? '#333' : 'white';
+
+            // Formatear puntaje con forma de origen (como en heatmap y web)
+            $puntajeDisplay = number_format($dim['worst_score'], 2) . ' (' . $dim['worst_form'] . ')';
+            if ($dim['has_both_forms']) {
+                $otherForm = $dim['worst_form'] === 'A' ? 'B' : 'A';
+                $otherScore = $dim['worst_form'] === 'A' ? $dim['form_b_score'] : $dim['form_a_score'];
+                if ($otherScore !== null) {
+                    $puntajeDisplay .= '<br><span style="font-size: 6pt; color: #666;">' . $otherForm . ': ' . number_format($otherScore, 2) . '</span>';
+                }
+            }
+
+            // Formatear evaluados con desglose A/B
+            $evaluadosDisplay = ($dim['form_a_count'] ?? 0) + ($dim['form_b_count'] ?? 0);
+            if ($dim['has_both_forms']) {
+                $evaluadosDisplay = 'A: ' . ($dim['form_a_count'] ?? 0) . ' | B: ' . ($dim['form_b_count'] ?? 0);
+            }
+
+            $html .= '
+    <tr>
+        <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center;">' . $i . '</td>
+        <td style="padding: 3pt; border: 1pt solid #ccc;">' . esc($dim['nombre']) . '</td>
+        <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center;">
+            <span style="background: ' . $tipoColor . '; color: white; padding: 1pt 4pt; font-size: 7pt;">' . ucfirst($dim['tipo']) . '</span>
+        </td>
+        <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center;">' . $puntajeDisplay . '</td>
+        <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center; font-size: 7pt;">' . $evaluadosDisplay . '</td>
+        <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center; background: ' . $nivelColor . '; color: ' . $textColor . '; font-weight: bold;">' . $nivelNombre . '</td>
+    </tr>';
+            $i++;
+        }
+
+        $html .= '</table>';
+
+        // Tarjetas resumen por área
+        $html .= '
+<table style="width: 100%; border-collapse: collapse; margin: 10pt 0;">
+    <tr>
+        <td style="width: 33%; padding: 5pt; vertical-align: top;">
+            <div style="border: 2pt solid #0077B6; padding: 8pt; text-align: center;">
+                <p style="font-size: 9pt; font-weight: bold; color: #0077B6; margin: 0 0 5pt 0;">Intralaboral</p>
+                <p style="font-size: 16pt; font-weight: bold; margin: 0; color: #0077B6;">' . $countIntra . '</p>
+                <p style="font-size: 7pt; color: #666; margin: 3pt 0 0 0;">dimensiones en riesgo</p>
+            </div>
+        </td>
+        <td style="width: 33%; padding: 5pt; vertical-align: top;">
+            <div style="border: 2pt solid #00A86B; padding: 8pt; text-align: center;">
+                <p style="font-size: 9pt; font-weight: bold; color: #00A86B; margin: 0 0 5pt 0;">Extralaboral</p>
+                <p style="font-size: 16pt; font-weight: bold; margin: 0; color: #00A86B;">' . $countExtra . '</p>
+                <p style="font-size: 7pt; color: #666; margin: 3pt 0 0 0;">dimensiones en riesgo</p>
+            </div>
+        </td>
+        <td style="width: 33%; padding: 5pt; vertical-align: top;">
+            <div style="border: 2pt solid #9C27B0; padding: 8pt; text-align: center;">
+                <p style="font-size: 9pt; font-weight: bold; color: #9C27B0; margin: 0 0 5pt 0;">Estrés</p>
+                <p style="font-size: 16pt; font-weight: bold; margin: 0; color: #9C27B0;">' . $countEstres . '</p>
+                <p style="font-size: 7pt; color: #666; margin: 3pt 0 0 0;">en riesgo</p>
+            </div>
+        </td>
+    </tr>
+</table>';
+
+        // Nota final
+        $html .= '
+<div style="background-color: ' . $this->themeColorLight . '; border: 1pt solid ' . $this->themeColor . '; padding: 8pt; margin-top: 10pt;">
+    <p style="font-size: 8pt; margin: 0; color: #333;">
+        <strong>Nota:</strong> Las dimensiones con nivel de riesgo MEDIO, ALTO y MUY ALTO requieren intervención.
+        En las siguientes páginas se detallan los planes de acción específicos para todas las dimensiones identificadas.
+    </p>
+</div>';
+
+        return $html;
+    }
+
+    /**
+     * Renderiza la página de resumen para una forma (MÉTODO LEGACY - Ya no se usa)
      */
     protected function renderResumen($forma)
     {
@@ -363,8 +564,8 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
         <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 20pt;">#</th>
         <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333;">Dimensión</th>
         <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 60pt;">Tipo</th>
-        <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 45pt;">Puntaje</th>
-        <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 45pt;">% Riesgo</th>
+        <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 60pt;">Puntaje</th>
+        <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 60pt;">Evaluados</th>
         <th style="background: ' . $this->themeColor . '; color: white; padding: 4pt; border: 1pt solid #333; width: 55pt;">Nivel</th>
     </tr>';
 
@@ -375,6 +576,27 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
             $tipoColor = $this->typeColors[$dim['tipo']] ?? '#666';
             $textColor = ($dim['nivel'] === 'riesgo_medio') ? '#333' : 'white';
 
+            // Formatear puntaje con forma de origen (como en heatmap y web)
+            $puntajeDisplay = number_format($dim['puntaje'], 2);
+            if ($dim['has_both_forms'] ?? false) {
+                // Mostrar puntaje con forma de origen
+                $otherForm = $dim['worst_form'] === 'A' ? 'B' : 'A';
+                $otherScore = $dim['worst_form'] === 'A' ? $dim['form_b_score'] : $dim['form_a_score'];
+
+                $puntajeDisplay = number_format($dim['worst_score'], 2) . ' (' . $dim['worst_form'] . ')';
+                if ($otherScore !== null) {
+                    $puntajeDisplay .= '<br><span style="font-size: 6pt; color: #666;">' . $otherForm . ': ' . number_format($otherScore, 2) . '</span>';
+                }
+            }
+
+            // Formatear evaluados con desglose A/B
+            $evaluadosDisplay = $dim['worker_count'] ?? 0;
+            if ($dim['has_both_forms'] ?? false) {
+                $countA = $dim['form_a_count'] ?? 0;
+                $countB = $dim['form_b_count'] ?? 0;
+                $evaluadosDisplay = 'A: ' . $countA . ' | B: ' . $countB;
+            }
+
             $html .= '
     <tr>
         <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center;">' . $i . '</td>
@@ -382,8 +604,8 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
         <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center;">
             <span style="background: ' . $tipoColor . '; color: white; padding: 1pt 4pt; font-size: 7pt;">' . ucfirst($dim['tipo']) . '</span>
         </td>
-        <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center;">' . number_format($dim['puntaje'], 1) . '</td>
-        <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center;">' . $dim['porcentaje_riesgo'] . '%</td>
+        <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center;">' . $puntajeDisplay . '</td>
+        <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center; font-size: 7pt;">' . $evaluadosDisplay . '</td>
         <td style="padding: 3pt; border: 1pt solid #ccc; text-align: center; background: ' . $nivelColor . '; color: ' . $textColor . '; font-weight: bold;">' . $nivelNombre . '</td>
     </tr>';
             $i++;
@@ -423,9 +645,8 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
         $html .= '
 <div style="background-color: ' . $this->themeColorLight . '; border: 1pt solid ' . $this->themeColor . '; padding: 8pt; margin-top: 10pt;">
     <p style="font-size: 8pt; margin: 0; color: #333;">
-        <strong>Nota:</strong> Las dimensiones con nivel de riesgo ALTO y MUY ALTO requieren intervención prioritaria.
-        En las siguientes páginas se detallan los planes de acción específicos para ' . $countPrioridad . ' dimensiones
-        que requieren atención inmediata.
+        <strong>Nota:</strong> Las dimensiones con nivel de riesgo MEDIO, ALTO y MUY ALTO requieren intervención.
+        En las siguientes páginas se detallan los planes de acción específicos para todas las dimensiones identificadas.
     </p>
 </div>';
 
@@ -434,38 +655,120 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
 
     /**
      * Renderiza las páginas de detalle para dimensiones en riesgo alto/muy alto
+     * SOLO muestra dimensiones que tienen plan de acción disponible
      */
     protected function renderPaginasDetalle()
     {
-        $html = '';
-
-        // Combinar dimensiones de ambas formas que estén en riesgo alto/muy alto
-        $dimensionesDetalle = [];
-
-        if (!empty($this->resultsFormaA)) {
-            $dimsA = $this->identificarDimensionesEnRiesgo($this->resultsFormaA, 'A');
-            foreach ($dimsA as $dim) {
-                if (in_array($dim['nivel'], ['riesgo_alto', 'riesgo_muy_alto'])) {
-                    $dim['forma'] = 'A';
-                    $dimensionesDetalle[] = $dim;
-                }
-            }
+        // Inicializar modelo si no está ya
+        if (!isset($this->maxRiskModel)) {
+            $this->maxRiskModel = new MaxRiskResultModel();
         }
 
-        if (!empty($this->resultsFormaB)) {
-            $dimsB = $this->identificarDimensionesEnRiesgo($this->resultsFormaB, 'B');
-            foreach ($dimsB as $dim) {
-                if (in_array($dim['nivel'], ['riesgo_alto', 'riesgo_muy_alto'])) {
-                    $dim['forma'] = 'B';
-                    $dimensionesDetalle[] = $dim;
+        $html = '';
+
+        // Obtener dimensiones y estrés en riesgo MEDIO, ALTO o MUY ALTO desde max_risk_results
+        $maxRiskResults = $this->maxRiskModel
+            ->where('battery_service_id', $this->batteryServiceId)
+            ->groupStart()
+                ->where('element_type', 'dimension')
+                ->orWhere('element_code', 'estres_total')
+            ->groupEnd()
+            ->whereIn('worst_risk_level', ['riesgo_medio', 'riesgo_alto', 'riesgo_muy_alto', 'medio', 'alto', 'muy_alto'])
+            ->findAll();
+
+        if (empty($maxRiskResults)) {
+            return $html;
+        }
+
+        $dimensionesDetalle = [];
+
+        // Mapeo de element_code a códigos de action_plans
+        $elementToPlanMapping = [
+            // INTRALABORAL
+            'dim_caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
+            'dim_relaciones_sociales' => 'relaciones_sociales_trabajo',
+            'dim_retroalimentacion' => 'retroalimentacion_desempeno',
+            'dim_relacion_colaboradores' => 'relacion_colaboradores',
+            'dim_claridad_rol' => 'claridad_rol',
+            'dim_capacitacion' => 'capacitacion',
+            'dim_participacion_manejo_cambio' => 'participacion_manejo_cambio',
+            'dim_oportunidades_desarrollo' => 'oportunidades_desarrollo_habilidades',
+            'dim_control_autonomia' => 'control_autonomia_trabajo',
+            'dim_demandas_ambientales' => 'demandas_ambientales_esfuerzo_fisico',
+            'dim_demandas_emocionales' => 'demandas_emocionales',
+            'dim_demandas_cuantitativas' => 'demandas_cuantitativas',
+            'dim_influencia_trabajo_entorno' => 'influencia_trabajo_entorno_extralaboral', // Corregido: sin _extralaboral
+            'dim_demandas_responsabilidad' => 'exigencias_responsabilidad_cargo',
+            'dim_carga_mental' => 'demandas_carga_mental', // Corregido: sin dim_demandas_
+            'dim_consistencia_rol' => 'consistencia_rol',
+            'dim_demandas_jornada' => 'demandas_jornada_trabajo', // Corregido: sin _trabajo
+            'dim_recompensas_pertenencia' => 'recompensas_pertenencia_organizacion',
+            'dim_reconocimiento_compensacion' => 'reconocimiento_compensacion',
+
+            // EXTRALABORAL
+            'dim_tiempo_fuera' => 'tiempo_fuera_trabajo',
+            'dim_relaciones_familiares_extra' => 'relaciones_familiares',
+            'dim_comunicacion' => 'comunicacion_relaciones_interpersonales',
+            'dim_situacion_economica' => 'situacion_economica_familiar',
+            'dim_caracteristicas_vivienda' => 'caracteristicas_vivienda_entorno',
+            'dim_influencia_entorno_extra' => 'influencia_entorno_extralaboral',
+            'dim_desplazamiento' => 'desplazamiento_vivienda_trabajo',
+
+            // ESTRÉS (es un total, no una dimensión)
+            'estres_total' => 'estres',
+        ];
+
+        // Códigos de dimensiones extralaborales
+        $codigosExtralaborales = [
+            'dim_tiempo_fuera',
+            'dim_relaciones_familiares_extra',
+            'dim_comunicacion',
+            'dim_situacion_economica',
+            'dim_caracteristicas_vivienda',
+            'dim_influencia_entorno_extra',
+            'dim_desplazamiento',
+        ];
+
+        foreach ($maxRiskResults as $result) {
+            $elementCode = $result['element_code'];
+
+            // Obtener el código del plan de acción
+            $planCode = $elementToPlanMapping[$elementCode] ?? null;
+
+            // SOLO incluir si existe plan de acción
+            if ($planCode && isset($this->actionPlans[$planCode])) {
+                // Determinar el tipo de dimensión
+                if ($elementCode === 'estres_total') {
+                    $tipo = 'estres';
+                } elseif (in_array($elementCode, $codigosExtralaborales)) {
+                    $tipo = 'extralaboral';
+                } else {
+                    $tipo = 'intralaboral';
                 }
+
+                $dimensionesDetalle[] = [
+                    'nombre'         => $result['element_name'],
+                    'codigo'         => $planCode,
+                    'tipo'           => $tipo,
+                    'worst_score'    => $result['worst_score'],
+                    'worst_form'     => $result['worst_form'],
+                    'nivel'          => $result['worst_risk_level'],
+                    'has_both_forms' => $result['has_both_forms'],
+                    'form_a_score'   => $result['form_a_score'],
+                    'form_b_score'   => $result['form_b_score'],
+                    'form_a_count'   => $result['form_a_count'],
+                    'form_b_count'   => $result['form_b_count'],
+                ];
             }
         }
 
         // Ordenar por prioridad (muy alto primero)
         usort($dimensionesDetalle, function($a, $b) {
-            $order = ['riesgo_muy_alto' => 0, 'riesgo_alto' => 1];
-            return ($order[$a['nivel']] ?? 2) - ($order[$b['nivel']] ?? 2);
+            $order = ['riesgo_muy_alto' => 0, 'muy_alto' => 0, 'riesgo_alto' => 1, 'alto' => 1];
+            $orderA = $order[$a['nivel']] ?? 2;
+            $orderB = $order[$b['nivel']] ?? 2;
+            if ($orderA !== $orderB) return $orderA - $orderB;
+            return $b['worst_score'] - $a['worst_score'];
         });
 
         // Generar página por cada dimensión
@@ -485,12 +788,25 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
         $nivelColor = $this->riskColors[$dim['nivel']] ?? '#999';
         $nivelNombre = strtoupper($this->getNivelNombre($dim['nivel']));
         $tipoColor = $this->typeColors[$dim['tipo']] ?? '#666';
-        $tipoTrabajador = ($dim['forma'] === 'A') ? 'Profesionales / Jefaturas' : 'Auxiliares / Operativos';
-        $badgeColor = ($dim['forma'] === 'A') ? '#0077B6' : '#FF6B35';
 
-        // Obtener plan de acción
-        $planCode = $this->getPlanCode($dim['codigo'], $dim['tipo']);
-        $plan = $this->actionPlans[$planCode] ?? null;
+        // Obtener plan de acción (ya está validado que existe)
+        $plan = $this->actionPlans[$dim['codigo']];
+
+        // Formatear puntaje con desglose A/B
+        $puntajeDisplay = number_format($dim['worst_score'], 2) . ' (' . $dim['worst_form'] . ')';
+        if ($dim['has_both_forms']) {
+            $otherForm = $dim['worst_form'] === 'A' ? 'B' : 'A';
+            $otherScore = $dim['worst_form'] === 'A' ? $dim['form_b_score'] : $dim['form_a_score'];
+            if ($otherScore !== null) {
+                $puntajeDisplay .= ' | ' . $otherForm . ': ' . number_format($otherScore, 2);
+            }
+        }
+
+        // Formatear evaluados con desglose A/B
+        $evaluadosDisplay = ($dim['form_a_count'] ?? 0) + ($dim['form_b_count'] ?? 0) . ' evaluados';
+        if ($dim['has_both_forms']) {
+            $evaluadosDisplay = 'A: ' . ($dim['form_a_count'] ?? 0) . ' | B: ' . ($dim['form_b_count'] ?? 0);
+        }
 
         $html = '
 <!-- Encabezado con degradado -->
@@ -503,28 +819,12 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
             </td>
             <td style="border: none; text-align: right; vertical-align: middle; width: 150pt;">
                 <span style="background: rgba(255,255,255,0.2); padding: 3pt 8pt; font-weight: bold; font-size: 9pt;">' . $nivelNombre . '</span><br>
-                <span style="font-size: 8pt;">Puntaje: ' . number_format($dim['puntaje'], 1) . ' | ' . $dim['porcentaje_riesgo'] . '% en riesgo</span>
+                <span style="font-size: 8pt;">Puntaje: ' . $puntajeDisplay . '</span><br>
+                <span style="font-size: 7pt;">Evaluados: ' . $evaluadosDisplay . '</span>
             </td>
         </tr>
     </table>
-</div>
-
-<p style="text-align: center; margin: 0 0 10pt 0;">
-    <span style="background: ' . $badgeColor . '; color: white; padding: 2pt 8pt; font-size: 8pt;">
-        FORMA ' . $dim['forma'] . ' - ' . $tipoTrabajador . '
-    </span>
-</p>';
-
-        if (!$plan) {
-            $html .= '
-<div style="background-color: #fff3cd; border: 1pt solid #ffc107; padding: 15pt; text-align: center; margin: 20pt 0;">
-    <p style="font-size: 11pt; color: #856404; margin: 0;">
-        Plan de acción no disponible para esta dimensión.<br>
-        <span style="font-size: 9pt;">Código buscado: ' . esc($planCode) . '</span>
-    </p>
 </div>';
-            return $html;
-        }
 
         // Introducción
         $html .= '
@@ -657,173 +957,129 @@ class RecomendacionesPlanesController extends PdfEjecutivoBaseController
     }
 
     /**
-     * Identifica dimensiones en riesgo medio, alto o muy alto
+     * Identifica dimensiones en riesgo medio, alto o muy alto desde max_risk_results
+     * Retorna solo las dimensiones de la forma especificada
      */
     protected function identificarDimensionesEnRiesgo($results, $forma)
     {
+        // Obtener dimensiones desde max_risk_results
+        $maxRiskResults = $this->maxRiskModel
+            ->where('battery_service_id', $this->batteryServiceId)
+            ->where('element_type', 'dimension')
+            ->whereIn('worst_risk_level', ['riesgo_medio', 'riesgo_alto', 'riesgo_muy_alto', 'medio', 'alto', 'muy_alto'])
+            ->findAll();
+
+        if (empty($maxRiskResults)) {
+            return [];
+        }
+
         $dimensionesRiesgo = [];
-        $riskLevels = ['riesgo_medio', 'riesgo_alto', 'riesgo_muy_alto'];
 
-        if (empty($results)) {
-            return $dimensionesRiesgo;
-        }
+        // Mapeo de element_code a códigos internos
+        $elementCodeMapping = [
+            // INTRALABORAL
+            'dim_caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
+            'dim_relaciones_sociales' => 'relaciones_sociales',
+            'dim_retroalimentacion' => 'retroalimentacion',
+            'dim_relacion_colaboradores' => 'relacion_colaboradores',
+            'dim_claridad_rol' => 'claridad_rol',
+            'dim_capacitacion' => 'capacitacion',
+            'dim_participacion_manejo_cambio' => 'participacion_cambio',
+            'dim_oportunidades_desarrollo' => 'oportunidades_desarrollo',
+            'dim_control_autonomia' => 'control_autonomia',
+            'dim_demandas_ambientales' => 'demandas_ambientales',
+            'dim_demandas_emocionales' => 'demandas_emocionales',
+            'dim_demandas_cuantitativas' => 'demandas_cuantitativas',
+            'dim_influencia_trabajo_entorno_extralaboral' => 'influencia_extralaboral',
+            'dim_demandas_responsabilidad' => 'exigencias_responsabilidad',
+            'dim_demandas_carga_mental' => 'demandas_carga_mental',
+            'dim_consistencia_rol' => 'consistencia_rol',
+            'dim_demandas_jornada_trabajo' => 'demandas_jornada',
+            'dim_recompensas_pertenencia' => 'recompensas_pertenencia',
+            'dim_reconocimiento_compensacion' => 'reconocimiento_compensacion',
 
-        // Mapeo de dimensiones intralaborales: codigo_interno => nombre_columna_bd
-        // Las columnas en BD usan prefijo "dim_" no "intralaboral_"
-        $camposIntraDB = [
-            'caracteristicas_liderazgo'   => 'dim_caracteristicas_liderazgo',
-            'relaciones_sociales'         => 'dim_relaciones_sociales',
-            'retroalimentacion'           => 'dim_retroalimentacion',
-            'relacion_colaboradores'      => 'dim_relacion_colaboradores',
-            'claridad_rol'                => 'dim_claridad_rol',
-            'capacitacion'                => 'dim_capacitacion',
-            'participacion_cambio'        => 'dim_participacion_manejo_cambio',
-            'oportunidades_desarrollo'    => 'dim_oportunidades_desarrollo',
-            'control_autonomia'           => 'dim_control_autonomia',
-            'demandas_ambientales'        => 'dim_demandas_ambientales',
-            'demandas_emocionales'        => 'dim_demandas_emocionales',
-            'demandas_cuantitativas'      => 'dim_demandas_cuantitativas',
-            'influencia_extralaboral'     => 'dim_influencia_trabajo_entorno_extralaboral',
-            'exigencias_responsabilidad'  => 'dim_demandas_responsabilidad',
-            'demandas_carga_mental'       => 'dim_demandas_carga_mental',
-            'consistencia_rol'            => 'dim_consistencia_rol',
-            'demandas_jornada'            => 'dim_demandas_jornada_trabajo',
-            'recompensas_pertenencia'     => 'dim_recompensas_pertenencia',
-            'reconocimiento_compensacion' => 'dim_reconocimiento_compensacion',
+            // EXTRALABORAL
+            'dim_tiempo_fuera' => 'tiempo_fuera_trabajo',
+            'dim_relaciones_familiares_extra' => 'relaciones_familiares',
+            'dim_comunicacion' => 'comunicacion_relaciones',
+            'dim_situacion_economica' => 'situacion_economica',
+            'dim_caracteristicas_vivienda' => 'caracteristicas_vivienda',
+            'dim_influencia_entorno_extra' => 'influencia_entorno',
+            'dim_desplazamiento' => 'desplazamiento',
         ];
 
-        // Mapeo de dimensiones extralaborales: codigo_interno => nombre_columna_bd
-        $camposExtraDB = [
-            'tiempo_fuera_trabajo'     => 'extralaboral_tiempo_fuera',
-            'relaciones_familiares'    => 'extralaboral_relaciones_familiares',
-            'comunicacion_relaciones'  => 'extralaboral_comunicacion',
-            'situacion_economica'      => 'extralaboral_situacion_economica',
-            'caracteristicas_vivienda' => 'extralaboral_caracteristicas_vivienda',
-            'influencia_entorno'       => 'extralaboral_influencia_entorno',
-            'desplazamiento'           => 'extralaboral_desplazamiento',
+        // Códigos de dimensiones extralaborales
+        $codigosExtralaborales = [
+            'dim_tiempo_fuera',
+            'dim_relaciones_familiares_extra',
+            'dim_comunicacion',
+            'dim_situacion_economica',
+            'dim_caracteristicas_vivienda',
+            'dim_influencia_entorno_extra',
+            'dim_desplazamiento',
         ];
 
-        // Procesar dimensiones intralaborales
-        foreach ($camposIntraDB as $codigoInterno => $campoBase) {
-            $campoPuntaje = "{$campoBase}_puntaje";
-            $campoNivel = "{$campoBase}_nivel";
+        foreach ($maxRiskResults as $result) {
+            // Determinar si esta dimensión tiene datos para la forma especificada
+            $hasFormaA = !empty($result['form_a_score']);
+            $hasFormaB = !empty($result['form_b_score']);
 
-            $puntajes = [];
-            $niveles = [];
+            // Solo incluir dimensiones que tengan datos para la forma solicitada
+            if ($forma === 'A' && !$hasFormaA) continue;
+            if ($forma === 'B' && !$hasFormaB) continue;
 
-            foreach ($results as $result) {
-                if (isset($result[$campoPuntaje]) && $result[$campoPuntaje] !== null && $result[$campoPuntaje] !== '') {
-                    $puntajes[] = floatval($result[$campoPuntaje]);
-                }
-                if (isset($result[$campoNivel]) && !empty($result[$campoNivel])) {
-                    $niveles[] = $result[$campoNivel];
-                }
+            $elementCode = $result['element_code'];
+            $codigoInterno = $elementCodeMapping[$elementCode] ?? $elementCode;
+
+            // Determinar el tipo de dimensión
+            if ($elementCode === 'estres_total') {
+                $tipo = 'estres';
+            } elseif (in_array($elementCode, $codigosExtralaborales)) {
+                $tipo = 'extralaboral';
+            } else {
+                $tipo = 'intralaboral';
             }
 
-            if (!empty($puntajes)) {
-                $promedio = array_sum($puntajes) / count($puntajes);
-                $nivelPromedio = $this->getNivelMasFrecuente($niveles);
+            // Usar el puntaje de la forma específica si está disponible
+            $puntaje = $result['worst_score'];
+            $nivel = $result['worst_risk_level'];
+            $workerCount = ($result['form_a_count'] ?? 0) + ($result['form_b_count'] ?? 0);
 
-                if (in_array($nivelPromedio, $riskLevels)) {
-                    $countRiesgo = count(array_filter($niveles, function($n) use ($riskLevels) {
-                        return in_array($n, $riskLevels);
-                    }));
-                    $porcentaje = round(($countRiesgo / count($niveles)) * 100);
-
-                    $dimensionesRiesgo[] = [
-                        'codigo'           => $codigoInterno,
-                        'nombre'           => $this->dimensionNamesIntra[$codigoInterno] ?? $codigoInterno,
-                        'tipo'             => 'intralaboral',
-                        'puntaje'          => $promedio,
-                        'nivel'            => $nivelPromedio,
-                        'porcentaje_riesgo' => $porcentaje,
-                    ];
-                }
-            }
-        }
-
-        // Procesar dimensiones extralaborales
-        foreach ($camposExtraDB as $codigoInterno => $campoBase) {
-            $campoPuntaje = "{$campoBase}_puntaje";
-            $campoNivel = "{$campoBase}_nivel";
-
-            $puntajes = [];
-            $niveles = [];
-
-            foreach ($results as $result) {
-                if (isset($result[$campoPuntaje]) && $result[$campoPuntaje] !== null && $result[$campoPuntaje] !== '') {
-                    $puntajes[] = floatval($result[$campoPuntaje]);
-                }
-                if (isset($result[$campoNivel]) && !empty($result[$campoNivel])) {
-                    $niveles[] = $result[$campoNivel];
-                }
+            if ($forma === 'A' && $hasFormaA) {
+                $puntaje = $result['form_a_score'];
+                $nivel = $result['form_a_risk_level'];
+                $workerCount = $result['form_a_count'] ?? 0;
+            } elseif ($forma === 'B' && $hasFormaB) {
+                $puntaje = $result['form_b_score'];
+                $nivel = $result['form_b_risk_level'];
+                $workerCount = $result['form_b_count'] ?? 0;
             }
 
-            if (!empty($puntajes)) {
-                $promedio = array_sum($puntajes) / count($puntajes);
-                $nivelPromedio = $this->getNivelMasFrecuente($niveles);
-
-                if (in_array($nivelPromedio, $riskLevels)) {
-                    $countRiesgo = count(array_filter($niveles, function($n) use ($riskLevels) {
-                        return in_array($n, $riskLevels);
-                    }));
-                    $porcentaje = round(($countRiesgo / count($niveles)) * 100);
-
-                    $dimensionesRiesgo[] = [
-                        'codigo'           => $codigoInterno,
-                        'nombre'           => $this->dimensionNamesExtra[$codigoInterno] ?? $codigoInterno,
-                        'tipo'             => 'extralaboral',
-                        'puntaje'          => $promedio,
-                        'nivel'            => $nivelPromedio,
-                        'porcentaje_riesgo' => $porcentaje,
-                    ];
-                }
-            }
-        }
-
-        // Procesar estrés
-        $puntajesEstres = [];
-        $nivelesEstres = [];
-
-        foreach ($results as $result) {
-            if (isset($result['estres_total_puntaje']) && $result['estres_total_puntaje'] !== null) {
-                $puntajesEstres[] = floatval($result['estres_total_puntaje']);
-            }
-            if (isset($result['estres_total_nivel']) && !empty($result['estres_total_nivel'])) {
-                // Convertir nomenclatura de estrés a la estándar
-                $nivelEstres = $this->convertirNivelEstres($result['estres_total_nivel']);
-                $nivelesEstres[] = $nivelEstres;
-            }
-        }
-
-        if (!empty($puntajesEstres)) {
-            $promedio = array_sum($puntajesEstres) / count($puntajesEstres);
-            $nivelPromedio = $this->getNivelMasFrecuente($nivelesEstres);
-
-            if (in_array($nivelPromedio, $riskLevels)) {
-                $countRiesgo = count(array_filter($nivelesEstres, function($n) use ($riskLevels) {
-                    return in_array($n, $riskLevels);
-                }));
-                $porcentaje = round(($countRiesgo / count($nivelesEstres)) * 100);
-
-                $dimensionesRiesgo[] = [
-                    'codigo'           => 'estres',
-                    'nombre'           => 'Evaluación del Estrés',
-                    'tipo'             => 'estres',
-                    'puntaje'          => $promedio,
-                    'nivel'            => $nivelPromedio,
-                    'porcentaje_riesgo' => $porcentaje,
-                ];
-            }
+            $dimensionesRiesgo[] = [
+                'codigo'            => $codigoInterno,
+                'nombre'            => $result['element_name'],
+                'tipo'              => $tipo,
+                'puntaje'           => floatval($puntaje),
+                'nivel'             => $nivel,
+                'porcentaje_riesgo' => 100, // Ya están filtradas por riesgo
+                'worker_count'      => $workerCount,
+                'has_both_forms'    => $result['has_both_forms'],
+                'worst_score'       => $result['worst_score'],
+                'worst_form'        => $result['worst_form'],
+                'form_a_score'      => $result['form_a_score'],
+                'form_b_score'      => $result['form_b_score'],
+                'form_a_count'      => $result['form_a_count'],
+                'form_b_count'      => $result['form_b_count'],
+            ];
         }
 
         // Ordenar por nivel de riesgo (muy alto primero)
         usort($dimensionesRiesgo, function($a, $b) {
-            $order = ['riesgo_muy_alto' => 0, 'riesgo_alto' => 1, 'riesgo_medio' => 2];
+            $order = ['riesgo_muy_alto' => 0, 'muy_alto' => 0, 'riesgo_alto' => 1, 'alto' => 1, 'riesgo_medio' => 2, 'medio' => 2];
             $orderA = $order[$a['nivel']] ?? 3;
             $orderB = $order[$b['nivel']] ?? 3;
             if ($orderA !== $orderB) return $orderA - $orderB;
-            return $b['porcentaje_riesgo'] - $a['porcentaje_riesgo'];
+            return $b['puntaje'] - $a['puntaje'];
         });
 
         return $dimensionesRiesgo;

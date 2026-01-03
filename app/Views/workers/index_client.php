@@ -151,7 +151,6 @@
                                                 <th>Area</th>
                                                 <th>Tipo</th>
                                                 <th>Estado</th>
-                                                <th>Acciones</th>
                                             </tr>
                                             <tr class="filters">
                                                 <th><input type="text" placeholder="Buscar documento"></th>
@@ -160,7 +159,6 @@
                                                 <th><input type="text" placeholder="Buscar area"></th>
                                                 <th><input type="text" placeholder="Tipo"></th>
                                                 <th><input type="text" placeholder="Estado"></th>
-                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -197,24 +195,6 @@
                                                             <?= $statusLabels[$worker['status']] ?? ucfirst($worker['status']) ?>
                                                         </span>
                                                     </td>
-                                                    <td>
-                                                        <?php if ($worker['status'] === 'completado'): ?>
-                                                            <a href="<?= base_url('workers/results/' . $worker['id']) ?>"
-                                                               class="btn btn-sm btn-outline-info"
-                                                               target="_blank"
-                                                               title="Ver resultados individuales">
-                                                                <i class="fas fa-chart-bar me-1"></i> Ver Resultados
-                                                            </a>
-                                                        <?php elseif ($worker['status'] === 'no_participo'): ?>
-                                                            <span class="text-muted small">
-                                                                <i class="fas fa-user-slash me-1"></i> No Participó
-                                                            </span>
-                                                        <?php else: ?>
-                                                            <span class="text-muted small">
-                                                                <i class="fas fa-clock me-1"></i> Pendiente
-                                                            </span>
-                                                        <?php endif; ?>
-                                                    </td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -248,21 +228,16 @@
                 },
                 pageLength: 25,
                 order: [[1, 'asc']], // Ordenar por nombre por defecto
-                columnDefs: [
-                    { orderable: false, targets: -1 } // Deshabilitar orden en columna Acciones
-                ],
                 dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip'
             });
 
             // Agregar filtros en cada columna
             $('#workersTable thead .filters th').each(function(i) {
-                if (i < 6) { // Solo columnas 0-5 (no Acciones)
-                    $('input', this).on('keyup change', function() {
-                        if (table.column(i).search() !== this.value) {
-                            table.column(i).search(this.value).draw();
-                        }
-                    });
-                }
+                $('input', this).on('keyup change', function() {
+                    if (table.column(i).search() !== this.value) {
+                        table.column(i).search(this.value).draw();
+                    }
+                });
             });
         });
     </script>

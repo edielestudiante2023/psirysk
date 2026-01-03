@@ -526,6 +526,54 @@ class PdfEjecutivoBaseController extends BaseController
             ->setBody($fullHtml);
     }
 
+    /**
+     * Genera un archivo ZIP con múltiples PDFs
+     *
+     * @param array $pdfs Array de ['filename' => 'content']
+     * @param string $zipFilename Nombre del archivo ZIP
+     * @return mixed Response con ZIP
+     */
+    protected function generateZip($pdfs, $zipFilename)
+    {
+        if (empty($pdfs)) {
+            return redirect()->back()->with('error', 'No hay PDFs para generar');
+        }
+
+        // Crear archivo ZIP temporal
+        $tempZip = WRITEPATH . 'uploads/' . uniqid('zip_') . '.zip';
+
+        // Asegurar que el directorio existe
+        if (!is_dir(WRITEPATH . 'uploads/')) {
+            mkdir(WRITEPATH . 'uploads/', 0755, true);
+        }
+
+        $zip = new \ZipArchive();
+
+        if ($zip->open($tempZip, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            return redirect()->back()->with('error', 'No se pudo crear el archivo ZIP');
+        }
+
+        // Agregar cada PDF al ZIP
+        foreach ($pdfs as $filename => $content) {
+            $zip->addFromString($filename, $content);
+        }
+
+        $zip->close();
+
+        // Leer el contenido del ZIP
+        $zipContent = file_get_contents($tempZip);
+
+        // Eliminar archivo temporal
+        unlink($tempZip);
+
+        // Retornar ZIP como descarga
+        return $this->response
+            ->setHeader('Content-Type', 'application/zip')
+            ->setHeader('Content-Disposition', 'attachment; filename="' . $zipFilename . '"')
+            ->setHeader('Content-Length', strlen($zipContent))
+            ->setBody($zipContent);
+    }
+
     // ==========================================
     // HELPERS
     // ==========================================

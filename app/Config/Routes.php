@@ -362,8 +362,11 @@ $routes->group('pdfejecutivo', ['namespace' => 'App\Controllers\PdfEjecutivo'], 
     $routes->get('download/estres-ejecutivo/(:num)', 'EstresEjecutivoController::download/$1');
     $routes->get('download/recomendaciones-planes/(:num)', 'RecomendacionesPlanesController::download/$1');
 
-    // Descarga Informe de Batería completo
+    // Descarga Informe de Batería completo (PDF único)
     $routes->get('download/(:num)', 'PdfEjecutivoOrchestrator::download/$1');
+
+    // Descarga Informe de Batería como ZIP (todas las secciones separadas)
+    $routes->get('download-zip/(:num)', 'PdfEjecutivoOrchestrator::downloadZip/$1');
 
     // Descarga Informe Ejecutivo (Portada + Mapas + Recomendaciones)
     $routes->get('download/ejecutivo/(:num)', 'InformeEjecutivoOrchestrator::download/$1');

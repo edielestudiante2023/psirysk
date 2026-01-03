@@ -324,7 +324,7 @@ class MaxRiskResultsService
                     'caracteristicas_liderazgo'   => IntralaboralAScoring::getBaremoDimension('caracteristicas_liderazgo'),
                     'relaciones_sociales'         => IntralaboralAScoring::getBaremoDimension('relaciones_sociales_trabajo'),
                     'retroalimentacion'           => IntralaboralAScoring::getBaremoDimension('retroalimentacion_desempeno'),
-                    'relacion_colaboradores'      => IntralaboralAScoring::getBaremoDimension('relacion_colaboradores'),
+                    'relacion_colaboradores'      => IntralaboralAScoring::getBaremoDimension('relacion_con_colaboradores'),
                     'claridad_rol'                => IntralaboralAScoring::getBaremoDimension('claridad_rol'),
                     'capacitacion'                => IntralaboralAScoring::getBaremoDimension('capacitacion'),
                     'participacion_cambio'        => IntralaboralAScoring::getBaremoDimension('participacion_manejo_cambio'),
@@ -525,8 +525,9 @@ class MaxRiskResultsService
             return null;
         }
 
-        // Si solo hay una forma, devolver esa
-        if (!$hasBothForms) {
+        // Si solo hay data de una forma para ESTA dimensión específica
+        // (puede ser porque el baremo no existe en una forma, o porque no hay trabajadores)
+        if ($dataA === null || $dataB === null) {
             $data = $dataA ?? $dataB;
             $forma = $dataA ? 'A' : 'B';
             return array_merge($data, [
@@ -537,7 +538,7 @@ class MaxRiskResultsService
             ]);
         }
 
-        // Hay ambas formas: determinar cuál es peor
+        // Hay ambas formas con datos: determinar cuál es peor
         $orderA = $dataA['nivel_order'] ?? 0;
         $orderB = $dataB['nivel_order'] ?? 0;
 

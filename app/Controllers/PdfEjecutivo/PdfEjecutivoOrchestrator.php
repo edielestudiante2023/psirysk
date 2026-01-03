@@ -84,6 +84,64 @@ class PdfEjecutivoOrchestrator extends PdfEjecutivoBaseController
     }
 
     /**
+     * Descarga ZIP con todas las secciones como PDFs individuales
+     * Útil para revisión individual de cada sección
+     */
+    public function downloadZip($batteryServiceId)
+    {
+        // Aumentar límite de memoria y tiempo de ejecución
+        ini_set('memory_limit', '768M');
+        ini_set('max_execution_time', '600'); // 10 minutos
+
+        // Verificar acceso
+        $accessCheck = $this->checkPdfAccess($batteryServiceId);
+        if ($accessCheck !== null) {
+            return $accessCheck;
+        }
+
+        $this->initializeData($batteryServiceId);
+
+        $companyName = preg_replace('/[^a-zA-Z0-9]/', '_', $this->companyData['company_name'] ?? 'Empresa');
+        $fecha = date('Ymd');
+
+        // Generar cada sección como PDF individual
+        $pdfs = [];
+        $sectionNumber = 1;
+
+        foreach ($this->secciones as $seccion) {
+            $className = $seccion[0];
+            $titulo = $seccion[1];
+
+            // Instanciar el controlador y renderizar
+            $controllerClass = "App\\Controllers\\PdfEjecutivo\\{$className}";
+
+            if (class_exists($controllerClass)) {
+                $controller = new $controllerClass();
+                $sectionHtml = $controller->render($batteryServiceId);
+
+                // Generar PDF de esta sección (sin descargar, solo obtener contenido)
+                $pdfFilename = sprintf(
+                    "%02d_%s_%s_%s.pdf",
+                    $sectionNumber,
+                    str_replace(' ', '_', $titulo),
+                    $companyName,
+                    $fecha
+                );
+
+                $pdfContent = $this->generatePdf($sectionHtml, $pdfFilename, false);
+                $pdfs[$pdfFilename] = $pdfContent;
+
+                $sectionNumber++;
+            }
+        }
+
+        // Nombre del archivo ZIP
+        $zipFilename = "Informe_Bateria_Secciones_{$companyName}_{$fecha}.zip";
+
+        return $this->generateZip($pdfs, $zipFilename);
+    }
+
+    /**
      * Renderiza todas las secciones del informe
      */
     protected function renderAllSections($batteryServiceId)

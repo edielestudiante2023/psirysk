@@ -828,11 +828,43 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Toast container for notifications -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+        <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-check-circle me-2"></i><span id="toastMessage"></span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // Función para mostrar toast de éxito
+        function showSuccessToast(message) {
+            const toastElement = document.getElementById('successToast');
+            const toastMessageElement = document.getElementById('toastMessage');
+            toastMessageElement.textContent = message;
+
+            const toast = new bootstrap.Toast(toastElement, {
+                animation: true,
+                autohide: true,
+                delay: 5000
+            });
+            toast.show();
+        }
+
         // Función para enviar formulario sin scroll al top
         function submitFormWithoutScroll(form, sectionId) {
             // Guardar posición actual de scroll
             const currentScrollPosition = window.scrollY || window.pageYOffset;
+
+            // Mostrar indicador de carga
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalButtonText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Procesando...';
 
             // Enviar el formulario
             fetch(form.action, {
@@ -844,13 +876,18 @@
             })
             .then(response => {
                 if (response.redirected) {
-                    // Recargar la página manteniendo la posición de scroll
-                    window.location.href = response.url + '#' + sectionId.substring(1);
+                    // Mostrar mensaje de éxito
+                    showSuccessToast('✓ Procesado correctamente. Recargando...');
 
-                    // Restaurar scroll después de un pequeño delay
+                    // Recargar la página manteniendo la posición de scroll
                     setTimeout(() => {
-                        window.scrollTo(0, currentScrollPosition);
-                    }, 100);
+                        window.location.href = response.url + '#' + sectionId.substring(1);
+
+                        // Restaurar scroll después de un pequeño delay
+                        setTimeout(() => {
+                            window.scrollTo(0, currentScrollPosition);
+                        }, 100);
+                    }, 1000);
                 } else {
                     // Si no hay redirección, simplemente recargar
                     location.reload();
@@ -858,10 +895,18 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                // En caso de error, recargar la página normalmente
-                location.reload();
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalButtonText;
+                showSuccessToast('❌ Error al procesar. Intente nuevamente.');
             });
         }
+
+        // Mostrar toast si hay mensaje flash al cargar la página
+        window.addEventListener('DOMContentLoaded', function() {
+            <?php if (session()->getFlashdata('success')): ?>
+                showSuccessToast('<?= addslashes(session()->getFlashdata('success')) ?>');
+            <?php endif; ?>
+        });
     </script>
 </body>
 </html>

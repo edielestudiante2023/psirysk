@@ -160,3 +160,4 @@ _modules/*
 
 /results/
 /phpunit*.xml
+.claude/settings.local.json

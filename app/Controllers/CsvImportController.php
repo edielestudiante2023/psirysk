@@ -476,6 +476,7 @@ class CsvImportController extends BaseController
             $batchSuccess = 0;
             $batchFailed = 0;
             $batchErrors = [];
+            $batchSuccessDetails = [];
             $linesProcessed = 0;
             $endOfFile = false;
 
@@ -491,9 +492,26 @@ class CsvImportController extends BaseController
                         $this->importRow($data, $serviceId);
                     }
                     $batchSuccess++;
+
+                    // Guardar detalle de éxito
+                    $batchSuccessDetails[] = [
+                        'row' => $offset + $linesProcessed,
+                        'document' => $data['documento'] ?? 'N/A',
+                        'name' => $data['nombre'] ?? 'N/A'
+                    ];
                 } catch (\Exception $e) {
                     $batchFailed++;
-                    $batchErrors[] = "Fila " . ($offset + $linesProcessed) . ": " . $e->getMessage();
+
+                    // Guardar detalle estructurado del error
+                    $errorDetail = [
+                        'row' => $offset + $linesProcessed,
+                        'document' => $data['documento'] ?? 'N/A',
+                        'name' => $data['nombre'] ?? 'N/A',
+                        'error' => $e->getMessage(),
+                        'type' => $this->categorizeError($e->getMessage())
+                    ];
+
+                    $batchErrors[] = $errorDetail;
                 }
             }
 
@@ -506,14 +524,28 @@ class CsvImportController extends BaseController
             $totalFailed = $import['failed_rows'] + $batchFailed;
             $totalRows = $totalSuccess + $totalFailed;
 
+            // Recuperar o inicializar informe acumulado
+            $detailedReport = $import['detailed_report'] ? json_decode($import['detailed_report'], true) : [
+                'success_details' => [],
+                'error_details' => []
+            ];
+
+            // Acumular detalles de este batch
+            $detailedReport['success_details'] = array_merge($detailedReport['success_details'], $batchSuccessDetails);
+            $detailedReport['error_details'] = array_merge($detailedReport['error_details'], $batchErrors);
+
             $updateData = [
                 'total_rows' => $totalRows,
                 'imported_rows' => $totalSuccess,
-                'failed_rows' => $totalFailed
+                'failed_rows' => $totalFailed,
+                'detailed_report' => json_encode($detailedReport)
             ];
 
             if ($endOfFile) {
                 $updateData['status'] = $totalFailed > 0 ? 'completado_con_errores' : 'completado';
+
+                // Enviar email con informe detallado
+                $this->sendImportReportEmail($importId, $serviceId, $detailedReport, $totalSuccess, $totalFailed);
 
                 // Limpiar sesión y archivo temporal
                 session()->remove('csv_import_' . $importId);
@@ -1420,5 +1452,95 @@ class CsvImportController extends BaseController
             ->setHeader('Content-Type', 'text/csv')
             ->setHeader('Content-Disposition', 'attachment; filename="plantilla_importacion_psyrisk.csv"')
             ->setBody($csv);
+    }
+
+    /**
+     * Categorizar error según su mensaje
+     */
+    protected function categorizeError($errorMessage)
+    {
+        if (strpos($errorMessage, 'no encontrado') !== false || strpos($errorMessage, 'not found') !== false) {
+            return 'worker_not_found';
+        }
+        if (strpos($errorMessage, 'INVÁLIDO') !== false || strpos($errorMessage, 'inválido') !== false) {
+            return 'invalid_value';
+        }
+        if (strpos($errorMessage, 'faltante') !== false || strpos($errorMessage, 'missing') !== false) {
+            return 'missing_field';
+        }
+        return 'other';
+    }
+
+    /**
+     * Enviar email con informe detallado de importación
+     */
+    protected function sendImportReportEmail($importId, $serviceId, $detailedReport, $totalSuccess, $totalFailed)
+    {
+        try {
+            // Obtener información del servicio
+            $service = $this->batteryServiceModel->find($serviceId);
+            if (!$service) {
+                log_message('error', "[CSV Import] Servicio no encontrado: {$serviceId}");
+                return false;
+            }
+
+            // Obtener información del usuario (consultor)
+            $userId = session()->get('id');
+            $userModel = new \App\Models\UserModel();
+            $user = $userModel->find($userId);
+
+            if (!$user || !$user['email']) {
+                log_message('error', "[CSV Import] Usuario sin email: {$userId}");
+                return false;
+            }
+
+            // Categorizar errores
+            $errorsByType = [
+                'worker_not_found' => [],
+                'invalid_value' => [],
+                'missing_field' => [],
+                'other' => []
+            ];
+
+            foreach ($detailedReport['error_details'] as $error) {
+                $errorsByType[$error['type']][] = $error;
+            }
+
+            // Preparar datos para el email
+            $importData = [
+                'import_id' => $importId,
+                'service_name' => $service['service_name'],
+                'total_processed' => $totalSuccess + $totalFailed,
+                'total_success' => $totalSuccess,
+                'total_failed' => $totalFailed,
+                'success_percentage' => $totalSuccess + $totalFailed > 0
+                    ? round(($totalSuccess / ($totalSuccess + $totalFailed)) * 100, 2)
+                    : 0,
+                'success_details' => $detailedReport['success_details'],
+                'errors_by_type' => $errorsByType,
+                'has_errors' => $totalFailed > 0,
+                'import_date' => date('Y-m-d H:i:s')
+            ];
+
+            // Enviar email
+            $emailService = new \App\Libraries\EmailService();
+            $sent = $emailService->sendCsvImportReport(
+                $user['email'],
+                $user['name'],
+                $importData
+            );
+
+            if ($sent) {
+                log_message('info', "[CSV Import] Email de informe enviado a: {$user['email']}");
+            } else {
+                log_message('error', "[CSV Import] Fallo al enviar email a: {$user['email']}");
+            }
+
+            return $sent;
+
+        } catch (\Exception $e) {
+            log_message('error', "[CSV Import] Excepción al enviar email: " . $e->getMessage());
+            return false;
+        }
     }
 }

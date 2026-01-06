@@ -130,7 +130,9 @@
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" rm temp_check_max_risk.php temp_check_plans.php temp_debug_pdf.php)",
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"chore: Eliminar archivos temporales de debug\n\nArchivos removidos:\n- temp_check_max_risk.php\n- temp_check_plans.php  \n- temp_debug_pdf.php\n\nEstos archivos eran solo para debugging durante desarrollo y no\ndeben estar en el repositorio.\")",
       "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" add .gitignore)",
-      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"chore: Agregar .claude/settings.local.json a .gitignore\")"
+      "Bash(git -C \"c:\\\\xampp\\\\htdocs\\\\psyrisk\" commit -m \"chore: Agregar .claude/settings.local.json a .gitignore\")",
+      "Bash(mysql:*)",
+      "Bash(C:xamppmysqlbinmysql.exe -u root -e \"USE psyrisk; ALTER TABLE csv_imports ADD COLUMN detailed_report TEXT NULL COMMENT ''Informe detallado JSON con errores categorizados'' AFTER error_log;\")"
     ],
     "deny": [],
     "ask": []

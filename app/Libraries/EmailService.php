@@ -314,6 +314,35 @@ class EmailService
     }
 
     /**
+     * Send CSV import report to consultant
+     *
+     * @param string $toEmail Consultant's email
+     * @param string $consultantName Consultant's name
+     * @param array $importData Import details
+     * @return bool Success status
+     */
+    public function sendCsvImportReport($toEmail, $consultantName, $importData)
+    {
+        $this->email->setTo($toEmail);
+        $this->email->setSubject('Informe de Importación CSV - ' . $importData['service_name']);
+
+        $message = view('emails/csv_import_report', [
+            'consultantName' => $consultantName,
+            'importData' => $importData
+        ]);
+
+        $this->email->setMessage($message);
+
+        if ($this->email->send()) {
+            log_message('info', "CSV import report sent to: {$toEmail}");
+            return true;
+        } else {
+            log_message('error', "Failed to send CSV import report to: {$toEmail}");
+            return false;
+        }
+    }
+
+    /**
      * Get last email error
      *
      * @return string Error details

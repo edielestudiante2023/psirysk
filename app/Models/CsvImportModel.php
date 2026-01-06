@@ -21,6 +21,7 @@ class CsvImportModel extends Model
         'imported_rows',
         'failed_rows',
         'error_log',
+        'detailed_report',
         'status'
     ];
 

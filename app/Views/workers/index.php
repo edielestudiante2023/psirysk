@@ -443,7 +443,10 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Documento</label>
-                                <input type="text" class="form-control" id="edit_document" name="document" required>
+                                <input type="text" class="form-control" id="edit_document" name="document" required
+                                       pattern="[0-9]+" inputmode="numeric"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                       title="Solo se permiten números">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Nombre Completo</label>

@@ -1261,18 +1261,42 @@ class WorkerController extends BaseController
             return redirect()->to('/battery-services')->with('error', 'No tienes permisos');
         }
 
-        // Validar datos
+        // Validar datos básicos
         $rules = [
             'name' => 'required|min_length[3]|max_length[255]',
-            'document' => 'required|min_length[5]|max_length[20]|is_unique[workers.document]',
-            'email' => 'required|valid_email|is_unique[workers.email]',
+            'document' => 'required|min_length[5]|max_length[20]',
+            'email' => 'required|valid_email',
             'position' => 'required|min_length[3]|max_length[255]',
             'intralaboral_type' => 'required|in_list[A,B]',
             'application_mode' => 'required|in_list[presencial,virtual]'
         ];
 
         if (!$this->validate($rules)) {
-            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+            $errors = $this->validator->getErrors();
+            log_message('error', 'Worker validation failed: ' . json_encode($errors));
+            return redirect()->back()->withInput()->with('errors', $errors);
+        }
+
+        // Validar unicidad dentro del mismo servicio (documento y email únicos por servicio)
+        $document = $this->request->getPost('document');
+        $email = $this->request->getPost('email');
+
+        $existingByDocument = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('document', $document)
+            ->first();
+
+        if ($existingByDocument) {
+            return redirect()->back()->withInput()->with('errors', ['document' => 'Ya existe un trabajador con este documento en este servicio']);
+        }
+
+        $existingByEmail = $this->workerModel
+            ->where('battery_service_id', $serviceId)
+            ->where('email', $email)
+            ->first();
+
+        if ($existingByEmail) {
+            return redirect()->back()->withInput()->with('errors', ['email' => 'Ya existe un trabajador con este email en este servicio']);
         }
 
         // Crear trabajador
@@ -1289,10 +1313,16 @@ class WorkerController extends BaseController
             'token' => bin2hex(random_bytes(32))
         ];
 
+        log_message('debug', 'Attempting to insert worker with data: ' . json_encode($data));
+
         if ($this->workerModel->insert($data)) {
-            return redirect()->to('/workers/service/' . $serviceId)->with('success', 'Trabajador creado exitosamente');
+            $newId = $this->workerModel->getInsertID();
+            log_message('debug', 'Worker inserted successfully with ID: ' . $newId);
+            return redirect()->to('/workers/service/' . $serviceId)->with('success', 'Trabajador creado exitosamente (ID: ' . $newId . ')');
         } else {
-            return redirect()->back()->withInput()->with('error', 'Error al crear el trabajador');
+            $errors = $this->workerModel->errors();
+            log_message('error', 'Worker insert failed. Errors: ' . json_encode($errors));
+            return redirect()->back()->withInput()->with('error', 'Error al crear el trabajador: ' . implode(', ', $errors));
         }
     }
 

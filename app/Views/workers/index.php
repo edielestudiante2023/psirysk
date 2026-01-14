@@ -36,6 +36,16 @@
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+        .stats-box.stats-filter:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .stats-box.stats-filter.active {
+            border-color: #fff;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.5);
         }
         /* DataTables custom styling */
         .dataTables_wrapper .dataTables_filter input {
@@ -112,34 +122,34 @@
                 </nav>
 
                 <div class="p-4">
-                    <!-- Estadísticas -->
+                    <!-- Estadísticas (clickeables para filtrar) -->
                     <div class="row mb-4">
                         <div class="col-md-2">
-                            <div class="stats-box">
+                            <div class="stats-box stats-filter active" data-filter="" style="cursor: pointer;" title="Mostrar todos">
                                 <h3 class="mb-0"><?= count($workers) ?></h3>
                                 <small>Total Trabajadores</small>
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <div class="stats-box" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                            <div class="stats-box stats-filter" data-filter="Completado" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); cursor: pointer;" title="Filtrar completados">
                                 <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'completado')) ?></h3>
                                 <small>Completados</small>
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <div class="stats-box" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                            <div class="stats-box stats-filter" data-filter="En Progreso" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); cursor: pointer;" title="Filtrar en progreso">
                                 <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'en_proceso')) ?></h3>
                                 <small>En Proceso</small>
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <div class="stats-box" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%);">
+                            <div class="stats-box stats-filter" data-filter="Pendiente" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%); cursor: pointer;" title="Filtrar pendientes">
                                 <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'pendiente')) ?></h3>
                                 <small>Pendientes</small>
                             </div>
                         </div>
                         <div class="col-md-2">
-                            <div class="stats-box" style="background: linear-gradient(135deg, #212529 0%, #343a40 100%);">
+                            <div class="stats-box stats-filter" data-filter="No Participó" style="background: linear-gradient(135deg, #212529 0%, #343a40 100%); cursor: pointer;" title="Filtrar no participó">
                                 <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'no_participo')) ?></h3>
                                 <small>No Participó</small>
                             </div>
@@ -556,6 +566,21 @@
                         }
                     });
                 }
+            });
+
+            // Filtrado por cards de estadísticas
+            $('.stats-filter').on('click', function() {
+                var filterValue = $(this).data('filter');
+
+                // Actualizar estado activo de los cards
+                $('.stats-filter').removeClass('active');
+                $(this).addClass('active');
+
+                // Filtrar la columna de Estado (índice 7)
+                table.column(7).search(filterValue).draw();
+
+                // También actualizar el input de filtro de la columna Estado
+                $('#workersTable thead .filters th').eq(7).find('input').val(filterValue);
             });
         });
 

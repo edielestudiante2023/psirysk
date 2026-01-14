@@ -290,10 +290,7 @@
                                         <tbody>
                                             <?php foreach ($workers as $worker): ?>
                                                 <tr>
-                                                    <td>
-                                                        <?= esc($worker['document_type']) ?>
-                                                        <?= esc($worker['document']) ?>
-                                                    </td>
+                                                    <td><?= esc($worker['document']) ?></td>
                                                     <td><strong><?= esc($worker['name']) ?></strong></td>
                                                     <td><?= esc($worker['position']) ?></td>
                                                     <td><?= esc($worker['area'] ?? '-') ?></td>

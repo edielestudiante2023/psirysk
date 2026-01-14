@@ -1277,9 +1277,8 @@ class WorkerController extends BaseController
             return redirect()->back()->withInput()->with('errors', $errors);
         }
 
-        // Validar unicidad dentro del mismo servicio (documento y email únicos por servicio)
+        // Validar unicidad de documento dentro del mismo servicio
         $document = $this->request->getPost('document');
-        $email = $this->request->getPost('email');
 
         $existingByDocument = $this->workerModel
             ->where('battery_service_id', $serviceId)
@@ -1288,15 +1287,6 @@ class WorkerController extends BaseController
 
         if ($existingByDocument) {
             return redirect()->back()->withInput()->with('errors', ['document' => 'Ya existe un trabajador con este documento en este servicio']);
-        }
-
-        $existingByEmail = $this->workerModel
-            ->where('battery_service_id', $serviceId)
-            ->where('email', $email)
-            ->first();
-
-        if ($existingByEmail) {
-            return redirect()->back()->withInput()->with('errors', ['email' => 'Ya existe un trabajador con este email en este servicio']);
         }
 
         // Crear trabajador

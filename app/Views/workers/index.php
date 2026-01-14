@@ -143,7 +143,7 @@
                         </div>
                         <div class="col">
                             <div class="stats-box stats-filter" data-filter="En Progreso" data-column="7" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); cursor: pointer;" title="Filtrar en progreso">
-                                <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'en_progreso')) ?></h3>
+                                <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => in_array($w['status'], ['en_progreso', 'en progreso', 'en_proceso']))) ?></h3>
                                 <small>En Proceso</small>
                             </div>
                         </div>

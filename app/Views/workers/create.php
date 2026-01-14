@@ -42,7 +42,10 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="document" class="form-label">Número de Documento *</label>
                                     <input type="text" class="form-control" id="document" name="document"
-                                           value="<?= old('document') ?>" required>
+                                           value="<?= old('document') ?>" required
+                                           pattern="[0-9]+" inputmode="numeric"
+                                           oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                           title="Solo se permiten números">
                                 </div>
                             </div>
 

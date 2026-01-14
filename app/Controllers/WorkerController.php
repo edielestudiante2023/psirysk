@@ -1264,7 +1264,7 @@ class WorkerController extends BaseController
         // Validar datos básicos
         $rules = [
             'name' => 'required|min_length[3]|max_length[255]',
-            'document' => 'required|min_length[5]|max_length[20]',
+            'document' => 'required|min_length[5]|max_length[20]|numeric',
             'email' => 'required|valid_email',
             'position' => 'required|min_length[3]|max_length[255]',
             'intralaboral_type' => 'required|in_list[A,B]',

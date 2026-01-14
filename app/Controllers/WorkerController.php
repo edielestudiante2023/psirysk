@@ -202,11 +202,14 @@ class WorkerController extends BaseController
             // Generar token único
             $token = bin2hex(random_bytes(32));
 
+            // Limpiar documento: extraer solo números
+            $cleanDocument = preg_replace('/[^0-9]/', '', $data['document']);
+
             // Preparar datos para insertar
             $workerData = [
                 'battery_service_id' => $serviceId,
                 'document_type'      => $data['document_type'] ?? 'CC',
-                'document'           => $data['document'],
+                'document'           => $cleanDocument,
                 'hire_date'          => $this->parseDate($data['hire_date']),
                 'name'               => $data['name'],
                 'position'           => $data['position'],

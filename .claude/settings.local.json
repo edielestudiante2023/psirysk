@@ -136,7 +136,8 @@
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, name, document FROM workers WHERE battery_service_id = 12 ORDER BY id DESC LIMIT 5\" psyrisk)",
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"DELETE FROM workers WHERE id = 637\" psyrisk)",
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, name, document, battery_service_id FROM workers WHERE document = ''1023943420''\" psyrisk)",
-      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"DESCRIBE battery_services\" psyrisk)"
+      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"DESCRIBE battery_services\" psyrisk)",
+      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT COUNT\\(*\\) as total FROM workers WHERE document REGEXP ''[^0-9]''\" psyrisk)"
     ],
     "deny": [],
     "ask": []

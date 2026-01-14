@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"INSERT INTO workers \\(battery_service_id, name, document, email, position, intralaboral_type, application_mode, status, token, created_at, updated_at\\) VALUES \\(12, ''Test Worker'', ''12345678'', ''test@test.com'', ''Cargo Test'', ''A'', ''virtual'', ''pendiente'', ''token_test_123456'', NOW\\(\\), NOW\\(\\)\\); SELECT LAST_INSERT_ID\\(\\) as new_id;\" psyrisk)"
+    ]
+  }
+}

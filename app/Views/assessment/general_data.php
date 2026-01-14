@@ -207,6 +207,41 @@
         .select2-container--bootstrap-5 .select2-results__option--highlighted {
             background-color: #667eea !important;
         }
+
+        /* Estilos para campos sin responder */
+        .form-control.is-unanswered,
+        .form-select.is-unanswered {
+            border-color: #dc3545 !important;
+            background-color: #ffe5e5 !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+        }
+        .form-check.is-unanswered {
+            border-color: #dc3545 !important;
+            background-color: #ffe5e5 !important;
+        }
+        .form-check.is-unanswered .form-check-input {
+            border-color: #dc3545 !important;
+        }
+        .unanswered-group {
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #ffe5e5;
+            border: 2px solid #dc3545;
+            animation: pulse-red 1s ease-in-out;
+        }
+        .unanswered-label {
+            color: #dc3545 !important;
+            font-weight: 600;
+        }
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+            50% { box-shadow: 0 0 15px 5px rgba(220, 53, 69, 0.3); }
+        }
+        /* Select2 sin responder */
+        .select2-container.is-unanswered .select2-selection {
+            border-color: #dc3545 !important;
+            background-color: #ffe5e5 !important;
+        }
     </style>
 </head>
 <body>
@@ -922,8 +957,106 @@
             saveField('city_work', fieldValue);
         });
 
+        // Función para marcar campos sin responder
+        function markUnansweredFields() {
+            // Limpiar marcas anteriores
+            document.querySelectorAll('.is-unanswered, .unanswered-group, .unanswered-label').forEach(el => {
+                el.classList.remove('is-unanswered', 'unanswered-group', 'unanswered-label');
+            });
+            document.querySelectorAll('.select2-container.is-unanswered').forEach(el => {
+                el.classList.remove('is-unanswered');
+            });
+
+            let firstUnanswered = null;
+            let unansweredCount = 0;
+
+            // Validar campos select requeridos
+            const selects = document.querySelectorAll('#generalDataForm select[required]');
+            selects.forEach(select => {
+                if (!select.value) {
+                    select.classList.add('is-unanswered');
+                    // También marcar Select2 si existe
+                    const select2Container = select.nextElementSibling;
+                    if (select2Container && select2Container.classList.contains('select2-container')) {
+                        select2Container.classList.add('is-unanswered');
+                    }
+                    const label = select.closest('.mb-3')?.querySelector('.form-label');
+                    if (label) label.classList.add('unanswered-label');
+                    if (!firstUnanswered) firstUnanswered = select.closest('.mb-3') || select;
+                    unansweredCount++;
+                }
+            });
+
+            // Validar campos input requeridos (text, number)
+            const inputs = document.querySelectorAll('#generalDataForm input[type="text"][required], #generalDataForm input[type="number"][required]');
+            inputs.forEach(input => {
+                if (!input.value) {
+                    input.classList.add('is-unanswered');
+                    const label = input.closest('.mb-3')?.querySelector('.form-label');
+                    if (label) label.classList.add('unanswered-label');
+                    if (!firstUnanswered) firstUnanswered = input.closest('.mb-3') || input;
+                    unansweredCount++;
+                }
+            });
+
+            // Validar grupos de radio buttons requeridos
+            const radioGroups = ['gender', 'stratum', 'housing_type', 'time_in_company_type', 'position_type', 'time_in_position_type', 'contract_type', 'salary_type'];
+            radioGroups.forEach(groupName => {
+                const checked = document.querySelector(`input[name="${groupName}"]:checked`);
+                if (!checked) {
+                    const radios = document.querySelectorAll(`input[name="${groupName}"]`);
+                    radios.forEach(radio => {
+                        const formCheck = radio.closest('.form-check');
+                        if (formCheck) formCheck.classList.add('is-unanswered');
+                    });
+                    // Marcar el contenedor del grupo
+                    const container = radios[0]?.closest('.mb-3');
+                    if (container) {
+                        const radioContainer = container.querySelector('.d-flex, .row');
+                        if (radioContainer) radioContainer.classList.add('unanswered-group');
+                        const label = container.querySelector('.form-label');
+                        if (label) label.classList.add('unanswered-label');
+                    }
+                    if (!firstUnanswered) firstUnanswered = container || radios[0];
+                    unansweredCount++;
+                }
+            });
+
+            return { firstUnanswered, unansweredCount };
+        }
+
+        // Quitar marcas cuando se llena un campo
+        document.querySelectorAll('#generalDataForm select, #generalDataForm input').forEach(field => {
+            field.addEventListener('change', function() {
+                this.classList.remove('is-unanswered');
+                const select2Container = this.nextElementSibling;
+                if (select2Container && select2Container.classList.contains('select2-container')) {
+                    select2Container.classList.remove('is-unanswered');
+                }
+                const container = this.closest('.mb-3');
+                if (container) {
+                    container.querySelector('.form-label')?.classList.remove('unanswered-label');
+                    container.querySelector('.unanswered-group')?.classList.remove('unanswered-group');
+                }
+                // Para radio buttons
+                const formCheck = this.closest('.form-check');
+                if (formCheck) formCheck.classList.remove('is-unanswered');
+                if (this.type === 'radio') {
+                    const groupContainer = this.closest('.mb-3');
+                    if (groupContainer) {
+                        groupContainer.querySelectorAll('.form-check').forEach(fc => fc.classList.remove('is-unanswered'));
+                        groupContainer.querySelector('.unanswered-group')?.classList.remove('unanswered-group');
+                        groupContainer.querySelector('.unanswered-label')?.classList.remove('unanswered-label');
+                    }
+                }
+            });
+        });
+
         document.getElementById('generalDataForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+
+            // Marcar campos sin responder
+            const { firstUnanswered, unansweredCount } = markUnansweredFields();
 
             // Validación adicional antes de enviar
             const timeInCompanyType = document.querySelector('input[name="time_in_company_type"]:checked');
@@ -931,7 +1064,13 @@
 
             if (timeInCompanyType && timeInCompanyType.value === 'Mas_de_un_ano') {
                 if (!timeInCompanyYearsInput.value || timeInCompanyYearsInput.value <= 0) {
-                    alert('Por favor, indique cuántos años lleva trabajando en esta empresa.');
+                    timeInCompanyYearsInput.classList.add('is-unanswered');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campo requerido',
+                        text: 'Por favor, indique cuántos años lleva trabajando en esta empresa.',
+                        confirmButtonColor: '#667eea'
+                    });
                     timeInCompanyYearsInput.focus();
                     return;
                 }
@@ -939,10 +1078,33 @@
 
             if (timeInPositionType && timeInPositionType.value === 'Mas_de_un_ano') {
                 if (!timeInPositionYearsInput.value || timeInPositionYearsInput.value <= 0) {
-                    alert('Por favor, indique cuántos años lleva en el cargo actual.');
+                    timeInPositionYearsInput.classList.add('is-unanswered');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Campo requerido',
+                        text: 'Por favor, indique cuántos años lleva en el cargo actual.',
+                        confirmButtonColor: '#667eea'
+                    });
                     timeInPositionYearsInput.focus();
                     return;
                 }
+            }
+
+            // Si hay campos sin responder, mostrar alerta
+            if (unansweredCount > 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos sin completar',
+                    html: `<p>Hay <strong>${unansweredCount}</strong> campo${unansweredCount > 1 ? 's' : ''} obligatorio${unansweredCount > 1 ? 's' : ''} sin completar.</p>
+                           <p><small>Los campos faltantes están marcados en <span style="color: #dc3545;">rojo</span>.</small></p>`,
+                    confirmButtonColor: '#667eea',
+                    confirmButtonText: 'Ir a completar'
+                }).then(() => {
+                    if (firstUnanswered) {
+                        firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+                return;
             }
 
             const formData = new FormData(this);

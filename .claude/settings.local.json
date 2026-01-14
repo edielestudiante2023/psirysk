@@ -135,7 +135,8 @@
       "Bash(C:xamppmysqlbinmysql.exe -u root -e \"USE psyrisk; ALTER TABLE csv_imports ADD COLUMN detailed_report TEXT NULL COMMENT ''Informe detallado JSON con errores categorizados'' AFTER error_log;\")",
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, name, document FROM workers WHERE battery_service_id = 12 ORDER BY id DESC LIMIT 5\" psyrisk)",
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"DELETE FROM workers WHERE id = 637\" psyrisk)",
-      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, name, document, battery_service_id FROM workers WHERE document = ''1023943420''\" psyrisk)"
+      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, name, document, battery_service_id FROM workers WHERE document = ''1023943420''\" psyrisk)",
+      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"DESCRIBE battery_services\" psyrisk)"
     ],
     "deny": [],
     "ask": []

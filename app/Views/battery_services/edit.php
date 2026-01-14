@@ -95,7 +95,7 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
                                     <label for="service_date" class="form-label">Fecha del Servicio *</label>
                                     <input type="date"
                                            class="form-control"
@@ -105,7 +105,18 @@
                                            required>
                                 </div>
 
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-4 mb-3">
+                                    <label for="expiration_date" class="form-label">Fecha de Vencimiento *</label>
+                                    <input type="date"
+                                           class="form-control"
+                                           id="expiration_date"
+                                           name="expiration_date"
+                                           value="<?= old('expiration_date', $service['link_expiration_date']) ?>"
+                                           required>
+                                    <small class="text-muted">Fecha límite para completar las evaluaciones</small>
+                                </div>
+
+                                <div class="col-md-4 mb-3">
                                     <label for="status" class="form-label">Estado *</label>
                                     <select class="form-select" id="status" name="status" required>
                                         <option value="planificado" <?= old('status', $service['status']) === 'planificado' ? 'selected' : '' ?>>
@@ -119,11 +130,6 @@
                                         </option>
                                     </select>
                                 </div>
-                            </div>
-
-                            <div class="alert alert-info">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>Nota:</strong> La fecha de vencimiento se recalculará automáticamente (15 días después de la fecha del servicio)
                             </div>
 
                             <!-- Cantidades por Tipo de Formulario -->

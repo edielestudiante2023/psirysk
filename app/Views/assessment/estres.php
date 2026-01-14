@@ -64,6 +64,24 @@ $likertScale = Estres::getLikertScale();
             background: #d4edda;
             border-left: 4px solid #28a745;
         }
+        .question-card.unanswered {
+            background: #ffe5e5;
+            border-left: 4px solid #dc3545;
+            animation: pulse-red 1s ease-in-out;
+        }
+        .question-card.unanswered .question-number {
+            background: #dc3545;
+        }
+        .question-card.unanswered .likert-option label {
+            border-color: #f5c6cb;
+        }
+        .question-card.unanswered .likert-option label:hover {
+            border-color: #dc3545;
+        }
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+            50% { box-shadow: 0 0 15px 5px rgba(220, 53, 69, 0.3); }
+        }
         .question-number {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -297,12 +315,64 @@ $likertScale = Estres::getLikertScale();
             }, 3000);
         }
 
+        // Función para marcar preguntas sin responder
+        function markUnansweredQuestions() {
+            // Limpiar marcas anteriores
+            document.querySelectorAll('.question-card.unanswered').forEach(card => {
+                card.classList.remove('unanswered');
+            });
+
+            let firstUnanswered = null;
+            let unansweredCount = 0;
+
+            // Verificar todas las preguntas
+            for (let i = 1; i <= totalQuestions; i++) {
+                const questionCard = document.getElementById('question-' + i);
+                if (!questionCard) continue;
+
+                if (!answeredQuestions.has(i)) {
+                    questionCard.classList.add('unanswered');
+                    if (!firstUnanswered) firstUnanswered = questionCard;
+                    unansweredCount++;
+                }
+            }
+
+            return { firstUnanswered, unansweredCount };
+        }
+
+        // Quitar marca de unanswered cuando se responde
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const questionCard = this.closest('.question-card');
+                if (questionCard) {
+                    questionCard.classList.remove('unanswered');
+                }
+            });
+        });
+
         // Form submission
         document.getElementById('estresForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
+            // Marcar preguntas sin responder y obtener información
+            const { firstUnanswered, unansweredCount } = markUnansweredQuestions();
+
             if (answeredQuestions.size < totalQuestions) {
-                alert(`Debes responder TODAS las preguntas antes de finalizar.\nHas respondido ${answeredQuestions.size} de ${totalQuestions} preguntas.\nFaltan ${totalQuestions - answeredQuestions.size} preguntas por responder.`);
+                const faltan = totalQuestions - answeredQuestions.size;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Preguntas sin responder',
+                    html: `<p>Debes responder <strong>TODAS</strong> las preguntas antes de finalizar.</p>
+                           <p>Has respondido <strong>${answeredQuestions.size}</strong> de <strong>${totalQuestions}</strong> preguntas.</p>
+                           <p style="color: #dc3545; font-weight: bold;">Faltan ${faltan} pregunta${faltan > 1 ? 's' : ''} por responder.</p>
+                           <p><small>Las preguntas sin responder están marcadas en <span style="color: #dc3545;">rojo</span>.</small></p>`,
+                    confirmButtonColor: '#667eea',
+                    confirmButtonText: 'Ir a completar'
+                }).then(() => {
+                    if (firstUnanswered) {
+                        firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
                 return;
             }
 

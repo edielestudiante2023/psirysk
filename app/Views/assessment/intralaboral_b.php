@@ -66,6 +66,32 @@ $conditionalQuestion = IntralaboralB::getConditionalQuestion();
             background: #d4edda;
             border-left: 4px solid #28a745;
         }
+        .question-card.unanswered {
+            background: #ffe5e5;
+            border-left: 4px solid #dc3545;
+            animation: pulse-red 1s ease-in-out;
+        }
+        .question-card.unanswered .question-number {
+            background: #dc3545;
+        }
+        .question-card.unanswered .likert-option label {
+            border-color: #f5c6cb;
+        }
+        .question-card.unanswered .likert-option label:hover {
+            border-color: #dc3545;
+        }
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0); }
+            50% { box-shadow: 0 0 15px 5px rgba(220, 53, 69, 0.3); }
+        }
+        .conditional-question.unanswered {
+            background: #ffe5e5;
+            border-left: 4px solid #dc3545;
+            animation: pulse-red 1s ease-in-out;
+        }
+        .conditional-question.unanswered .question-number {
+            background: #dc3545;
+        }
         .question-number {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -475,19 +501,55 @@ $conditionalQuestion = IntralaboralB::getConditionalQuestion();
             });
         });
 
+        // Función para marcar preguntas sin responder
+        function markUnansweredQuestions() {
+            // Limpiar marcas anteriores
+            document.querySelectorAll('.question-card.unanswered, .conditional-question.unanswered').forEach(card => {
+                card.classList.remove('unanswered');
+            });
+
+            let firstUnanswered = null;
+            let unansweredCount = 0;
+
+            // Verificar pregunta condicional
+            if (attendsClients === null) {
+                const cq = document.getElementById('conditional-question');
+                cq.classList.add('unanswered');
+                if (!firstUnanswered) firstUnanswered = cq;
+                unansweredCount++;
+            }
+
+            // Verificar todas las preguntas regulares
+            for (let i = 1; i <= totalQuestions; i++) {
+                const questionCard = document.getElementById('question-' + i);
+                if (!questionCard) continue;
+
+                // Saltar preguntas ocultas (condicionales)
+                if (questionCard.style.display === 'none') continue;
+
+                if (!answeredQuestions.has(i)) {
+                    questionCard.classList.add('unanswered');
+                    if (!firstUnanswered) firstUnanswered = questionCard;
+                    unansweredCount++;
+                }
+            }
+
+            return { firstUnanswered, unansweredCount };
+        }
+
+        // Quitar marca de unanswered cuando se responde
+        document.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const questionCard = this.closest('.question-card, .conditional-question');
+                if (questionCard) {
+                    questionCard.classList.remove('unanswered');
+                }
+            });
+        });
+
         // Form submission
         document.getElementById('intralaboralForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-
-            console.log('Formulario enviado. attendsClients:', attendsClients);
-            console.log('Preguntas respondidas:', answeredQuestions.size);
-
-            // Validar que se haya respondido la pregunta condicional
-            if (attendsClients === null) {
-                alert('Por favor responde la pregunta sobre atención a clientes antes de continuar.');
-                document.getElementById('conditional-question').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return;
-            }
 
             // Ajustar total según respuesta condicional
             let adjustedTotal = totalQuestions;
@@ -495,8 +557,37 @@ $conditionalQuestion = IntralaboralB::getConditionalQuestion();
                 adjustedTotal = totalQuestions - clientQuestions.length;
             }
 
+            // Marcar preguntas sin responder y obtener información
+            const { firstUnanswered, unansweredCount } = markUnansweredQuestions();
+
+            // Validar que se haya respondido la pregunta condicional
+            if (attendsClients === null) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Pregunta sin responder',
+                    text: 'Por favor responde la pregunta sobre atención a clientes.',
+                    confirmButtonColor: '#667eea'
+                });
+                firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
             if (answeredQuestions.size < adjustedTotal) {
-                alert(`Debes responder TODAS las preguntas antes de continuar.\nHas respondido ${answeredQuestions.size} de ${adjustedTotal} preguntas.\nFaltan ${adjustedTotal - answeredQuestions.size} preguntas por responder.`);
+                const faltan = adjustedTotal - answeredQuestions.size;
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Preguntas sin responder',
+                    html: `<p>Debes responder <strong>TODAS</strong> las preguntas antes de continuar.</p>
+                           <p>Has respondido <strong>${answeredQuestions.size}</strong> de <strong>${adjustedTotal}</strong> preguntas.</p>
+                           <p style="color: #dc3545; font-weight: bold;">Faltan ${faltan} pregunta${faltan > 1 ? 's' : ''} por responder.</p>
+                           <p><small>Las preguntas sin responder están marcadas en <span style="color: #dc3545;">rojo</span>.</small></p>`,
+                    confirmButtonColor: '#667eea',
+                    confirmButtonText: 'Ir a completar'
+                }).then(() => {
+                    if (firstUnanswered) {
+                        firstUnanswered.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
                 return;
             }
 

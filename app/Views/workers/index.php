@@ -631,7 +631,7 @@
                 $('#workersTable thead .filters th').eq(columnIndex).find('input').val(filterValue);
             });
 
-            // Filtrado por cards de Tipo
+            // Filtrado por cards de Tipo (búsqueda exacta con regex)
             $('.stats-filter-tipo').on('click', function() {
                 var filterValue = $(this).data('filter');
                 var columnIndex = $(this).data('column');
@@ -639,17 +639,18 @@
                 // Toggle activo
                 if ($(this).hasClass('active')) {
                     $(this).removeClass('active');
-                    table.column(columnIndex).search('').draw();
+                    table.column(columnIndex).search('', true, false).draw();
                     $('#workersTable thead .filters th').eq(columnIndex).find('input').val('');
                 } else {
                     $('.stats-filter-tipo').removeClass('active');
                     $(this).addClass('active');
-                    table.column(columnIndex).search(filterValue).draw();
+                    // Búsqueda exacta: ^Forma A$ o ^Forma B$
+                    table.column(columnIndex).search('^' + filterValue + '$', true, false).draw();
                     $('#workersTable thead .filters th').eq(columnIndex).find('input').val(filterValue);
                 }
             });
 
-            // Filtrado por cards de Modalidad
+            // Filtrado por cards de Modalidad (búsqueda exacta con regex)
             $('.stats-filter-modalidad').on('click', function() {
                 var filterValue = $(this).data('filter');
                 var columnIndex = $(this).data('column');
@@ -657,12 +658,13 @@
                 // Toggle activo
                 if ($(this).hasClass('active')) {
                     $(this).removeClass('active');
-                    table.column(columnIndex).search('').draw();
+                    table.column(columnIndex).search('', true, false).draw();
                     $('#workersTable thead .filters th').eq(columnIndex).find('input').val('');
                 } else {
                     $('.stats-filter-modalidad').removeClass('active');
                     $(this).addClass('active');
-                    table.column(columnIndex).search(filterValue).draw();
+                    // Búsqueda exacta
+                    table.column(columnIndex).search('^' + filterValue + '$', true, false).draw();
                     $('#workersTable thead .filters th').eq(columnIndex).find('input').val(filterValue);
                 }
             });

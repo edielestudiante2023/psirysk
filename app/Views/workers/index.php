@@ -122,10 +122,13 @@
                 </nav>
 
                 <div class="p-4">
-                    <!-- Estadísticas por Estado (clickeables para filtrar) -->
+                    <!-- Botón limpiar filtros -->
                     <div class="row mb-3">
-                        <div class="col-12">
+                        <div class="col-12 d-flex justify-content-between align-items-center">
                             <small class="text-muted fw-bold"><i class="fas fa-chart-bar me-1"></i> ESTADO</small>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="clearAllFilters">
+                                <i class="fas fa-times me-1"></i> Limpiar Filtros
+                            </button>
                         </div>
                     </div>
                     <div class="row mb-4">
@@ -661,6 +664,23 @@
                     table.column(columnIndex).search('^' + filterValue + '$', true, false).draw();
                     $('#workersTable thead .filters th').eq(columnIndex).find('input').val(filterValue);
                 }
+            });
+
+            // Botón limpiar todos los filtros
+            $('#clearAllFilters').on('click', function() {
+                // Limpiar todos los filtros de columnas
+                table.columns().search('').draw();
+
+                // Limpiar inputs de filtros
+                $('#workersTable thead .filters th input').val('');
+
+                // Quitar estado activo de todos los cards
+                $('.stats-filter').removeClass('active');
+                $('.stats-filter-tipo').removeClass('active');
+                $('.stats-filter-modalidad').removeClass('active');
+
+                // Activar card de "Total"
+                $('.stats-filter[data-filter=""]').addClass('active');
             });
         });
 

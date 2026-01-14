@@ -122,36 +122,81 @@
                 </nav>
 
                 <div class="p-4">
-                    <!-- Estadísticas (clickeables para filtrar) -->
+                    <!-- Estadísticas por Estado (clickeables para filtrar) -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <small class="text-muted fw-bold"><i class="fas fa-chart-bar me-1"></i> ESTADO</small>
+                        </div>
+                    </div>
                     <div class="row mb-4">
-                        <div class="col-md-2">
-                            <div class="stats-box stats-filter active" data-filter="" style="cursor: pointer;" title="Mostrar todos">
+                        <div class="col">
+                            <div class="stats-box stats-filter active" data-filter="" data-column="7" style="cursor: pointer;" title="Mostrar todos">
                                 <h3 class="mb-0"><?= count($workers) ?></h3>
-                                <small>Total Trabajadores</small>
+                                <small>Total</small>
                             </div>
                         </div>
-                        <div class="col-md-2">
-                            <div class="stats-box stats-filter" data-filter="Completado" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); cursor: pointer;" title="Filtrar completados">
+                        <div class="col">
+                            <div class="stats-box stats-filter" data-filter="Completado" data-column="7" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); cursor: pointer;" title="Filtrar completados">
                                 <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'completado')) ?></h3>
                                 <small>Completados</small>
                             </div>
                         </div>
-                        <div class="col-md-2">
-                            <div class="stats-box stats-filter" data-filter="En Progreso" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); cursor: pointer;" title="Filtrar en progreso">
-                                <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'en_proceso')) ?></h3>
+                        <div class="col">
+                            <div class="stats-box stats-filter" data-filter="En Progreso" data-column="7" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); cursor: pointer;" title="Filtrar en progreso">
+                                <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'en_progreso')) ?></h3>
                                 <small>En Proceso</small>
                             </div>
                         </div>
-                        <div class="col-md-2">
-                            <div class="stats-box stats-filter" data-filter="Pendiente" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%); cursor: pointer;" title="Filtrar pendientes">
+                        <div class="col">
+                            <div class="stats-box stats-filter" data-filter="Pendiente" data-column="7" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%); cursor: pointer;" title="Filtrar pendientes">
                                 <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'pendiente')) ?></h3>
                                 <small>Pendientes</small>
                             </div>
                         </div>
-                        <div class="col-md-2">
-                            <div class="stats-box stats-filter" data-filter="No Participó" style="background: linear-gradient(135deg, #212529 0%, #343a40 100%); cursor: pointer;" title="Filtrar no participó">
+                        <div class="col">
+                            <div class="stats-box stats-filter" data-filter="No Participó" data-column="7" style="background: linear-gradient(135deg, #212529 0%, #343a40 100%); cursor: pointer;" title="Filtrar no participó">
                                 <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['status'] === 'no_participo')) ?></h3>
                                 <small>No Participó</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas por Tipo y Modalidad -->
+                    <div class="row mb-4">
+                        <!-- Tipo de Formulario -->
+                        <div class="col-md-6">
+                            <small class="text-muted fw-bold"><i class="fas fa-file-alt me-1"></i> TIPO DE FORMULARIO</small>
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <div class="stats-box stats-filter-tipo" data-filter="Forma A" data-column="5" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); cursor: pointer;" title="Filtrar Forma A">
+                                        <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['intralaboral_type'] === 'A')) ?></h3>
+                                        <small>Forma A</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="stats-box stats-filter-tipo" data-filter="Forma B" data-column="5" style="background: linear-gradient(135deg, #0dcaf0 0%, #0aa2c0 100%); cursor: pointer;" title="Filtrar Forma B">
+                                        <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['intralaboral_type'] === 'B')) ?></h3>
+                                        <small>Forma B</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Modalidad -->
+                        <div class="col-md-6">
+                            <small class="text-muted fw-bold"><i class="fas fa-desktop me-1"></i> MODALIDAD</small>
+                            <div class="row mt-2">
+                                <div class="col-6">
+                                    <div class="stats-box stats-filter-modalidad" data-filter="Presencial" data-column="6" style="background: linear-gradient(135deg, #198754 0%, #146c43 100%); cursor: pointer;" title="Filtrar Presencial">
+                                        <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['application_mode'] === 'presencial')) ?></h3>
+                                        <small>Presencial</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="stats-box stats-filter-modalidad" data-filter="Virtual" data-column="6" style="background: linear-gradient(135deg, #6f42c1 0%, #59359a 100%); cursor: pointer;" title="Filtrar Virtual">
+                                        <h3 class="mb-0"><?= count(array_filter($workers, fn($w) => $w['application_mode'] === 'virtual')) ?></h3>
+                                        <small>Virtual</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -565,19 +610,61 @@
                 }
             });
 
-            // Filtrado por cards de estadísticas
+            // Filtrado por cards de Estado
             $('.stats-filter').on('click', function() {
                 var filterValue = $(this).data('filter');
+                var columnIndex = $(this).data('column');
 
-                // Actualizar estado activo de los cards
+                // Actualizar estado activo de los cards de estado
                 $('.stats-filter').removeClass('active');
                 $(this).addClass('active');
 
-                // Filtrar la columna de Estado (índice 7)
-                table.column(7).search(filterValue).draw();
+                // Limpiar filtros de tipo y modalidad
+                $('.stats-filter-tipo, .stats-filter-modalidad').removeClass('active');
+                table.column(5).search('').draw();
+                table.column(6).search('').draw();
+                $('#workersTable thead .filters th').eq(5).find('input').val('');
+                $('#workersTable thead .filters th').eq(6).find('input').val('');
 
-                // También actualizar el input de filtro de la columna Estado
-                $('#workersTable thead .filters th').eq(7).find('input').val(filterValue);
+                // Filtrar la columna de Estado (índice 7)
+                table.column(columnIndex).search(filterValue).draw();
+                $('#workersTable thead .filters th').eq(columnIndex).find('input').val(filterValue);
+            });
+
+            // Filtrado por cards de Tipo
+            $('.stats-filter-tipo').on('click', function() {
+                var filterValue = $(this).data('filter');
+                var columnIndex = $(this).data('column');
+
+                // Toggle activo
+                if ($(this).hasClass('active')) {
+                    $(this).removeClass('active');
+                    table.column(columnIndex).search('').draw();
+                    $('#workersTable thead .filters th').eq(columnIndex).find('input').val('');
+                } else {
+                    $('.stats-filter-tipo').removeClass('active');
+                    $(this).addClass('active');
+                    table.column(columnIndex).search(filterValue).draw();
+                    $('#workersTable thead .filters th').eq(columnIndex).find('input').val(filterValue);
+                }
+            });
+
+            // Filtrado por cards de Modalidad
+            $('.stats-filter-modalidad').on('click', function() {
+                var filterValue = $(this).data('filter');
+                var columnIndex = $(this).data('column');
+
+                // Toggle activo
+                if ($(this).hasClass('active')) {
+                    $(this).removeClass('active');
+                    table.column(columnIndex).search('').draw();
+                    $('#workersTable thead .filters th').eq(columnIndex).find('input').val('');
+                } else {
+                    $('.stats-filter-modalidad').removeClass('active');
+                    $(this).addClass('active');
+                    table.column(columnIndex).search(filterValue).draw();
+                    $('#workersTable thead .filters th').eq(columnIndex).find('input').val(filterValue);
+                }
             });
         });
 

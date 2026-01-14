@@ -340,16 +340,8 @@
                                                     <td><?= esc($worker['position']) ?></td>
                                                     <td><?= esc($worker['area'] ?? '-') ?></td>
                                                     <td><small><?= esc($worker['email']) ?></small></td>
-                                                    <td>
-                                                        <span class="badge bg-<?= $worker['intralaboral_type'] === 'A' ? 'primary' : 'info' ?>">
-                                                            Forma <?= $worker['intralaboral_type'] ?>
-                                                        </span>
-                                                    </td>
-                                                    <td>
-                                                        <span class="badge bg-<?= $worker['application_mode'] === 'virtual' ? 'success' : 'warning' ?>">
-                                                            <?= ucfirst($worker['application_mode']) ?>
-                                                        </span>
-                                                    </td>
+                                                    <td><span class="badge bg-<?= $worker['intralaboral_type'] === 'A' ? 'primary' : 'info' ?>">Forma <?= $worker['intralaboral_type'] ?></span></td>
+                                                    <td><span class="badge bg-<?= $worker['application_mode'] === 'virtual' ? 'success' : 'warning' ?>"><?= ucfirst($worker['application_mode']) ?></span></td>
                                                     <td>
                                                         <?php
                                                         $statusColors = [
@@ -635,6 +627,8 @@
             $('.stats-filter-tipo').on('click', function() {
                 var filterValue = $(this).data('filter');
                 var columnIndex = $(this).data('column');
+                // Extraer solo la letra (A o B) para búsqueda exacta
+                var letra = filterValue.slice(-1); // Última letra: "Forma A" -> "A"
 
                 // Toggle activo
                 if ($(this).hasClass('active')) {
@@ -644,8 +638,8 @@
                 } else {
                     $('.stats-filter-tipo').removeClass('active');
                     $(this).addClass('active');
-                    // Búsqueda exacta: ^Forma A$ o ^Forma B$
-                    table.column(columnIndex).search('^' + filterValue + '$', true, false).draw();
+                    // Búsqueda: termina en espacio+letra (Forma A o Forma B)
+                    table.column(columnIndex).search('Forma ' + letra + '$', true, false).draw();
                     $('#workersTable thead .filters th').eq(columnIndex).find('input').val(filterValue);
                 }
             });

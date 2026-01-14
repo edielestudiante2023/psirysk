@@ -220,7 +220,7 @@ class BatteryServiceController extends BaseController
         }
 
         $serviceDate = $this->request->getPost('service_date');
-        $expirationDate = date('Y-m-d', strtotime($serviceDate . ' +15 days'));
+        $expirationDate = $this->request->getPost('expiration_date') ?: date('Y-m-d', strtotime($serviceDate . ' +15 days'));
 
         $data = [
             'company_id' => $this->request->getPost('company_id'),

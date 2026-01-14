@@ -138,7 +138,11 @@
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, name, document, battery_service_id FROM workers WHERE document = ''1023943420''\" psyrisk)",
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"DESCRIBE battery_services\" psyrisk)",
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT COUNT\\(*\\) as total FROM workers WHERE document REGEXP ''[^0-9]''\" psyrisk)",
-      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, document FROM workers WHERE battery_service_id = 13 LIMIT 5\" psyrisk)"
+      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, document FROM workers WHERE battery_service_id = 13 LIMIT 5\" psyrisk)",
+      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT DISTINCT status FROM workers\" psyrisk)",
+      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, status FROM workers WHERE battery_service_id = 12 AND status NOT IN \\(''pendiente'', ''completado'', ''no_participo''\\) LIMIT 5\" psyrisk)",
+      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, name, status FROM workers WHERE name LIKE ''%Camilo%''\" psyrisk)",
+      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SHOW COLUMNS FROM workers WHERE Field = ''status''\" psyrisk)"
     ],
     "deny": [],
     "ask": []

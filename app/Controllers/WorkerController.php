@@ -143,9 +143,17 @@ class WorkerController extends BaseController
         }
 
         // Leer el archivo CSV con delimitador punto y coma (;) para configuración regional Colombia
+        // Detectar y convertir encoding a UTF-8 (Excel exporta como Windows-1252/ISO-8859-1)
+        $fileContent = file_get_contents($file->getTempName());
+        $encoding = mb_detect_encoding($fileContent, ['UTF-8', 'Windows-1252', 'ISO-8859-1'], true);
+        if ($encoding && $encoding !== 'UTF-8') {
+            $fileContent = mb_convert_encoding($fileContent, 'UTF-8', $encoding);
+        }
+
         $csvData = array_map(function($line) {
             return str_getcsv($line, ';');
-        }, file($file->getTempName()));
+        }, explode("\n", $fileContent));
+        $csvData = array_filter($csvData, fn($row) => !empty(array_filter($row))); // Eliminar filas vacías
         $header = array_shift($csvData); // Primera fila = headers
 
         // Limpiar BOM UTF-8 y espacios de los encabezados

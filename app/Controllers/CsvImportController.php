@@ -64,6 +64,24 @@ class CsvImportController extends BaseController
     }
 
     /**
+     * Convertir contenido de archivo a UTF-8
+     * Excel exporta CSV en Windows-1252/ISO-8859-1, no UTF-8
+     */
+    protected function convertToUtf8($filePath)
+    {
+        $content = file_get_contents($filePath);
+        $encoding = mb_detect_encoding($content, ['UTF-8', 'Windows-1252', 'ISO-8859-1'], true);
+
+        if ($encoding && $encoding !== 'UTF-8') {
+            $content = mb_convert_encoding($content, 'UTF-8', $encoding);
+            file_put_contents($filePath, $content);
+            log_message('info', "[CSV Import] Archivo convertido de {$encoding} a UTF-8");
+        }
+
+        return $filePath;
+    }
+
+    /**
      * Vista principal del módulo de importación CSV
      */
     public function index()
@@ -390,6 +408,9 @@ class CsvImportController extends BaseController
 
             log_message('error', '[BATCH] Archivo guardado en: ' . $uploadPath . $fileName);
 
+            // Convertir archivo a UTF-8 si es necesario (Excel exporta en Windows-1252)
+            $this->convertToUtf8($uploadPath . $fileName);
+
             // Crear registro de importación
             $importId = $this->csvImportModel->insert([
                 'battery_service_id' => $serviceId,
@@ -702,6 +723,9 @@ class CsvImportController extends BaseController
      */
     protected function processCSV($file, $serviceId, $importId)
     {
+        // Convertir archivo a UTF-8 si es necesario (Excel exporta en Windows-1252)
+        $this->convertToUtf8($file->getTempName());
+
         $handle = fopen($file->getTempName(), 'r');
         $headers = fgetcsv($handle, 0, ';');
 
@@ -758,6 +782,9 @@ class CsvImportController extends BaseController
         log_message('error', "📋 Service ID: {$serviceId}");
         log_message('error', "🆔 Import ID: {$importId}");
         log_message('error', "📋 Form Type: {$formType}");
+
+        // Convertir archivo a UTF-8 si es necesario (Excel exporta en Windows-1252)
+        $this->convertToUtf8($file->getTempName());
 
         $handle = fopen($file->getTempName(), 'r');
 

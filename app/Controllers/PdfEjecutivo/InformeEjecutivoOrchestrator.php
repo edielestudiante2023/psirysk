@@ -21,7 +21,7 @@ class InformeEjecutivoOrchestrator extends PdfEjecutivoBaseController
     protected $secciones = [
         ['PortadaController', 'Portada'],
         ['MapasCalorController', 'Mapas de Calor'],
-        ['RecomendacionesPlanesController', 'Recomendaciones y Planes de Acción'],
+        // ['RecomendacionesPlanesController', 'Recomendaciones y Planes de Acción'], // Removido del PDF ejecutivo
     ];
 
     /**

@@ -880,29 +880,18 @@
                 }
             })
             .then(response => {
-                if (response.redirected) {
-                    // Restaurar botón inmediatamente
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = originalButtonText;
+                // Mostrar mensaje de éxito
+                showSuccessToast('✓ Procesado correctamente');
 
-                    // Mostrar mensaje de éxito
-                    showSuccessToast('✓ Procesado correctamente');
+                // Hacer refresh completo de la página (como F5)
+                setTimeout(() => {
+                    // Guardar la posición del scroll y la sección actual en sessionStorage
+                    sessionStorage.setItem('scrollPosition', currentScrollPosition);
+                    sessionStorage.setItem('scrollToSection', sectionId);
 
-                    // Recargar la página manteniendo la posición de scroll
-                    setTimeout(() => {
-                        window.location.href = response.url + '#' + sectionId.substring(1);
-
-                        // Restaurar scroll después de un pequeño delay
-                        setTimeout(() => {
-                            window.scrollTo(0, currentScrollPosition);
-                        }, 100);
-                    }, 800);
-                } else {
-                    // Si no hay redirección, simplemente recargar
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = originalButtonText;
-                    location.reload();
-                }
+                    // Forzar recarga completa desde el servidor (true = bypass cache)
+                    window.location.reload(true);
+                }, 500);
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -928,6 +917,19 @@
             <?php if (session()->getFlashdata('success')): ?>
                 showSuccessToast('<?= addslashes(session()->getFlashdata('success')) ?>');
             <?php endif; ?>
+
+            // Restaurar posición de scroll después de un reload (F5)
+            const savedScrollPosition = sessionStorage.getItem('scrollPosition');
+            const savedSection = sessionStorage.getItem('scrollToSection');
+
+            if (savedScrollPosition) {
+                // Restaurar la posición del scroll
+                window.scrollTo(0, parseInt(savedScrollPosition));
+
+                // Limpiar los valores guardados
+                sessionStorage.removeItem('scrollPosition');
+                sessionStorage.removeItem('scrollToSection');
+            }
         });
     </script>
 </body>

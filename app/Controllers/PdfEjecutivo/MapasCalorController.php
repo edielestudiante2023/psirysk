@@ -596,6 +596,9 @@ class MapasCalorController extends PdfEjecutivoBaseController
             $html .= $this->renderTablaSintomasEstres('B');
         }
 
+        // Firma del consultor al final del informe
+        $html .= $this->renderFirmaConsultor();
+
         return $html;
     }
 
@@ -1963,6 +1966,92 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
     <strong>Nota metodológica:</strong> Este mapa representa el nivel de riesgo global calculado mediante el <strong>promedio aritmético</strong> de los puntajes transformados, aplicando los baremos oficiales de la Resolución 2404 de 2019. Cuando hay ambas formas evaluadas, se muestra el <strong>peor resultado</strong> entre Forma A y B para garantizar la detección del máximo riesgo presente.
 </div>
 ';
+
+        return $html;
+    }
+
+    /**
+     * Renderiza la firma del consultor al final del informe ejecutivo
+     */
+    protected function renderFirmaConsultor()
+    {
+        $consultant = $this->consultantData;
+
+        $html = '
+<!-- Firma del Consultor -->
+<div style="margin-top: 40pt;">
+    <p style="font-size: 11pt; color: #333; margin: 0 0 30pt 0;">Cordialmente,</p>
+
+    <!-- Imagen de firma (si existe) -->
+    <div style="margin-bottom: 10pt;">';
+
+        if (!empty($consultant['firma_path'])) {
+            $firmaPath = FCPATH . $consultant['firma_path'];
+            $firmaDataUri = $this->imageToDataUri($firmaPath);
+            if ($firmaDataUri) {
+                $html .= '<img src="' . $firmaDataUri . '" alt="Firma" style="max-height: 80px; max-width: 200px;">';
+            } else {
+                $html .= '<div style="height: 50pt; width: 180pt; border-bottom: 1pt solid #333;"></div>';
+            }
+        } else {
+            $html .= '<div style="height: 50pt; width: 180pt; border-bottom: 1pt solid #333;"></div>';
+        }
+
+        $html .= '
+    </div>
+
+    <!-- Datos del consultor -->
+    <div style="font-size: 11pt;">
+        <p style="margin: 0; font-weight: bold; color: #0077B6;">
+            ' . htmlspecialchars($consultant['nombre_completo'] ?? 'Consultor') . '
+        </p>
+        <p style="margin: 3pt 0; color: #555;">
+            ' . htmlspecialchars($consultant['cargo'] ?? 'Especialista en Seguridad y Salud en el Trabajo') . '
+        </p>';
+
+        if (!empty($consultant['licencia_sst'])) {
+            $html .= '
+        <p style="margin: 3pt 0; color: #555; font-size: 10pt;">
+            Licencia SST: ' . htmlspecialchars($consultant['licencia_sst']) . '
+        </p>';
+        }
+
+        $html .= '
+    </div>
+
+    <!-- Información de contacto -->
+    <div style="margin-top: 12pt; font-size: 10pt;">';
+
+        if (!empty($consultant['email'])) {
+            $html .= '
+        <p style="margin: 3pt 0;">
+            <a href="mailto:' . htmlspecialchars($consultant['email']) . '" style="color: #0077B6; text-decoration: none;">
+                ' . htmlspecialchars($consultant['email']) . '
+            </a>
+        </p>';
+        }
+
+        if (!empty($consultant['website'])) {
+            $html .= '
+        <p style="margin: 3pt 0;">
+            <a href="' . htmlspecialchars($consultant['website']) . '" style="color: #0077B6; text-decoration: none;">
+                ' . htmlspecialchars($consultant['website']) . '
+            </a>
+        </p>';
+        }
+
+        if (!empty($consultant['linkedin'])) {
+            $html .= '
+        <p style="margin: 3pt 0;">
+            <a href="' . htmlspecialchars($consultant['linkedin']) . '" style="color: #0077B6; text-decoration: none;">
+                ' . htmlspecialchars($consultant['linkedin']) . '
+            </a>
+        </p>';
+        }
+
+        $html .= '
+    </div>
+</div>';
 
         return $html;
     }

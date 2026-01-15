@@ -142,7 +142,8 @@
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT DISTINCT status FROM workers\" psyrisk)",
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, status FROM workers WHERE battery_service_id = 12 AND status NOT IN \\(''pendiente'', ''completado'', ''no_participo''\\) LIMIT 5\" psyrisk)",
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, name, status FROM workers WHERE name LIKE ''%Camilo%''\" psyrisk)",
-      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SHOW COLUMNS FROM workers WHERE Field = ''status''\" psyrisk)"
+      "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SHOW COLUMNS FROM workers WHERE Field = ''status''\" psyrisk)",
+      "Bash(tail:*)"
     ],
     "deny": [],
     "ask": []

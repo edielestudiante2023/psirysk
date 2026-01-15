@@ -141,7 +141,7 @@
                                                                 <i class="fas fa-edit"></i>
                                                             </a>
                                                             <?php if (session()->get('role_name') === 'superadmin'): ?>
-                                                            <button onclick="confirmDelete(<?= $service['id'] ?>)"
+                                                            <button onclick="confirmDelete(<?= $service['id'] ?>, '<?= esc($service['service_name'], 'js') ?>', '<?= esc($service['company_name'], 'js') ?>')"
                                                                     class="btn btn-outline-danger"
                                                                     title="Eliminar">
                                                                 <i class="fas fa-trash"></i>
@@ -166,15 +166,115 @@
         <?= csrf_field() ?>
     </form>
 
+    <!-- Modal de Primera Confirmación -->
+    <div class="modal fade" id="deleteConfirmModal1" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning mb-3">
+                        <i class="fas fa-info-circle me-2"></i><strong>Atención:</strong> Está a punto de eliminar un servicio completo.
+                    </div>
+                    <p><strong>Servicio:</strong> <span id="serviceName"></span></p>
+                    <p><strong>Empresa:</strong> <span id="companyName"></span></p>
+                    <div id="serviceStats" class="mt-3">
+                        <p class="mb-1"><i class="fas fa-users me-2"></i>Trabajadores: <span id="workerCount" class="badge bg-secondary">Cargando...</span></p>
+                        <p class="mb-1"><i class="fas fa-file-alt me-2"></i>Respuestas: <span id="responseCount" class="badge bg-secondary">Cargando...</span></p>
+                        <p class="mb-1"><i class="fas fa-chart-bar me-2"></i>Resultados: <span id="resultCount" class="badge bg-secondary">Cargando...</span></p>
+                    </div>
+                    <hr>
+                    <p class="text-muted small mb-0"><i class="fas fa-exclamation-circle me-1"></i>Todos estos registros serán eliminados permanentemente.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Cancelar</button>
+                    <button type="button" class="btn btn-warning" id="btnContinueDelete"><i class="fas fa-arrow-right me-1"></i>Continuar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Segunda Confirmación (Final) -->
+    <div class="modal fade" id="deleteConfirmModal2" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-skull-crossbones me-2"></i>CONFIRMACIÓN FINAL</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="mb-4"><i class="fas fa-trash-alt fa-4x text-danger"></i></div>
+                    <h4 class="text-danger mb-3">¿ESTÁ COMPLETAMENTE SEGURO?</h4>
+                    <p class="mb-3">Esta acción <strong>NO SE PUEDE DESHACER</strong>.<br>Se eliminarán permanentemente:</p>
+                    <ul class="list-unstyled text-start bg-light p-3 rounded">
+                        <li><i class="fas fa-check text-danger me-2"></i>El servicio y su configuración</li>
+                        <li><i class="fas fa-check text-danger me-2"></i>Todos los trabajadores asociados</li>
+                        <li><i class="fas fa-check text-danger me-2"></i>Todas las respuestas de evaluación</li>
+                        <li><i class="fas fa-check text-danger me-2"></i>Todos los resultados calculados</li>
+                        <li><i class="fas fa-check text-danger me-2"></i>Los datos demográficos</li>
+                    </ul>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" id="confirmCheckbox">
+                        <label class="form-check-label text-danger fw-bold" for="confirmCheckbox">Entiendo que esta acción es irreversible</label>
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button type="button" class="btn btn-secondary btn-lg" data-bs-dismiss="modal"><i class="fas fa-arrow-left me-1"></i>Cancelar</button>
+                    <button type="button" class="btn btn-danger btn-lg" id="btnFinalDelete" disabled><i class="fas fa-trash-alt me-1"></i>ELIMINAR DEFINITIVAMENTE</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function confirmDelete(id) {
-            if (confirm('¿Está seguro de eliminar este servicio? Esta acción no se puede deshacer.')) {
+        let currentServiceId = null;
+        const modal1 = new bootstrap.Modal(document.getElementById('deleteConfirmModal1'));
+        const modal2 = new bootstrap.Modal(document.getElementById('deleteConfirmModal2'));
+
+        function confirmDelete(id, serviceName, companyName) {
+            currentServiceId = id;
+            document.getElementById('serviceName').textContent = serviceName;
+            document.getElementById('companyName').textContent = companyName;
+            document.getElementById('workerCount').textContent = 'Cargando...';
+            document.getElementById('responseCount').textContent = 'Cargando...';
+            document.getElementById('resultCount').textContent = 'Cargando...';
+
+            fetch('<?= base_url('battery-services/delete-info/') ?>' + id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('workerCount').textContent = data.workers;
+                        document.getElementById('workerCount').className = 'badge ' + (data.workers > 0 ? 'bg-danger' : 'bg-success');
+                        document.getElementById('responseCount').textContent = data.responses;
+                        document.getElementById('responseCount').className = 'badge ' + (data.responses > 0 ? 'bg-danger' : 'bg-success');
+                        document.getElementById('resultCount').textContent = data.results;
+                        document.getElementById('resultCount').className = 'badge ' + (data.results > 0 ? 'bg-danger' : 'bg-success');
+                    }
+                }).catch(err => console.error('Error:', err));
+            modal1.show();
+        }
+
+        document.getElementById('btnContinueDelete').addEventListener('click', function() {
+            modal1.hide();
+            document.getElementById('confirmCheckbox').checked = false;
+            document.getElementById('btnFinalDelete').disabled = true;
+            setTimeout(() => modal2.show(), 300);
+        });
+
+        document.getElementById('confirmCheckbox').addEventListener('change', function() {
+            document.getElementById('btnFinalDelete').disabled = !this.checked;
+        });
+
+        document.getElementById('btnFinalDelete').addEventListener('click', function() {
+            if (currentServiceId && document.getElementById('confirmCheckbox').checked) {
                 const form = document.getElementById('deleteForm');
-                form.action = '<?= base_url('battery-services/delete/') ?>' + id;
+                form.action = '<?= base_url('battery-services/delete/') ?>' + currentServiceId;
                 form.submit();
             }
-        }
+        });
     </script>
 </body>
 </html>

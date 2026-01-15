@@ -309,27 +309,34 @@ $totalEstres = count($grouped['estres']);
         <?php endif; ?>
 
         <!-- Summary Statistics -->
+        <?php
+        // Calcular porcentajes (máximos: 19 intralaboral, 7 extralaboral, 1 estrés = 27 total)
+        $pctTotal = round((count($riskyDimensions) / 27) * 100);
+        $pctIntralaboral = round(($totalIntralaboral / 19) * 100);
+        $pctExtralaboral = round(($totalExtralaboral / 7) * 100);
+        $pctEstres = $totalEstres * 100; // 0 o 100%
+        ?>
         <div class="alert alert-light border mb-3">
             <div class="row text-center">
                 <div class="col-md-3">
-                    <h6 class="text-primary mb-1"><i class="fas fa-chart-pie me-1"></i>Total Dimensiones</h6>
-                    <p class="mb-0 fs-4 fw-bold"><?= count($riskyDimensions) ?> / 27</p>
-                    <small class="text-muted">dimensiones en riesgo</small>
+                    <h6 class="text-primary mb-1"><i class="fas fa-chart-pie me-1"></i>Total</h6>
+                    <p class="mb-0 fs-4 fw-bold"><?= $pctTotal ?>%</p>
+                    <small class="text-muted"><?= count($riskyDimensions) ?> de 27 en riesgo</small>
                 </div>
                 <div class="col-md-3">
                     <h6 class="text-primary mb-1"><i class="fas fa-briefcase me-1"></i>Intralaboral</h6>
-                    <p class="mb-0 fs-4 fw-bold"><?= $totalIntralaboral ?> / 19</p>
-                    <small class="text-muted">dimensiones (Forma A)</small>
+                    <p class="mb-0 fs-4 fw-bold"><?= $pctIntralaboral ?>%</p>
+                    <small class="text-muted"><?= $totalIntralaboral ?> de 19 en riesgo</small>
                 </div>
                 <div class="col-md-3">
                     <h6 class="text-success mb-1"><i class="fas fa-home me-1"></i>Extralaboral</h6>
-                    <p class="mb-0 fs-4 fw-bold"><?= $totalExtralaboral ?> / 7</p>
-                    <small class="text-muted">dimensiones</small>
+                    <p class="mb-0 fs-4 fw-bold"><?= $pctExtralaboral ?>%</p>
+                    <small class="text-muted"><?= $totalExtralaboral ?> de 7 en riesgo</small>
                 </div>
                 <div class="col-md-3">
                     <h6 class="text-danger mb-1"><i class="fas fa-heartbeat me-1"></i>Estrés</h6>
-                    <p class="mb-0 fs-4 fw-bold"><?= $totalEstres ?> / 1</p>
-                    <small class="text-muted">evaluación</small>
+                    <p class="mb-0 fs-4 fw-bold"><?= $pctEstres ?>%</p>
+                    <small class="text-muted"><?= $totalEstres ? 'En riesgo' : 'Sin riesgo' ?></small>
                 </div>
             </div>
         </div>

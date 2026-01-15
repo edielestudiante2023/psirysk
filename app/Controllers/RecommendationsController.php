@@ -204,10 +204,13 @@ class RecommendationsController extends BaseController
      */
     private function identifyAllRiskyDimensions($batteryServiceId)
     {
-        // Obtener todas las dimensiones desde max_risk_results
+        // Obtener todas las dimensiones y estrés total desde max_risk_results
         $maxRiskResults = $this->maxRiskModel
             ->where('battery_service_id', $batteryServiceId)
-            ->where('element_type', 'dimension')
+            ->groupStart()
+                ->where('element_type', 'dimension')
+                ->orWhere('element_code', 'estres_total')
+            ->groupEnd()
             ->whereIn('worst_risk_level', ['riesgo_medio', 'riesgo_alto', 'riesgo_muy_alto', 'medio', 'alto', 'muy_alto'])
             ->findAll();
 
@@ -248,6 +251,9 @@ class RecommendationsController extends BaseController
             'dim_caracteristicas_vivienda' => 'caracteristicas_vivienda_entorno',
             'dim_influencia_entorno_extra' => 'influencia_entorno_extralaboral',
             'dim_desplazamiento' => 'desplazamiento_vivienda_trabajo',
+
+            // ESTRÉS
+            'estres_total' => 'estres',
         ];
 
         foreach ($maxRiskResults as $result) {

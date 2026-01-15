@@ -333,7 +333,7 @@ class BatteryServiceController extends BaseController
 
         $email->setFrom(env('email.fromEmail'), env('email.fromName'));
         $email->setTo($service['contact_email']);
-        $email->setCC(['comercial@cycloidtalent.com', 'edison.cuervo@cycloidtalent.com']);
+        $email->setCC(['diana.cuestas@cycloidtalent.com', 'eleyson.segura@cycloidtalent.com', 'edison.cuervo@cycloidtalent.com']);
         $email->setSubject($subject);
         $email->setMessage($body);
 

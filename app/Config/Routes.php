@@ -77,6 +77,7 @@ $routes->group('battery-services', function($routes) {
     $routes->post('store', 'BatteryServiceController::store');
     $routes->get('edit/(:num)', 'BatteryServiceController::edit/$1');
     $routes->post('update/(:num)', 'BatteryServiceController::update/$1');
+    $routes->get('delete-info/(:num)', 'BatteryServiceController::deleteInfo/$1'); // Info antes de eliminar
     $routes->post('delete/(:num)', 'BatteryServiceController::delete/$1');
     $routes->get('check-can-finalize/(:num)', 'BatteryServiceController::checkCanFinalize/$1'); // Verificar si puede finalizar
     $routes->get('global-gauges/(:num)', 'BatteryServiceController::globalGauges/$1'); // Gráficos globales

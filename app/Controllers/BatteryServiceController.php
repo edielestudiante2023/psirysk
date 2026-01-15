@@ -399,6 +399,51 @@ class BatteryServiceController extends BaseController
         ]);
     }
 
+    /**
+     * Obtener información del servicio antes de eliminar (para mostrar en modal)
+     */
+    public function deleteInfo($id)
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No autenticado']);
+        }
+
+        $roleName = session()->get('role_name');
+        if ($roleName !== 'superadmin') {
+            return $this->response->setJSON(['success' => false, 'message' => 'Sin permisos']);
+        }
+
+        $service = $this->batteryServiceModel->find($id);
+        if (!$service) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Servicio no encontrado']);
+        }
+
+        $db = \Config\Database::connect();
+
+        // Contar trabajadores
+        $workers = $db->table('workers')
+            ->where('battery_service_id', $id)
+            ->countAllResults();
+
+        // Contar respuestas (a través de workers)
+        $responses = $db->table('responses')
+            ->join('workers', 'workers.id = responses.worker_id')
+            ->where('workers.battery_service_id', $id)
+            ->countAllResults();
+
+        // Contar resultados calculados
+        $results = $db->table('calculated_results')
+            ->where('battery_service_id', $id)
+            ->countAllResults();
+
+        return $this->response->setJSON([
+            'success' => true,
+            'workers' => $workers,
+            'responses' => $responses,
+            'results' => $results
+        ]);
+    }
+
     public function delete($id)
     {
         // Verificar autenticación

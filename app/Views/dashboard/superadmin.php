@@ -10,6 +10,9 @@
 <a class="nav-link" href="<?= base_url('companies') ?>" target="_blank">
     <i class="fas fa-building me-2"></i> Empresas
 </a>
+<a class="nav-link" href="<?= base_url('battery-services') ?>" target="_blank">
+    <i class="fas fa-clipboard-check me-2"></i> Servicios de Batería
+</a>
 <a class="nav-link" href="<?= base_url('consultants') ?>" target="_blank">
     <i class="fas fa-user-tie me-2"></i> Consultores
 </a>

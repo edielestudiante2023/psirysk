@@ -1194,16 +1194,18 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 <h1 style="font-size: 14pt; margin: 0 0 8pt 0; padding-bottom: 5pt; border-bottom: 2pt solid #006699;">Mapa de Calor Intralaboral - Forma ' . $forma . '</h1>
 <p style="font-size: 9pt; color: #666; margin: 0 0 10pt 0; text-align: center;">' . $titulo . ' (' . $totalDimensiones . ' dimensiones) - n=' . ($forma === 'A' ? $this->heatmapData['total_a'] : $this->heatmapData['total_b']) . '</p>
 
-<!-- Mapa de Calor Intralaboral usando tabla HTML nativa -->
+<!-- Mapa de Calor Intralaboral - Sin rowspan grande para compatibilidad DomPDF -->
+<!-- Total Intralaboral como encabezado -->
 <table style="width: 100%; border-collapse: collapse; border: 2pt solid #333;">
     <tr>
-        <!-- Celda Total Intralaboral -->
-        <td rowspan="' . $totalDimensiones . '" style="width: 18%; vertical-align: middle; text-align: center; padding: 8pt; background: ' . $totalColor . '; color: ' . $totalTextColor . '; border-right: 2pt solid #333; font-weight: bold; font-size: 7pt;">
-            TOTAL GENERAL<br>FACTORES DE<br>RIESGO<br>PSICOSOCIAL<br>INTRALABORAL<br>
+        <td style="width: 100%; vertical-align: middle; text-align: center; padding: 8pt; background: ' . $totalColor . '; color: ' . $totalTextColor . '; font-weight: bold; font-size: 8pt;">
+            TOTAL GENERAL FACTORES DE RIESGO PSICOSOCIAL INTRALABORAL:
             <span style="font-size: 12pt;">' . $totalPuntaje . '</span>
-        </td>';
+        </td>
+    </tr>
+</table>';
 
-        $firstRow = true;
+        // Cada dominio como tabla separada
         foreach ($dominios as $dominio) {
             $dominioKey = $dominio['key'];
             $dominioNivel = $promedios[$dominioKey . '_nivel'] ?? 'sin_riesgo';
@@ -1212,6 +1214,9 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
             $dominioTextColor = $dominioNivel === 'riesgo_medio' ? '#333' : '#fff';
             $numDimensiones = count($dominio['dimensiones']);
 
+            $html .= '
+<table style="width: 100%; border-collapse: collapse; border: 2pt solid #333; border-top: none;">';
+
             foreach ($dominio['dimensiones'] as $dimIndex => $dimension) {
                 $dimKey = $dimension['key'];
                 $dimNivel = $promedios[$dimKey . '_nivel'] ?? 'sin_riesgo';
@@ -1219,14 +1224,15 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
                 $dimColor = $this->getRiskColor($dimNivel);
                 $dimTextColor = $dimNivel === 'riesgo_medio' ? '#333' : '#fff';
 
-                if (!$firstRow) {
-                    $html .= '<tr>';
-                }
+                $isLastDim = ($dimIndex === $numDimensiones - 1);
+                $borderBottom = !$isLastDim ? 'border-bottom: 1px solid #999;' : '';
 
-                // Primera dimensión del dominio: incluir celda del dominio con rowspan
+                $html .= '<tr style="' . $borderBottom . '">';
+
+                // Primera dimensión del dominio: incluir celda del dominio con rowspan limitado
                 if ($dimIndex === 0) {
                     $html .= '
-        <td rowspan="' . $numDimensiones . '" style="width: 22%; vertical-align: middle; text-align: center; padding: 4pt; background: ' . $dominioColor . '; color: ' . $dominioTextColor . '; border: 1pt solid #666; font-weight: bold; font-size: 6pt;">
+        <td rowspan="' . $numDimensiones . '" style="width: 30%; vertical-align: middle; text-align: center; padding: 4pt; background: ' . $dominioColor . '; color: ' . $dominioTextColor . '; border-right: 2pt solid #333; font-weight: bold; font-size: 6pt;">
             ' . $dominio['nombre'] . '<br>
             <span style="font-size: 10pt;">' . $dominioPuntaje . '</span>
         </td>';
@@ -1234,19 +1240,19 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
                 // Celda de la dimensión
                 $html .= '
-        <td style="width: 45%; padding: 3pt 6pt; background: ' . $dimColor . '; color: ' . $dimTextColor . '; border: 1pt solid rgba(0,0,0,0.2); font-size: 7pt;">
+        <td style="width: 50%; padding: 3pt 6pt; background: ' . $dimColor . '; color: ' . $dimTextColor . '; border: 1pt solid rgba(0,0,0,0.2); font-size: 7pt;">
             ' . $dimension['nombre'] . '
         </td>
-        <td style="width: 15%; text-align: center; padding: 3pt; background: ' . $dimColor . '; color: ' . $dimTextColor . '; border: 1pt solid rgba(0,0,0,0.2); font-size: 8pt; font-weight: bold;">
+        <td style="width: 20%; text-align: center; padding: 3pt; background: ' . $dimColor . '; color: ' . $dimTextColor . '; border: 1pt solid rgba(0,0,0,0.2); font-size: 8pt; font-weight: bold;">
             ' . $dimPuntaje . '
         </td>
     </tr>';
-                $firstRow = false;
             }
+
+            $html .= '</table>';
         }
 
         $html .= '
-</table>
 
 <div style="padding: 8pt; background: #f5f5f5; border-left: 3pt solid #006699; font-size: 8pt; margin-top: 10pt;">
     <strong>Nota metodológica:</strong> La Forma ' . $forma . ' contiene ' . $totalDimensiones . ' dimensiones distribuidas en 4 dominios. ';
@@ -1817,12 +1823,20 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
         $colorIntra = $getColor($nivelIntra);
         $textColorIntra = $getTextColor($nivelIntra);
 
-        // UNA SOLA TABLA con rowspan para Total, Dominios y Dimensiones
+        // TABLAS SEPARADAS POR DOMINIO para evitar rowspan grandes que DomPDF no maneja bien
+        // Primero: Total Intralaboral como encabezado independiente
         $html .= '
-<!-- MAPA DE CALOR INTRALABORAL -->
-<table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 0;">';
+<!-- MAPA DE CALOR INTRALABORAL - Sin rowspan grandes para compatibilidad DomPDF -->
+<table style="width: 100%; border-collapse: collapse; border: 2px solid #000; margin-bottom: 0;">
+    <tr>
+        <td style="width: 100%; background: ' . $colorIntra . '; color: ' . $textColorIntra . '; text-align: center; vertical-align: middle; padding: 8pt; font-size: 8pt; font-weight: bold;">
+            TOTAL GENERAL FACTORES DE RIESGO PSICOSOCIAL INTRALABORAL:
+            <span style="font-size: 12pt;">' . $formatScore($heatmapCalc['intralaboral_total']) . '</span>
+        </td>
+    </tr>
+</table>';
 
-        $filaActual = 0;
+        // Luego: Cada dominio como una tabla separada con sus dimensiones
         foreach ($dominios as $idx => $dominio) {
             $domData = $heatmapCalc[$dominio['key']] ?? null;
             $nivelDom = $domData['nivel'] ?? 'sin_riesgo';
@@ -1831,9 +1845,11 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
             $dimensionesValidas = $dominio['dimensionesValidas'];
             $totalDimValidas = count($dimensionesValidas);
-            $rowspanDom = max(1, $totalDimValidas);
 
-            $isLastDominio = ($idx === count($dominios) - 1);
+            if ($totalDimValidas === 0) continue;
+
+            $html .= '
+<table style="width: 100%; border-collapse: collapse; border: 2px solid #000; border-top: none; margin-bottom: 0;">';
 
             foreach ($dimensionesValidas as $dimIdx => $dim) {
                 $dimData = $heatmapCalc[$dim['key']];
@@ -1843,32 +1859,15 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
                 $isFirstDim = ($dimIdx === 0);
                 $isLastDim = ($dimIdx === $totalDimValidas - 1);
-                $isFirstRow = ($filaActual === 0);
-                $isLastRow = ($filaActual === $totalFilas - 1);
 
-                // Borde inferior de la fila
-                $rowBorderBottom = '';
-                if (!$isLastDim) {
-                    $rowBorderBottom = 'border-bottom: 1px solid #999;';
-                } elseif (!$isLastDominio) {
-                    $rowBorderBottom = 'border-bottom: 2px solid #666;';
-                }
+                $borderBottom = !$isLastDim ? 'border-bottom: 1px solid #999;' : '';
 
-                $html .= '<tr style="' . $rowBorderBottom . '">';
+                $html .= '<tr style="' . $borderBottom . '">';
 
-                // Celda Total Intralaboral (solo en la primera fila, con rowspan total)
-                if ($isFirstRow) {
-                    $html .= '
-                    <td rowspan="' . $totalFilas . '" style="width: 20%; background: ' . $colorIntra . '; color: ' . $textColorIntra . '; text-align: center; vertical-align: middle; padding: 10pt; border-right: 2px solid #000; font-size: 8pt; font-weight: bold;">
-                        TOTAL GENERAL FACTORES DE RIESGO PSICOSOCIAL INTRALABORAL<br>
-                        <span style="font-size: 11pt;">' . $formatScore($heatmapCalc['intralaboral_total']) . '</span>
-                    </td>';
-                }
-
-                // Celda del dominio (solo en la primera dimensión del dominio)
+                // Celda del dominio (solo en la primera dimensión, con rowspan limitado al dominio)
                 if ($isFirstDim) {
                     $html .= '
-                    <td rowspan="' . $rowspanDom . '" style="width: 25%; background: ' . $colorDom . '; color: ' . $textColorDom . '; text-align: center; vertical-align: middle; padding: 6pt; border-right: 2px solid #000; font-size: 7pt; font-weight: bold;">
+                    <td rowspan="' . $totalDimValidas . '" style="width: 35%; background: ' . $colorDom . '; color: ' . $textColorDom . '; text-align: center; vertical-align: middle; padding: 6pt; border-right: 2px solid #000; font-size: 7pt; font-weight: bold;">
                         ' . $dominio['nombre'] . '<br>
                         <span style="font-size: 10pt;">' . $formatScore($domData) . '</span>
                     </td>';
@@ -1876,17 +1875,15 @@ El siguiente mapa de calor presenta la distribución de los niveles de riesgo ps
 
                 // Celda de la dimensión
                 $html .= '
-                    <td style="width: 55%; background: ' . $colorDim . '; color: ' . $textColorDim . '; text-align: center; vertical-align: middle; padding: 4pt; font-size: 7pt;">
-                        ' . $dim['nombre'] . '<br>
+                    <td style="width: 65%; background: ' . $colorDim . '; color: ' . $textColorDim . '; text-align: center; vertical-align: middle; padding: 4pt; font-size: 7pt;">
+                        ' . $dim['nombre'] . '
                         <strong>(' . $formatScore($dimData) . ')</strong>
                     </td>
                 </tr>';
-
-                $filaActual++;
             }
-        }
 
-        $html .= '</table>';
+            $html .= '</table>';
+        }
 
         // EXTRALABORAL - Tabla plana con rowspan
         $nivelExtra = $heatmapCalc['extralaboral_total']['nivel'] ?? 'sin_riesgo';

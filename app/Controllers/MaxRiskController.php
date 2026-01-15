@@ -263,6 +263,10 @@ class MaxRiskController extends BaseController
         $prompt .= "- NO repitas los puntajes numéricos, interpreta su significado\n";
         $prompt .= "- Fundamenta en la normativa colombiana (Res. 2764/2022)\n";
         $prompt .= "- El tono debe ser de un profesional SST presentando conclusiones a la alta dirección\n";
+        $prompt .= "- PROHIBIDO: No incluyas saludos, despedidas, firmas ni formato de carta\n";
+        $prompt .= "- PROHIBIDO: No uses placeholders como [Su nombre], [Nombre del profesional], etc.\n";
+        $prompt .= "- PROHIBIDO: No incluyas frases como 'Atentamente', 'Cordialmente', 'Quedo atento', etc.\n";
+        $prompt .= "- Este es un DOCUMENTO TÉCNICO, no una carta ni comunicación epistolar\n";
 
         return $prompt;
     }

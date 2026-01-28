@@ -100,7 +100,13 @@
     <!-- Top Navbar -->
     <nav class="navbar navbar-custom navbar-expand-lg p-3 no-print">
         <div class="container-fluid">
-            <a href="<?= base_url('battery-services/' . $service['id']) ?>" class="btn btn-outline-secondary btn-sm me-3">
+            <?php
+            $userRole = session()->get('role_name');
+            $backUrl = in_array($userRole, ['cliente_empresa', 'cliente_gestor'])
+                ? base_url('client/battery-services/' . $service['id'])
+                : base_url('battery-services/' . $service['id']);
+            ?>
+            <a href="<?= $backUrl ?>" class="btn btn-outline-secondary btn-sm me-3">
                 <i class="fas fa-arrow-left"></i> Volver
             </a>
             <h5 class="mb-0"><i class="fas fa-id-card me-2 text-primary"></i><?= $title ?></h5>

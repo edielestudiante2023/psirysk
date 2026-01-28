@@ -39,13 +39,20 @@ function getNivelTexto($nivel) {
 
 <div class="container-fluid py-4">
     <!-- Header -->
+    <?php
+    $userRole = session()->get('role_name');
+    $isClient = in_array($userRole, ['cliente_empresa', 'cliente_gestor']);
+    $serviceUrl = $isClient ? base_url('client/battery-services/' . $service['id']) : base_url('battery-services/' . $service['id']);
+    ?>
     <div class="row mb-4">
         <div class="col-12">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="<?= base_url('dashboard') ?>">Dashboard</a></li>
+                    <?php if (!$isClient): ?>
                     <li class="breadcrumb-item"><a href="<?= base_url('battery-services') ?>">Servicios</a></li>
-                    <li class="breadcrumb-item"><a href="<?= base_url('battery-services/view/' . $service['id']) ?>"><?= esc($service['service_name']) ?></a></li>
+                    <?php endif; ?>
+                    <li class="breadcrumb-item"><a href="<?= $serviceUrl ?>"><?= esc($service['service_name']) ?></a></li>
                     <li class="breadcrumb-item active">Intralaboral Forma B</li>
                 </ol>
             </nav>
@@ -58,7 +65,13 @@ function getNivelTexto($nivel) {
                         <span class="ms-3"><i class="fas fa-users me-1"></i><?= $totalWorkers ?> trabajadores evaluados con Forma B</span>
                     </p>
                 </div>
-                <a href="<?= base_url('battery-services/view/' . $service['id']) ?>" class="btn btn-secondary">
+                <?php
+                $userRole = session()->get('role_name');
+                $backUrl = in_array($userRole, ['cliente_empresa', 'cliente_gestor'])
+                    ? base_url('client/battery-services/' . $service['id'])
+                    : base_url('battery-services/' . $service['id']);
+                ?>
+                <a href="<?= $backUrl ?>" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-1"></i>Volver
                 </a>
             </div>

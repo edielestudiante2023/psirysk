@@ -25,11 +25,16 @@
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-8">
+                <?php
+                $userRole = session()->get('role_name');
+                $isClient = in_array($userRole, ['cliente_empresa', 'cliente_gestor']);
+                $backUrl = $isClient ? base_url('client/battery-services/' . $service['id']) : base_url('battery-services/' . $service['id']);
+                ?>
                 <!-- Breadcrumb -->
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="<?= base_url('dashboard') ?>">Dashboard</a></li>
-                        <li class="breadcrumb-item"><a href="<?= base_url('battery-services/' . $service['id']) ?>">Servicio</a></li>
+                        <li class="breadcrumb-item"><a href="<?= $backUrl ?>">Servicio</a></li>
                         <li class="breadcrumb-item active">Ficha de Datos Generales</li>
                     </ol>
                 </nav>
@@ -43,7 +48,7 @@
                             Los trabajadores deben completar el formulario de datos generales antes de poder generar este reporte.
                         </p>
                         <div class="mt-4">
-                            <a href="<?= base_url('battery-services/' . $service['id']) ?>" class="btn btn-primary">
+                            <a href="<?= $backUrl ?>" class="btn btn-primary">
                                 <i class="fas fa-arrow-left me-2"></i>Volver al Servicio
                             </a>
                         </div>

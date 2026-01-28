@@ -1804,9 +1804,17 @@ $baremosDimDesplazamientoViviendaB = ExtralaboralScoring::getBaremoDimension('de
 
         <!-- Botón de volver -->
         <div class="text-center mb-4 no-print">
-            <a href="<?= base_url('battery-services/' . $service['id']) ?>" class="btn btn-lg btn-secondary">
-                <i class="fas fa-arrow-left me-2"></i>Volver al Servicio
-            </a>
+            <?php
+            $userRole = session()->get('role_name');
+            if (in_array($userRole, ['cliente_empresa', 'cliente_gestor'])): ?>
+                <a href="<?= base_url('client/battery-services/' . $service['id']) ?>" class="btn btn-lg btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Servicio
+                </a>
+            <?php else: ?>
+                <a href="<?= base_url('battery-services/' . $service['id']) ?>" class="btn btn-lg btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Servicio
+                </a>
+            <?php endif; ?>
         </div>
     </div>
 

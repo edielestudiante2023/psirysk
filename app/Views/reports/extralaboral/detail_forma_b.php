@@ -56,11 +56,18 @@ function getNivelTexto($nivel) {
 ?>
 
 <!-- Breadcrumb -->
+<?php
+$userRole = session()->get('role_name');
+$isClient = in_array($userRole, ['cliente_empresa', 'cliente_gestor']);
+$serviceUrl = $isClient ? base_url('client/battery-services/' . $service['id']) : base_url('battery-services/' . $service['id']);
+?>
 <nav aria-label="breadcrumb" class="no-print">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="<?= base_url('dashboard') ?>">Dashboard</a></li>
+        <?php if (!$isClient): ?>
         <li class="breadcrumb-item"><a href="<?= base_url('battery-services') ?>">Servicios</a></li>
-        <li class="breadcrumb-item"><a href="<?= base_url('battery-services/' . $service['id']) ?>"><?= esc($service['service_name']) ?></a></li>
+        <?php endif; ?>
+        <li class="breadcrumb-item"><a href="<?= $serviceUrl ?>"><?= esc($service['service_name']) ?></a></li>
         <li class="breadcrumb-item active">Mapa de Calor Extralaboral - Forma B</li>
     </ol>
 </nav>
@@ -360,15 +367,21 @@ $dimensionesDetalle = [
 </div>
 
 <!-- Botones de navegación -->
+<?php
+$userRole = session()->get('role_name');
+$isClient = in_array($userRole, ['cliente_empresa', 'cliente_gestor']);
+$backUrl = $isClient ? base_url('client/battery-services/' . $service['id']) : base_url('battery-services/' . $service['id']);
+$workersUrl = $isClient ? base_url('client/workers/service/' . $service['id']) : base_url('workers/service/' . $service['id']);
+?>
 <div class="d-flex justify-content-between mb-4 no-print">
-    <a href="<?= base_url('battery-services/' . $service['id']) ?>" class="btn btn-secondary">
+    <a href="<?= $backUrl ?>" class="btn btn-secondary">
         <i class="fas fa-arrow-left me-2"></i>Volver al Servicio
     </a>
     <div>
         <a href="<?= base_url('reports/extralaboral-a/' . $service['id']) ?>" class="btn btn-outline-primary me-2">
             <i class="fas fa-exchange-alt me-2"></i>Ver Forma A
         </a>
-        <a href="<?= base_url('workers/service/' . $service['id']) ?>" class="btn btn-primary">
+        <a href="<?= $workersUrl ?>" class="btn btn-primary">
             <i class="fas fa-users me-2"></i>Ver Trabajadores
         </a>
     </div>

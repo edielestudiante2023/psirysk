@@ -50,7 +50,13 @@ function getNivelTexto($nivel) {
                             <span class="ms-3"><i class="fas fa-users me-2"></i><?= $totalWorkers ?> trabajadores evaluados</span>
                         </p>
                     </div>
-                    <a href="<?= base_url('battery-services/' . $service['id']) ?>" class="btn btn-outline-secondary">
+                    <?php
+                    $userRole = session()->get('role_name');
+                    $backUrl = in_array($userRole, ['cliente_empresa', 'cliente_gestor'])
+                        ? base_url('client/battery-services/' . $service['id'])
+                        : base_url('battery-services/' . $service['id']);
+                    ?>
+                    <a href="<?= $backUrl ?>" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left me-2"></i>Volver
                     </a>
                 </div>

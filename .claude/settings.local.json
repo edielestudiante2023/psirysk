@@ -143,7 +143,11 @@
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, status FROM workers WHERE battery_service_id = 12 AND status NOT IN \\(''pendiente'', ''completado'', ''no_participo''\\) LIMIT 5\" psyrisk)",
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SELECT id, name, status FROM workers WHERE name LIKE ''%Camilo%''\" psyrisk)",
       "Bash(\"c:\\\\xampp\\\\mysql\\\\bin\\\\mysql\" -u root -e \"SHOW COLUMNS FROM workers WHERE Field = ''status''\" psyrisk)",
-      "Bash(tail:*)"
+      "Bash(tail:*)",
+      "Bash(git -C c:/xampp/htdocs/psyrisk commit -m \"fix: Actualizar correos de notificación de batería finalizada\n\n- Cambiar comercial@cycloidtalent.com por diana.cuestas@cycloidtalent.com\n- Agregar eleyson.segura@cycloidtalent.com a la lista de CC\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\")",
+      "Bash(git -C c:/xampp/htdocs/psyrisk checkout main)",
+      "Bash(git -C c:/xampp/htdocs/psyrisk merge cycloid)",
+      "Bash(git -C c:/xampp/htdocs/psyrisk checkout cycloid)"
     ],
     "deny": [],
     "ask": []

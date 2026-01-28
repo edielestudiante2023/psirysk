@@ -192,7 +192,13 @@
 <body class="bg-light">
     <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="<?= base_url('battery-services/' . $service['id']) ?>">
+            <?php
+            $userRole = session()->get('role_name');
+            $backUrl = in_array($userRole, ['cliente_empresa', 'cliente_gestor'])
+                ? base_url('client/battery-services/' . $service['id'])
+                : base_url('battery-services/' . $service['id']);
+            ?>
+            <a class="navbar-brand" href="<?= $backUrl ?>">
                 <i class="fas fa-arrow-left me-2"></i>Volver al Servicio
             </a>
             <span class="navbar-text text-white">

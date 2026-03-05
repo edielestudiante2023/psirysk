@@ -84,10 +84,12 @@ class BateriaPublicaController extends BaseController
         $enlace    = $this->request->getPost('enlace');
         $documento = trim($this->request->getPost('documento'));
 
-        // Buscar servicio
+        // Buscar servicio con JOIN para tener company_name disponible en vistas
         $service = $this->batteryServiceModel
-            ->where('enlace_acceso', $enlace)
-            ->where('status', 'en_curso')
+            ->select('battery_services.*, companies.name as company_name')
+            ->join('companies', 'companies.id = battery_services.company_id')
+            ->where('battery_services.enlace_acceso', $enlace)
+            ->where('battery_services.status', 'en_curso')
             ->first();
 
         if (!$service) {
@@ -106,12 +108,18 @@ class BateriaPublicaController extends BaseController
                 ->with('error', 'Tu documento no se encuentra registrado en esta evaluación. Verifica el número e inténtalo de nuevo.');
         }
 
-        // Verificar si ya completó
+        // Ya completó la batería
         if ($worker['status'] === 'completado') {
             return view('bateria_publica/ya_completado', [
                 'worker'  => $worker,
                 'service' => $service,
             ]);
+        }
+
+        // Marcado como no participó
+        if ($worker['status'] === 'no_participo') {
+            return redirect()->to(base_url('bateria/' . $enlace))
+                ->with('error', 'Tu participación fue marcada como "No participó". Contacta al responsable de la evaluación.');
         }
 
         // Verificar que el token exista

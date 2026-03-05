@@ -110,7 +110,6 @@
                     <li>✅ Es confidencial y anónima</li>
                     <li>⏱️ Toma aproximadamente 30-45 minutos</li>
                     <li>📱 Puedes completarla desde cualquier dispositivo</li>
-                    <li>💾 Puedes pausar y continuar más tarde</li>
                 </ul>
             </div>
 

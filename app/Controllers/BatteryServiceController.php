@@ -1311,4 +1311,50 @@ class BatteryServiceController extends BaseController
 
         return view('battery_services/global_gauges', $data);
     }
+
+    // ============================================
+    // FLUJO ACCESO GRUPAL — Enlace + QR
+    // ============================================
+
+    /**
+     * POST /battery-services/generar-enlace/{id}
+     *
+     * Genera (o regenera) el enlace de acceso grupal para un servicio.
+     * El enlace es un hash MD5 único. Devuelve JSON con la URL y el enlace.
+     */
+    public function generarEnlace($id)
+    {
+        if (!session()->get('isLoggedIn')) {
+            return $this->response->setJSON(['success' => false, 'message' => 'No autenticado']);
+        }
+
+        $service = $this->batteryServiceModel->find($id);
+        if (!$service) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Servicio no encontrado']);
+        }
+
+        // Solo consultores y admin pueden generar el enlace
+        $role = session()->get('role_name');
+        if (in_array($role, ['cliente_empresa', 'cliente_gestor'])) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Sin permisos']);
+        }
+
+        // Generar enlace único si no existe ya, o regenerar si se solicita
+        $regenerar = $this->request->getPost('regenerar') === '1';
+
+        if (empty($service['enlace_acceso']) || $regenerar) {
+            $enlace = md5($id . uniqid('bateria_', true));
+            $this->batteryServiceModel->update($id, ['enlace_acceso' => $enlace]);
+        } else {
+            $enlace = $service['enlace_acceso'];
+        }
+
+        $url = base_url('bateria/' . $enlace);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'enlace'  => $enlace,
+            'url'     => $url,
+        ]);
+    }
 }

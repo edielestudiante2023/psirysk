@@ -25,6 +25,7 @@ class BatteryServiceModel extends Model
         'cantidad_forma_a',
         'cantidad_forma_b',
         'status',
+        'enlace_acceso',
         'closed_at',
         'closed_by',
         'closure_notes',

@@ -258,6 +258,9 @@
                 <a href="<?= base_url('workers/service/' . $service['id']) ?>" class="quick-action-btn btn btn-success text-white" target="_blank">
                     <i class="fas fa-users"></i> Ver Trabajadores
                 </a>
+                <button type="button" class="quick-action-btn btn text-white" style="background: linear-gradient(135deg, #0f766e, #0d9488);" onclick="abrirModalEnlace()">
+                    <i class="fas fa-qrcode"></i> Enlace + QR Grupal
+                </button>
                 <a href="<?= base_url('battery-services/global-gauges/' . $service['id']) ?>" class="quick-action-btn btn btn-info text-white" target="_blank">
                     <i class="fas fa-gauge-high"></i> Gráficos Globales
                 </a>
@@ -856,7 +859,69 @@
         </div>
     </div>
 
+    <!-- Modal: Enlace + QR Grupal -->
+    <div class="modal fade" id="modalEnlaceGrupal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+                <div class="modal-header text-white border-0" style="background: linear-gradient(135deg, #0f766e, #0d9488);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-qrcode me-2"></i>Enlace de Acceso Grupal
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">
+                        Comparte este enlace o QR con los trabajadores. Ellos ingresan su documento y acceden directamente a su evaluación.
+                    </p>
+
+                    <!-- Estado: cargando -->
+                    <div id="enlaceLoading" class="text-center py-4">
+                        <div class="spinner-border text-success" role="status"></div>
+                        <p class="mt-2 text-muted small">Generando enlace...</p>
+                    </div>
+
+                    <!-- Estado: listo -->
+                    <div id="enlaceContent" style="display:none;">
+                        <!-- URL copiable -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase text-muted">URL de acceso</label>
+                            <div class="input-group">
+                                <input type="text" id="enlaceUrl" class="form-control form-control-sm" readonly>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="copiarEnlace()" title="Copiar enlace">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                            <div id="copiadoMsg" class="text-success small mt-1" style="display:none;">
+                                <i class="fas fa-check me-1"></i>¡Copiado al portapapeles!
+                            </div>
+                        </div>
+
+                        <!-- QR -->
+                        <div class="text-center my-3">
+                            <div id="qrcode" class="d-inline-block p-3 bg-white border rounded"></div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="d-flex gap-2 mt-3">
+                            <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="imprimirQR()">
+                                <i class="fas fa-print me-1"></i>Imprimir QR
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger flex-fill" onclick="regenerarEnlace()" title="Genera un nuevo enlace (el anterior dejará de funcionar)">
+                                <i class="fas fa-rotate me-1"></i>Regenerar enlace
+                            </button>
+                        </div>
+                        <p class="text-muted small mt-2 mb-0">
+                            <i class="fas fa-triangle-exclamation me-1 text-warning"></i>
+                            Regenerar invalida el enlace anterior.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script>
         // Mostrar spinner al descargar PDFs grandes
         document.querySelectorAll('a[href*="pdfejecutivo/download"]').forEach(function(link) {
@@ -877,6 +942,68 @@
                 }
             });
         });
+    </script>
+
+    <script>
+        // ENLACE + QR GRUPAL
+        var serviceId  = <?= (int)$service['id'] ?>;
+        var generarUrl = '<?= base_url('battery-services/generar-enlace/') ?>' + serviceId;
+        var companyName = '<?= esc(addslashes($service['company_name'])) ?>';
+        var serviceName = '<?= esc(addslashes($service['service_name'])) ?>';
+
+        function abrirModalEnlace() {
+            document.getElementById('enlaceLoading').style.display = 'block';
+            document.getElementById('enlaceContent').style.display = 'none';
+            document.getElementById('qrcode').innerHTML = '';
+            var modal = new bootstrap.Modal(document.getElementById('modalEnlaceGrupal'));
+            modal.show();
+            fetch(generarUrl, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'regenerar=0' })
+            .then(function(r){ return r.json(); })
+            .then(function(data){ if (data.success) mostrarEnlace(data.url); else alert('Error: ' + data.message); })
+            .catch(function(){ alert('Error de conexion.'); });
+        }
+
+        function mostrarEnlace(url) {
+            document.getElementById('enlaceLoading').style.display = 'none';
+            document.getElementById('enlaceContent').style.display = 'block';
+            document.getElementById('enlaceUrl').value = url;
+            document.getElementById('copiadoMsg').style.display = 'none';
+            document.getElementById('qrcode').innerHTML = '';
+            new QRCode(document.getElementById('qrcode'), { text: url, width: 200, height: 200, colorDark: '#1a365d', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+        }
+
+        function copiarEnlace() {
+            var url = document.getElementById('enlaceUrl').value;
+            navigator.clipboard.writeText(url).then(function() {
+                var msg = document.getElementById('copiadoMsg');
+                msg.style.display = 'block';
+                setTimeout(function(){ msg.style.display = 'none'; }, 2500);
+            });
+        }
+
+        function regenerarEnlace() {
+            if (!confirm('Generar un nuevo enlace?\n\nEl enlace actual dejara de funcionar.')) return;
+            document.getElementById('enlaceLoading').style.display = 'block';
+            document.getElementById('enlaceContent').style.display = 'none';
+            fetch(generarUrl, { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'regenerar=1' })
+            .then(function(r){ return r.json(); })
+            .then(function(data){ if (data.success) mostrarEnlace(data.url); else alert('Error: ' + data.message); });
+        }
+
+        function imprimirQR() {
+            var url = document.getElementById('enlaceUrl').value;
+            var canvas = document.querySelector('#qrcode canvas');
+            if (!canvas) { alert('Espera a que el QR termine de generarse.'); return; }
+            var imgData = canvas.toDataURL();
+            var win = window.open('', '_blank');
+            win.document.write('<!DOCTYPE html><html><head><title>QR Bateria RPS<\/title><style>body{font-family:Arial,sans-serif;text-align:center;padding:40px;}h2{color:#1a365d;}p{color:#555;font-size:14px;}<\/style><\/head><body>');
+            win.document.write('<h2>' + companyName + '<\/h2><p>' + serviceName + ' &mdash; Bateria de Riesgo Psicosocial<\/p>');
+            win.document.write('<img src="' + imgData + '" width="220" height="220"><br><p style="font-size:11px;color:#666;word-break:break-all;">' + url + '<\/p>');
+            win.document.write('<p style="font-size:13px;color:#888;">Escanea el QR o ingresa la URL para iniciar tu evaluacion<\/p>');
+            win.document.write('<button onclick="window.print()" style="margin-top:20px;padding:10px 30px;background:#0d9488;color:white;border:none;border-radius:8px;cursor:pointer;font-size:15px;">Imprimir<\/button>');
+            win.document.write('<\/body><\/html>');
+            win.document.close();
+        }
     </script>
 </body>
 </html>

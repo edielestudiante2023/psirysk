@@ -20,6 +20,13 @@ $routes->get('login', 'AuthController::index');
 $routes->post('login', 'AuthController::login');
 $routes->get('logout', 'AuthController::logout');
 
+// ============================================
+// RUTAS PÚBLICAS - ACCESO GRUPAL A BATERÍA
+// Sin autenticación. Worker ingresa con documento.
+// ============================================
+$routes->get('bateria/(:segment)', 'BateriaPublicaController::acceso/$1');
+$routes->post('bateria/validar', 'BateriaPublicaController::validarDocumento');
+
 // Rutas de recuperación de contraseña
 $routes->get('forgot-password', 'PasswordResetController::forgotPassword');
 $routes->post('password-reset/send', 'PasswordResetController::sendResetLink');
@@ -81,6 +88,7 @@ $routes->group('battery-services', function($routes) {
     $routes->post('delete/(:num)', 'BatteryServiceController::delete/$1');
     $routes->get('check-can-finalize/(:num)', 'BatteryServiceController::checkCanFinalize/$1'); // Verificar si puede finalizar
     $routes->get('global-gauges/(:num)', 'BatteryServiceController::globalGauges/$1'); // Gráficos globales
+    $routes->post('generar-enlace/(:num)', 'BatteryServiceController::generarEnlace/$1'); // Generar enlace acceso grupal
     $routes->get('(:num)', 'BatteryServiceController::view/$1');
 });
 

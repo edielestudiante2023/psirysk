@@ -275,7 +275,7 @@ function getFormattedName($section, $dimensionNames, $domainNames, $questionnair
                             </td>
                             <td><?= esc(getFormattedName($section, $dimensionNames, $domainNames, $questionnaireNames)) ?></td>
                             <td><span class="badge bg-info"><?= $section['form_type'] ?></span></td>
-                            <td><?= $section['score_value'] ? number_format($section['score_value'], 2) : '-' ?></td>
+                            <td><?= $section['score_value'] !== null && $section['score_value'] !== '' ? number_format($section['score_value'], 2) : '-' ?></td>
                             <td>
                                 <?php
                                 $riskColors = [

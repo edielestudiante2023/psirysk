@@ -302,8 +302,6 @@ class CommercialController extends BaseController
         $vendorEmail = session()->get('email');
         $vendorName = session()->get('name');
 
-        $email = \Config\Services::email();
-
         // Email HTML con diseño profesional
         $message = "
         <!DOCTYPE html>
@@ -576,16 +574,36 @@ class CommercialController extends BaseController
         // Copia a Edison para seguimiento
         $ccRecipients[] = 'edison.cuervo@cycloidtalent.com';
 
-        $email->setFrom('noreply@cycloidtalent.com', 'Cycloid Talent - Equipo Gladiator');
-        $email->setTo($recipients);
-        if (!empty($ccRecipients)) {
-            $email->setCC(array_unique($ccRecipients)); // array_unique para evitar duplicados
-        }
-        $email->setSubject('🛡️ Nueva Orden de Servicio N° ' . str_pad($service['id'], 6, '0', STR_PAD_LEFT) . ' - ' . $service['service_name']);
-        $email->setMailType('html'); // Importante: especificar que es HTML
-        $email->setMessage($message);
+        try {
+            $sgEmail = new \SendGrid\Mail\Mail();
+            $sgEmail->setFrom('noreply@cycloidtalent.com', 'Cycloid Talent - Equipo Gladiator');
+            $sgEmail->setSubject('🛡️ Nueva Orden de Servicio N° ' . str_pad($service['id'], 6, '0', STR_PAD_LEFT) . ' - ' . $service['service_name']);
 
-        return $email->send();
+            foreach ($recipients as $recipient) {
+                $sgEmail->addTo($recipient);
+            }
+            foreach (array_unique($ccRecipients) as $cc) {
+                $sgEmail->addCc($cc);
+            }
+
+            $sgEmail->addContent("text/html", $message);
+
+            // Desactivar click tracking
+            $trackingSettings = new \SendGrid\Mail\TrackingSettings();
+            $clickTracking = new \SendGrid\Mail\ClickTracking();
+            $clickTracking->setEnable(false);
+            $clickTracking->setEnableText(false);
+            $trackingSettings->setClickTracking($clickTracking);
+            $sgEmail->setTrackingSettings($trackingSettings);
+
+            $sendgrid = new \SendGrid(env('email.SMTPPass'));
+            $response = $sendgrid->send($sgEmail);
+
+            return $response->statusCode() >= 200 && $response->statusCode() < 300;
+        } catch (\Exception $e) {
+            log_message('error', 'Error enviando email de orden de servicio: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**

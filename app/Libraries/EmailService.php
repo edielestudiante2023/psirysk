@@ -2,35 +2,74 @@
 
 namespace App\Libraries;
 
-use CodeIgniter\Email\Email;
-
 /**
- * EmailService - Helper class for sending emails via SendGrid
+ * EmailService - Envía emails via SendGrid API con click tracking desactivado
+ * Evita que SendGrid reescriba URLs a url60.cycloidtalent.com (SSL inválido)
  */
 class EmailService
 {
-    protected $email;
+    protected $fromEmail;
+    protected $fromName;
+    protected $apiKey;
 
     public function __construct()
     {
-        $this->email = \Config\Services::email();
+        $this->fromEmail = env('email.fromEmail') ?: 'notificacion.cycloidtalent@cycloidtalent.com';
+        $this->fromName = env('email.fromName') ?: 'PsyRisk - Cycloid Talent';
+        $this->apiKey = env('email.SMTPPass');
+    }
+
+    /**
+     * Método central para enviar emails via SendGrid API
+     */
+    protected function sendViaSendGrid(string $toEmail, string $subject, string $htmlContent, array $options = []): bool
+    {
+        try {
+            $email = new \SendGrid\Mail\Mail();
+            $email->setFrom(
+                $options['fromEmail'] ?? $this->fromEmail,
+                $options['fromName'] ?? $this->fromName
+            );
+            $email->setSubject($subject);
+            $email->addTo($toEmail);
+            $email->addContent("text/html", $htmlContent);
+
+            // CC si se proporcionan
+            if (!empty($options['cc'])) {
+                foreach ($options['cc'] as $cc) {
+                    $email->addCc($cc);
+                }
+            }
+
+            // Desactivar click tracking para evitar reescritura de URLs
+            $trackingSettings = new \SendGrid\Mail\TrackingSettings();
+            $clickTracking = new \SendGrid\Mail\ClickTracking();
+            $clickTracking->setEnable(false);
+            $clickTracking->setEnableText(false);
+            $trackingSettings->setClickTracking($clickTracking);
+            $email->setTrackingSettings($trackingSettings);
+
+            $sendgrid = new \SendGrid($this->apiKey);
+            $response = $sendgrid->send($email);
+
+            if ($response->statusCode() >= 200 && $response->statusCode() < 300) {
+                log_message('info', "Email enviado a: {$toEmail} - Asunto: {$subject}");
+                return true;
+            } else {
+                log_message('error', "Error enviando email a {$toEmail} (HTTP {$response->statusCode()}): " . $response->body());
+                return false;
+            }
+        } catch (\Exception $e) {
+            log_message('error', "Excepción enviando email a {$toEmail}: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
      * Send assessment link to worker
-     *
-     * @param string $toEmail Worker's email
-     * @param string $workerName Worker's name
-     * @param string $assessmentLink Unique assessment link
-     * @param string $companyName Company name
-     * @param string $expirationDate Link expiration date
-     * @return bool Success status
      */
     public function sendAssessmentLink($toEmail, $workerName, $assessmentLink, $companyName, $expirationDate)
     {
-        $this->email->setTo($toEmail);
-        $this->email->setSubject('Evaluación de Factores de Riesgo Psicosocial - ' . $companyName);
-
         $message = view('emails/assessment_link', [
             'workerName' => $workerName,
             'assessmentLink' => $assessmentLink,
@@ -38,32 +77,14 @@ class EmailService
             'expirationDate' => $expirationDate
         ]);
 
-        $this->email->setMessage($message);
-
-        if ($this->email->send()) {
-            log_message('info', "Assessment email sent to: {$toEmail}");
-            return true;
-        } else {
-            log_message('error', "Failed to send assessment email to: {$toEmail}. Error: " . $this->email->printDebugger(['headers']));
-            return false;
-        }
+        return $this->sendViaSendGrid($toEmail, 'Evaluación de Factores de Riesgo Psicosocial - ' . $companyName, $message);
     }
 
     /**
      * Send results notification to company manager
-     *
-     * @param string $toEmail Manager's email
-     * @param string $managerName Manager's name
-     * @param string $serviceName Service name
-     * @param int $completedCount Completed assessments
-     * @param int $totalCount Total workers
-     * @return bool Success status
      */
     public function sendResultsNotification($toEmail, $managerName, $serviceName, $completedCount, $totalCount)
     {
-        $this->email->setTo($toEmail);
-        $this->email->setSubject('Resultados Disponibles - ' . $serviceName);
-
         $message = view('emails/results_notification', [
             'managerName' => $managerName,
             'serviceName' => $serviceName,
@@ -72,60 +93,26 @@ class EmailService
             'dashboardLink' => base_url('dashboard')
         ]);
 
-        $this->email->setMessage($message);
-
-        if ($this->email->send()) {
-            log_message('info', "Results notification sent to: {$toEmail}");
-            return true;
-        } else {
-            log_message('error', "Failed to send results notification to: {$toEmail}");
-            return false;
-        }
+        return $this->sendViaSendGrid($toEmail, 'Resultados Disponibles - ' . $serviceName, $message);
     }
 
     /**
-     * Send test email to verify SendGrid configuration
-     *
-     * @param string $toEmail Test recipient email
-     * @return bool Success status
+     * Send test email to verify configuration
      */
     public function sendTestEmail($toEmail)
     {
-        $this->email->setTo($toEmail);
-        $this->email->setSubject('PsyRisk - Test de Configuración de Email');
-
         $message = view('emails/test_email', [
             'testDate' => date('Y-m-d H:i:s')
         ]);
 
-        $this->email->setMessage($message);
-
-        if ($this->email->send()) {
-            log_message('info', "Test email sent successfully to: {$toEmail}");
-            return true;
-        } else {
-            log_message('error', "Test email failed. Error: " . $this->email->printDebugger(['headers']));
-            return false;
-        }
+        return $this->sendViaSendGrid($toEmail, 'PsyRisk - Test de Configuración de Email', $message);
     }
 
     /**
      * Send service closure notification to client
-     *
-     * @param string $toEmail Client's email
-     * @param string $clientName Client's name
-     * @param string $serviceName Service name
-     * @param string $companyName Company name
-     * @param int $completedCount Completed workers
-     * @param int $totalCount Total workers
-     * @param float $participationPercent Participation percentage
-     * @return bool Success status
      */
     public function sendServiceClosureToClient($toEmail, $clientName, $serviceName, $companyName, $completedCount, $totalCount, $participationPercent)
     {
-        $this->email->setTo($toEmail);
-        $this->email->setSubject('Servicio Finalizado - Informes Disponibles | ' . $serviceName);
-
         $message = view('emails/service_closure_client', [
             'clientName' => $clientName,
             'serviceName' => $serviceName,
@@ -136,35 +123,14 @@ class EmailService
             'reportsLink' => base_url('dashboard')
         ]);
 
-        $this->email->setMessage($message);
-
-        if ($this->email->send()) {
-            log_message('info', "Service closure notification sent to client: {$toEmail}");
-            return true;
-        } else {
-            log_message('error', "Failed to send closure notification to client: {$toEmail}");
-            return false;
-        }
+        return $this->sendViaSendGrid($toEmail, 'Servicio Finalizado - Informes Disponibles | ' . $serviceName, $message);
     }
 
     /**
      * Send service closure notification to manager (for billing)
-     *
-     * @param string $toEmail Manager's email
-     * @param string $managerName Manager's name
-     * @param string $serviceName Service name
-     * @param string $companyName Company name
-     * @param int $completedCount Completed workers
-     * @param int $totalCount Total workers
-     * @param string $consultantName Consultant name
-     * @param string $closureDate Closure date
-     * @return bool Success status
      */
     public function sendServiceClosureToManager($toEmail, $managerName, $serviceName, $companyName, $completedCount, $totalCount, $consultantName, $closureDate)
     {
-        $this->email->setTo($toEmail);
-        $this->email->setSubject('Servicio Cerrado - Proceder con Facturación | ' . $serviceName);
-
         $message = view('emails/service_closure_manager', [
             'managerName' => $managerName,
             'serviceName' => $serviceName,
@@ -175,33 +141,14 @@ class EmailService
             'closureDate' => $closureDate
         ]);
 
-        $this->email->setMessage($message);
-
-        if ($this->email->send()) {
-            log_message('info', "Service closure notification sent to manager: {$toEmail}");
-            return true;
-        } else {
-            log_message('error', "Failed to send closure notification to manager: {$toEmail}");
-            return false;
-        }
+        return $this->sendViaSendGrid($toEmail, 'Servicio Cerrado - Proceder con Facturación | ' . $serviceName, $message);
     }
 
     /**
      * Send service closure notification to commercial (seller)
-     *
-     * @param string $toEmail Seller's email
-     * @param string $sellerName Seller's name
-     * @param string $serviceName Service name
-     * @param string $companyName Company name
-     * @param int $completedCount Completed workers
-     * @param string $closureDate Closure date
-     * @return bool Success status
      */
     public function sendServiceClosureToCommercial($toEmail, $sellerName, $serviceName, $companyName, $completedCount, $closureDate)
     {
-        $this->email->setTo($toEmail);
-        $this->email->setSubject('Servicio Finalizado - Facturación Pendiente | ' . $serviceName);
-
         $message = view('emails/service_closure_commercial', [
             'sellerName' => $sellerName,
             'serviceName' => $serviceName,
@@ -210,30 +157,14 @@ class EmailService
             'closureDate' => $closureDate
         ]);
 
-        $this->email->setMessage($message);
-
-        if ($this->email->send()) {
-            log_message('info', "Service closure notification sent to commercial: {$toEmail}");
-            return true;
-        } else {
-            log_message('error', "Failed to send closure notification to commercial: {$toEmail}");
-            return false;
-        }
+        return $this->sendViaSendGrid($toEmail, 'Servicio Finalizado - Facturación Pendiente | ' . $serviceName, $message);
     }
 
     /**
      * Send notification to consultant when new access request is submitted
-     *
-     * @param string $toEmail Consultant's email
-     * @param string $consultantName Consultant's name
-     * @param array $request Request details
-     * @return bool Success status
      */
     public function sendRequestNotificationToConsultant($toEmail, $consultantName, $request)
     {
-        $this->email->setTo($toEmail);
-        $this->email->setSubject('Nueva Solicitud de Acceso a Resultados Individuales - ' . $request['company_name']);
-
         $message = view('emails/request_notification_consultant', [
             'consultantName' => $consultantName,
             'request' => $request,
@@ -241,30 +172,14 @@ class EmailService
             'approveUrl' => base_url("individual-results/approve/{$request['id']}/{$request['access_token']}")
         ]);
 
-        $this->email->setMessage($message);
-
-        if ($this->email->send()) {
-            log_message('info', "Request notification sent to consultant: {$toEmail}");
-            return true;
-        } else {
-            log_message('error', "Failed to send request notification to consultant: {$toEmail}");
-            return false;
-        }
+        return $this->sendViaSendGrid($toEmail, 'Nueva Solicitud de Acceso a Resultados Individuales - ' . $request['company_name'], $message);
     }
 
     /**
      * Send notification to client when request is approved
-     *
-     * @param string $toEmail Client's email
-     * @param string $clientName Client's name
-     * @param array $request Request details
-     * @return bool Success status
      */
     public function sendRequestApprovedToClient($toEmail, $clientName, $request)
     {
-        $this->email->setTo($toEmail);
-        $this->email->setSubject('Solicitud Aprobada - Acceso a Resultados Individuales');
-
         $message = view('emails/request_approved_client', [
             'clientName' => $clientName,
             'request' => $request,
@@ -272,83 +187,41 @@ class EmailService
             'statusUrl' => base_url("individual-results/status/{$request['id']}")
         ]);
 
-        $this->email->setMessage($message);
-
-        if ($this->email->send()) {
-            log_message('info', "Request approved notification sent to client: {$toEmail}");
-            return true;
-        } else {
-            log_message('error', "Failed to send request approved notification to client: {$toEmail}");
-            return false;
-        }
+        return $this->sendViaSendGrid($toEmail, 'Solicitud Aprobada - Acceso a Resultados Individuales', $message);
     }
 
     /**
      * Send notification to client when request is rejected
-     *
-     * @param string $toEmail Client's email
-     * @param string $clientName Client's name
-     * @param array $request Request details
-     * @return bool Success status
      */
     public function sendRequestRejectedToClient($toEmail, $clientName, $request)
     {
-        $this->email->setTo($toEmail);
-        $this->email->setSubject('Solicitud No Aprobada - Acceso a Resultados Individuales');
-
         $message = view('emails/request_rejected_client', [
             'clientName' => $clientName,
             'request' => $request,
             'statusUrl' => base_url("individual-results/status/{$request['id']}")
         ]);
 
-        $this->email->setMessage($message);
-
-        if ($this->email->send()) {
-            log_message('info', "Request rejected notification sent to client: {$toEmail}");
-            return true;
-        } else {
-            log_message('error', "Failed to send request rejected notification to client: {$toEmail}");
-            return false;
-        }
+        return $this->sendViaSendGrid($toEmail, 'Solicitud No Aprobada - Acceso a Resultados Individuales', $message);
     }
 
     /**
      * Send CSV import report to consultant
-     *
-     * @param string $toEmail Consultant's email
-     * @param string $consultantName Consultant's name
-     * @param array $importData Import details
-     * @return bool Success status
      */
     public function sendCsvImportReport($toEmail, $consultantName, $importData)
     {
-        $this->email->setTo($toEmail);
-        $this->email->setSubject('Informe de Importación CSV - ' . $importData['service_name']);
-
         $message = view('emails/csv_import_report', [
             'consultantName' => $consultantName,
             'importData' => $importData
         ]);
 
-        $this->email->setMessage($message);
-
-        if ($this->email->send()) {
-            log_message('info', "CSV import report sent to: {$toEmail}");
-            return true;
-        } else {
-            log_message('error', "Failed to send CSV import report to: {$toEmail}");
-            return false;
-        }
+        return $this->sendViaSendGrid($toEmail, 'Informe de Importación CSV - ' . $importData['service_name'], $message);
     }
 
     /**
-     * Get last email error
-     *
-     * @return string Error details
+     * Get last email error (legacy compatibility)
      */
     public function getLastError()
     {
-        return $this->email->printDebugger(['headers']);
+        return 'Ver logs para detalles del error';
     }
 }

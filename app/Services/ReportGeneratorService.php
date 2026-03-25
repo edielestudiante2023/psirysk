@@ -7,6 +7,10 @@ use App\Models\ReportSectionModel;
 use App\Models\CalculatedResultModel;
 use App\Models\BatteryServiceModel;
 use App\Models\CompanyModel;
+use App\Libraries\IntralaboralAScoring;
+use App\Libraries\IntralaboralBScoring;
+use App\Libraries\ExtralaboralScoring;
+use App\Libraries\EstresScoring;
 
 /**
  * Servicio para generar las secciones del informe con IA
@@ -547,7 +551,7 @@ class ReportGeneratorService
             return [];
         }
 
-        return $this->calculateAverages($results);
+        return $this->calculateAverages($results, $formType);
     }
 
     /**
@@ -571,112 +575,155 @@ class ReportGeneratorService
             return [];
         }
 
-        $aggregated = $this->calculateAverages($results);
+        $aggregated = $this->calculateAverages($results, 'A');
         $aggregated['total_workers'] = count($results);
 
         return $aggregated;
     }
 
     /**
-     * Calcular promedios de los resultados
+     * Calcular promedios de los resultados usando baremos oficiales por forma
+     * Resolución 2404/2019 - Baremos específicos por forma (A/B) y nivel
      */
-    protected function calculateAverages(array $results): array
+    protected function calculateAverages(array $results, string $formType = 'A'): array
     {
         if (empty($results)) {
             return [];
         }
 
-        // Si solo hay un resultado, devolver directamente sus valores
+        // Si solo hay un resultado, tomar sus puntajes pero recalcular niveles con baremos oficiales
         if (count($results) === 1) {
-            return $results[0];
+            $averages = $results[0];
+        } else {
+            $numericFields = [
+                'puntaje_total_general', 'intralaboral_total_puntaje', 'extralaboral_total_puntaje',
+                'estres_total_puntaje', 'dom_liderazgo_puntaje', 'dom_control_puntaje',
+                'dom_demandas_puntaje', 'dom_recompensas_puntaje',
+                'dim_caracteristicas_liderazgo_puntaje', 'dim_relaciones_sociales_puntaje',
+                'dim_retroalimentacion_puntaje', 'dim_relacion_colaboradores_puntaje', 'dim_claridad_rol_puntaje',
+                'dim_capacitacion_puntaje', 'dim_participacion_manejo_cambio_puntaje',
+                'dim_oportunidades_desarrollo_puntaje', 'dim_control_autonomia_puntaje',
+                'dim_demandas_ambientales_puntaje', 'dim_demandas_emocionales_puntaje',
+                'dim_demandas_cuantitativas_puntaje', 'dim_influencia_trabajo_entorno_extralaboral_puntaje',
+                'dim_demandas_carga_mental_puntaje', 'dim_demandas_responsabilidad_puntaje',
+                'dim_consistencia_rol_puntaje', 'dim_demandas_jornada_trabajo_puntaje',
+                'dim_recompensas_pertenencia_puntaje', 'dim_reconocimiento_compensacion_puntaje',
+                'extralaboral_tiempo_fuera_puntaje', 'extralaboral_relaciones_familiares_puntaje',
+                'extralaboral_comunicacion_puntaje', 'extralaboral_situacion_economica_puntaje',
+                'extralaboral_caracteristicas_vivienda_puntaje', 'extralaboral_influencia_entorno_puntaje',
+                'extralaboral_desplazamiento_puntaje',
+            ];
+
+            $averages = [];
+
+            foreach ($numericFields as $field) {
+                $sum = 0;
+                $validCount = 0;
+                foreach ($results as $result) {
+                    if (isset($result[$field]) && $result[$field] !== null) {
+                        $sum += floatval($result[$field]);
+                        $validCount++;
+                    }
+                }
+                $averages[$field] = $validCount > 0 ? round($sum / $validCount, 2) : null;
+            }
         }
 
-        $numericFields = [
-            'puntaje_total_general', 'intralaboral_total_puntaje', 'extralaboral_total_puntaje',
-            'estres_total_puntaje', 'dom_liderazgo_puntaje', 'dom_control_puntaje',
-            'dom_demandas_puntaje', 'dom_recompensas_puntaje',
-            'dim_caracteristicas_liderazgo_puntaje', 'dim_relaciones_sociales_puntaje',
-            'dim_retroalimentacion_puntaje', 'dim_relacion_colaboradores_puntaje', 'dim_claridad_rol_puntaje',
-            'dim_capacitacion_puntaje', 'dim_participacion_manejo_cambio_puntaje',
-            'dim_oportunidades_desarrollo_puntaje', 'dim_control_autonomia_puntaje',
-            'dim_demandas_ambientales_puntaje', 'dim_demandas_emocionales_puntaje',
-            'dim_demandas_cuantitativas_puntaje', 'dim_influencia_trabajo_entorno_extralaboral_puntaje',
-            'dim_demandas_carga_mental_puntaje', 'dim_demandas_responsabilidad_puntaje',
-            'dim_consistencia_rol_puntaje', 'dim_demandas_jornada_trabajo_puntaje',
-            'dim_recompensas_pertenencia_puntaje', 'dim_reconocimiento_compensacion_puntaje',
-            'extralaboral_tiempo_fuera_puntaje', 'extralaboral_relaciones_familiares_puntaje',
-            'extralaboral_comunicacion_puntaje', 'extralaboral_situacion_economica_puntaje',
-            'extralaboral_caracteristicas_vivienda_puntaje', 'extralaboral_influencia_entorno_puntaje',
-            'extralaboral_desplazamiento_puntaje',
+        // --- Baremos oficiales desde Libraries según forma ---
+        $intraScoring = $formType === 'A' ? IntralaboralAScoring::class : IntralaboralBScoring::class;
+
+        // Total general psicosocial (Tabla 34 - combina intralaboral + extralaboral + estrés)
+        $baremoTotalGeneral = EstresScoring::getBaremoGeneral($formType);
+        $averages['puntaje_total_general_nivel'] = $this->classifyWithBaremo($averages['puntaje_total_general'] ?? 0, $baremoTotalGeneral);
+
+        // Total intralaboral
+        $baremoIntralaboralTotal = $intraScoring::getBaremoTotal();
+        $averages['intralaboral_total_nivel'] = $this->classifyWithBaremo($averages['intralaboral_total_puntaje'] ?? 0, $baremoIntralaboralTotal);
+
+        // Total extralaboral
+        $baremoExtralaboralTotal = ExtralaboralScoring::getBaremoTotal($formType);
+        $averages['extralaboral_total_nivel'] = $this->classifyWithBaremo($averages['extralaboral_total_puntaje'] ?? 0, $baremoExtralaboralTotal);
+
+        // Total estrés (nomenclatura diferente: muy_bajo, bajo, medio, alto, muy_alto)
+        $baremoEstres = EstresScoring::getBaremo($formType);
+        $averages['estres_total_nivel'] = $this->classifyWithBaremo($averages['estres_total_puntaje'] ?? 0, $baremoEstres);
+
+        // Dominios intralaboral
+        $averages['dom_liderazgo_nivel'] = $this->classifyWithBaremo($averages['dom_liderazgo_puntaje'] ?? 0, $intraScoring::getBaremoDominio('liderazgo_relaciones_sociales'));
+        $averages['dom_control_nivel'] = $this->classifyWithBaremo($averages['dom_control_puntaje'] ?? 0, $intraScoring::getBaremoDominio('control'));
+        $averages['dom_demandas_nivel'] = $this->classifyWithBaremo($averages['dom_demandas_puntaje'] ?? 0, $intraScoring::getBaremoDominio('demandas'));
+        $averages['dom_recompensas_nivel'] = $this->classifyWithBaremo($averages['dom_recompensas_puntaje'] ?? 0, $intraScoring::getBaremoDominio('recompensas'));
+
+        // Dimensiones intralaboral - mapeo campo => código de baremo en Library
+        $dimIntraMap = [
+            'dim_caracteristicas_liderazgo' => 'caracteristicas_liderazgo',
+            'dim_relaciones_sociales' => 'relaciones_sociales_trabajo',
+            'dim_retroalimentacion' => 'retroalimentacion_desempeno',
+            'dim_relacion_colaboradores' => 'relacion_con_colaboradores',
+            'dim_claridad_rol' => 'claridad_rol',
+            'dim_capacitacion' => 'capacitacion',
+            'dim_participacion_manejo_cambio' => 'participacion_manejo_cambio',
+            'dim_oportunidades_desarrollo' => 'oportunidades_desarrollo',
+            'dim_control_autonomia' => 'control_autonomia_trabajo',
+            'dim_demandas_ambientales' => 'demandas_ambientales_esfuerzo_fisico',
+            'dim_demandas_emocionales' => 'demandas_emocionales',
+            'dim_demandas_cuantitativas' => 'demandas_cuantitativas',
+            'dim_influencia_trabajo_entorno_extralaboral' => 'influencia_trabajo_entorno_extralaboral',
+            'dim_demandas_carga_mental' => 'demandas_carga_mental',
+            'dim_demandas_responsabilidad' => 'exigencias_responsabilidad_cargo',
+            'dim_consistencia_rol' => 'consistencia_rol',
+            'dim_demandas_jornada_trabajo' => 'demandas_jornada_trabajo',
+            'dim_recompensas_pertenencia' => 'recompensas_pertenencia_estabilidad',
+            'dim_reconocimiento_compensacion' => 'reconocimiento_compensacion',
         ];
 
-        $averages = [];
-
-        foreach ($numericFields as $field) {
-            $sum = 0;
-            $validCount = 0;
-            foreach ($results as $result) {
-                if (isset($result[$field]) && $result[$field] !== null) {
-                    $sum += floatval($result[$field]);
-                    $validCount++;
-                }
+        foreach ($dimIntraMap as $fieldPrefix => $baremoKey) {
+            $puntaje = $averages[$fieldPrefix . '_puntaje'] ?? null;
+            $baremo = $intraScoring::getBaremoDimension($baremoKey);
+            if ($puntaje !== null && $baremo !== null) {
+                $averages[$fieldPrefix . '_nivel'] = $this->classifyWithBaremo($puntaje, $baremo);
+            } else {
+                $averages[$fieldPrefix . '_nivel'] = null;
             }
-            $averages[$field] = $validCount > 0 ? round($sum / $validCount, 2) : null;
         }
 
-        // Determinar niveles de riesgo basados en promedios
-        $averages['puntaje_total_general_nivel'] = $this->determineRiskLevel($averages['puntaje_total_general'] ?? 0);
-        $averages['intralaboral_total_nivel'] = $this->determineRiskLevel($averages['intralaboral_total_puntaje'] ?? 0);
-        $averages['extralaboral_total_nivel'] = $this->determineRiskLevel($averages['extralaboral_total_puntaje'] ?? 0);
-        $averages['estres_total_nivel'] = $this->determineRiskLevel($averages['estres_total_puntaje'] ?? 0);
-        $averages['dom_liderazgo_nivel'] = $this->determineRiskLevel($averages['dom_liderazgo_puntaje'] ?? 0);
-        $averages['dom_control_nivel'] = $this->determineRiskLevel($averages['dom_control_puntaje'] ?? 0);
-        $averages['dom_demandas_nivel'] = $this->determineRiskLevel($averages['dom_demandas_puntaje'] ?? 0);
-        $averages['dom_recompensas_nivel'] = $this->determineRiskLevel($averages['dom_recompensas_puntaje'] ?? 0);
+        // Dimensiones extralaboral - mapeo campo => código de baremo en Library
+        $dimExtraMap = [
+            'extralaboral_tiempo_fuera' => 'tiempo_fuera_trabajo',
+            'extralaboral_relaciones_familiares' => 'relaciones_familiares',
+            'extralaboral_comunicacion' => 'comunicacion_relaciones',
+            'extralaboral_situacion_economica' => 'situacion_economica',
+            'extralaboral_caracteristicas_vivienda' => 'caracteristicas_vivienda',
+            'extralaboral_influencia_entorno' => 'influencia_entorno',
+            'extralaboral_desplazamiento' => 'desplazamiento',
+        ];
 
-        // Determinar niveles de riesgo para dimensiones intralaborales
-        $averages['dim_caracteristicas_liderazgo_nivel'] = $this->determineRiskLevel($averages['dim_caracteristicas_liderazgo_puntaje'] ?? 0);
-        $averages['dim_relaciones_sociales_nivel'] = $this->determineRiskLevel($averages['dim_relaciones_sociales_puntaje'] ?? 0);
-        $averages['dim_retroalimentacion_nivel'] = $this->determineRiskLevel($averages['dim_retroalimentacion_puntaje'] ?? 0);
-        $averages['dim_relacion_colaboradores_nivel'] = $this->determineRiskLevel($averages['dim_relacion_colaboradores_puntaje'] ?? 0);
-        $averages['dim_claridad_rol_nivel'] = $this->determineRiskLevel($averages['dim_claridad_rol_puntaje'] ?? 0);
-        $averages['dim_capacitacion_nivel'] = $this->determineRiskLevel($averages['dim_capacitacion_puntaje'] ?? 0);
-        $averages['dim_participacion_manejo_cambio_nivel'] = $this->determineRiskLevel($averages['dim_participacion_manejo_cambio_puntaje'] ?? 0);
-        $averages['dim_oportunidades_desarrollo_nivel'] = $this->determineRiskLevel($averages['dim_oportunidades_desarrollo_puntaje'] ?? 0);
-        $averages['dim_control_autonomia_nivel'] = $this->determineRiskLevel($averages['dim_control_autonomia_puntaje'] ?? 0);
-        $averages['dim_demandas_ambientales_nivel'] = $this->determineRiskLevel($averages['dim_demandas_ambientales_puntaje'] ?? 0);
-        $averages['dim_demandas_emocionales_nivel'] = $this->determineRiskLevel($averages['dim_demandas_emocionales_puntaje'] ?? 0);
-        $averages['dim_demandas_cuantitativas_nivel'] = $this->determineRiskLevel($averages['dim_demandas_cuantitativas_puntaje'] ?? 0);
-        $averages['dim_influencia_trabajo_entorno_extralaboral_nivel'] = $this->determineRiskLevel($averages['dim_influencia_trabajo_entorno_extralaboral_puntaje'] ?? 0);
-        $averages['dim_demandas_carga_mental_nivel'] = $this->determineRiskLevel($averages['dim_demandas_carga_mental_puntaje'] ?? 0);
-        $averages['dim_demandas_responsabilidad_nivel'] = $this->determineRiskLevel($averages['dim_demandas_responsabilidad_puntaje'] ?? 0);
-        $averages['dim_consistencia_rol_nivel'] = $this->determineRiskLevel($averages['dim_consistencia_rol_puntaje'] ?? 0);
-        $averages['dim_demandas_jornada_trabajo_nivel'] = $this->determineRiskLevel($averages['dim_demandas_jornada_trabajo_puntaje'] ?? 0);
-        $averages['dim_recompensas_pertenencia_nivel'] = $this->determineRiskLevel($averages['dim_recompensas_pertenencia_puntaje'] ?? 0);
-        $averages['dim_reconocimiento_compensacion_nivel'] = $this->determineRiskLevel($averages['dim_reconocimiento_compensacion_puntaje'] ?? 0);
-
-        // Determinar niveles de riesgo para dimensiones extralaborales
-        $averages['extralaboral_tiempo_fuera_nivel'] = $this->determineRiskLevel($averages['extralaboral_tiempo_fuera_puntaje'] ?? 0);
-        $averages['extralaboral_relaciones_familiares_nivel'] = $this->determineRiskLevel($averages['extralaboral_relaciones_familiares_puntaje'] ?? 0);
-        $averages['extralaboral_comunicacion_nivel'] = $this->determineRiskLevel($averages['extralaboral_comunicacion_puntaje'] ?? 0);
-        $averages['extralaboral_situacion_economica_nivel'] = $this->determineRiskLevel($averages['extralaboral_situacion_economica_puntaje'] ?? 0);
-        $averages['extralaboral_caracteristicas_vivienda_nivel'] = $this->determineRiskLevel($averages['extralaboral_caracteristicas_vivienda_puntaje'] ?? 0);
-        $averages['extralaboral_influencia_entorno_nivel'] = $this->determineRiskLevel($averages['extralaboral_influencia_entorno_puntaje'] ?? 0);
-        $averages['extralaboral_desplazamiento_nivel'] = $this->determineRiskLevel($averages['extralaboral_desplazamiento_puntaje'] ?? 0);
+        foreach ($dimExtraMap as $fieldPrefix => $baremoKey) {
+            $puntaje = $averages[$fieldPrefix . '_puntaje'] ?? null;
+            $baremo = ExtralaboralScoring::getBaremoDimension($baremoKey, $formType);
+            if ($puntaje !== null && $baremo !== null) {
+                $averages[$fieldPrefix . '_nivel'] = $this->classifyWithBaremo($puntaje, $baremo);
+            } else {
+                $averages[$fieldPrefix . '_nivel'] = null;
+            }
+        }
 
         return $averages;
     }
 
     /**
-     * Determinar nivel de riesgo basado en puntaje
+     * Clasificar un puntaje usando un baremo oficial (rangos [min, max])
+     * Misma lógica que usa el heatmap en ReportsController::calculateHeatmapWithDetails
      */
-    protected function determineRiskLevel(float $score): string
+    protected function classifyWithBaremo(float $score, array $baremo): string
     {
-        if ($score <= 19.9) return 'sin_riesgo';
-        if ($score <= 24.8) return 'riesgo_bajo';
-        if ($score <= 29.5) return 'riesgo_medio';
-        if ($score <= 35.4) return 'riesgo_alto';
-        return 'riesgo_muy_alto';
+        foreach ($baremo as $nivel => $rango) {
+            if ($score >= $rango[0] && $score <= $rango[1]) {
+                return $nivel;
+            }
+        }
+        // Fallback: retornar el último nivel del baremo (el más alto)
+        return array_key_last($baremo);
     }
 
     /**

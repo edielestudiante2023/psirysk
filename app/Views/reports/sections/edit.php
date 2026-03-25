@@ -162,7 +162,7 @@ $sectionTitle = getSectionTitle($section, $dimensionNames, $domainNames);
                         </tr>
                         <tr>
                             <td class="text-muted">Puntaje:</td>
-                            <td><strong><?= $section['score_value'] ? number_format($section['score_value'], 2) : '-' ?></strong></td>
+                            <td><strong><?= $section['score_value'] !== null && $section['score_value'] !== '' ? number_format($section['score_value'], 2) : '-' ?></strong></td>
                         </tr>
                         <tr>
                             <td class="text-muted">Nivel de Riesgo:</td>

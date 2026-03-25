@@ -188,7 +188,7 @@ function getFormattedSectionName($section, $dimensionNames, $domainNames) {
                     </div>
 
                     <div class="d-flex align-items-center gap-3">
-                        <?php if ($section['score_value']): ?>
+                        <?php if ($section['score_value'] !== null && $section['score_value'] !== ''): ?>
                         <div class="text-end">
                             <small class="text-muted d-block">Puntaje</small>
                             <strong><?= number_format($section['score_value'], 2) ?></strong>

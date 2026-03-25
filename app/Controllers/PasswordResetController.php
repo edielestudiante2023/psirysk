@@ -137,8 +137,6 @@ class PasswordResetController extends BaseController
 
     private function sendResetEmail($email, $name, $token)
     {
-        $emailService = \Config\Services::email();
-
         $resetLink = base_url('password-reset/' . $token);
 
         $message = '
@@ -200,14 +198,22 @@ class PasswordResetController extends BaseController
         </html>
         ';
 
-        $emailService->setFrom('noreply@cycloidtalent.com', 'PsyRisk - Cycloid Talent');
-        $emailService->setTo($email);
-        $emailService->setSubject('🔑 Recuperación de contraseña - PsyRisk');
-        $emailService->setMailType('html');
-        $emailService->setMessage($message);
-
         try {
-            $emailService->send();
+            $sgEmail = new \SendGrid\Mail\Mail();
+            $sgEmail->setFrom('noreply@cycloidtalent.com', 'PsyRisk - Cycloid Talent');
+            $sgEmail->setSubject('🔑 Recuperación de contraseña - PsyRisk');
+            $sgEmail->addTo($email);
+            $sgEmail->addContent("text/html", $message);
+
+            $trackingSettings = new \SendGrid\Mail\TrackingSettings();
+            $clickTracking = new \SendGrid\Mail\ClickTracking();
+            $clickTracking->setEnable(false);
+            $clickTracking->setEnableText(false);
+            $trackingSettings->setClickTracking($clickTracking);
+            $sgEmail->setTrackingSettings($trackingSettings);
+
+            $sendgrid = new \SendGrid(env('email.SMTPPass'));
+            $sendgrid->send($sgEmail);
         } catch (\Exception $e) {
             log_message('error', 'Error enviando email de recuperación: ' . $e->getMessage());
         }

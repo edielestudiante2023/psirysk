@@ -84,24 +84,29 @@ class SendBatteryReminders extends BaseCommand
     private function sendReminder(array $reminder, string $type): bool
     {
         try {
-            $emailService = \Config\Services::email();
-
-            // Configurar SendGrid si está disponible
-            $config = config('Email');
-            if (isset($config->sendgrid)) {
-                $emailService->initialize($config->sendgrid);
-            }
-
-            // Preparar contenido según tipo
             $subject = $this->getEmailSubject($type, $reminder);
             $message = $this->getEmailBody($type, $reminder);
 
-            $emailService->setFrom($config->fromEmail ?? 'noreply@cycloidtalent.com', $config->fromName ?? 'Cycloid Talent SAS');
-            $emailService->setTo($reminder['contact_email']);
-            $emailService->setSubject($subject);
-            $emailService->setMessage($message);
+            $config = config('Email');
 
-            return $emailService->send();
+            $sgEmail = new \SendGrid\Mail\Mail();
+            $sgEmail->setFrom($config->fromEmail ?? 'noreply@cycloidtalent.com', $config->fromName ?? 'Cycloid Talent SAS');
+            $sgEmail->setSubject($subject);
+            $sgEmail->addTo($reminder['contact_email']);
+            $sgEmail->addContent("text/html", $message);
+
+            // Desactivar click tracking
+            $trackingSettings = new \SendGrid\Mail\TrackingSettings();
+            $clickTracking = new \SendGrid\Mail\ClickTracking();
+            $clickTracking->setEnable(false);
+            $clickTracking->setEnableText(false);
+            $trackingSettings->setClickTracking($clickTracking);
+            $sgEmail->setTrackingSettings($trackingSettings);
+
+            $sendgrid = new \SendGrid(env('email.SMTPPass'));
+            $response = $sendgrid->send($sgEmail);
+
+            return $response->statusCode() >= 200 && $response->statusCode() < 300;
 
         } catch (\Exception $e) {
             log_message('error', 'Error sending battery reminder: ' . $e->getMessage());

@@ -323,7 +323,7 @@ class BatteryServiceController extends BaseController
                     <div style='border-top: 2px solid #198754; padding-top: 15px; margin-top: 20px;'>
                         <strong>CYCLOID TALENT</strong><br>
                         Equipo de Riesgo Psicosocial<br>
-                        📧 notificacion.cycloidtalent@cycloidtalent.com<br>
+                        📧 eleyson.segura@cycloidtalent.com<br>
                         🌐 www.cycloidtalent.com
                     </div>
                 </div>

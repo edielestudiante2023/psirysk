@@ -274,9 +274,7 @@ class BatteryServiceController extends BaseController
         // Formatear fecha
         $fechaServicio = date('d/m/Y', strtotime($service['service_date']));
 
-        // Construir el correo
-        $email = \Config\Services::email();
-
+        // Construir el correo via SendGrid API (sin click tracking para evitar url60 SSL issue)
         $subject = "✅ Evaluación de Riesgo Psicosocial Finalizada - {$service['company_name']}";
 
         $body = "
@@ -331,16 +329,35 @@ class BatteryServiceController extends BaseController
         </body>
         </html>";
 
-        $email->setFrom(env('email.fromEmail'), env('email.fromName'));
-        $email->setTo($service['contact_email']);
-        $email->setCC(['diana.cuestas@cycloidtalent.com', 'eleyson.segura@cycloidtalent.com', 'edison.cuervo@cycloidtalent.com']);
-        $email->setSubject($subject);
-        $email->setMessage($body);
+        try {
+            $sgEmail = new \SendGrid\Mail\Mail();
+            $sgEmail->setFrom(env('email.fromEmail'), env('email.fromName'));
+            $sgEmail->setSubject($subject);
+            $sgEmail->addTo($service['contact_email']);
+            $sgEmail->addCc('diana.cuestas@cycloidtalent.com');
+            $sgEmail->addCc('eleyson.segura@cycloidtalent.com');
+            $sgEmail->addCc('edison.cuervo@cycloidtalent.com');
+            $sgEmail->addContent("text/html", $body);
 
-        if ($email->send()) {
-            log_message('info', "Correo de finalización enviado para servicio {$serviceId} a {$service['contact_email']}");
-        } else {
-            log_message('error', "Error enviando correo de finalización: " . $email->printDebugger(['headers']));
+            // Desactivar click tracking para evitar reescritura de URLs por SendGrid
+            $trackingSettings = new \SendGrid\Mail\TrackingSettings();
+            $clickTracking = new \SendGrid\Mail\ClickTracking();
+            $clickTracking->setEnable(false);
+            $clickTracking->setEnableText(false);
+            $trackingSettings->setClickTracking($clickTracking);
+            $sgEmail->setTrackingSettings($trackingSettings);
+
+            $apiKey = env('email.SMTPPass');
+            $sendgrid = new \SendGrid($apiKey);
+            $response = $sendgrid->send($sgEmail);
+
+            if ($response->statusCode() >= 200 && $response->statusCode() < 300) {
+                log_message('info', "Correo de finalización enviado para servicio {$serviceId} a {$service['contact_email']}");
+            } else {
+                log_message('error', "Error enviando correo de finalización (HTTP {$response->statusCode()}): " . $response->body());
+            }
+        } catch (\Exception $e) {
+            log_message('error', "Error enviando correo de finalización: " . $e->getMessage());
         }
     }
 

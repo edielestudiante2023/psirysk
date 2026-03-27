@@ -154,6 +154,18 @@ class ResponseModel extends Model
     }
 
     /**
+     * Delete responses for specific question numbers (conditional cleanup)
+     * Used when a worker changes a filter answer (e.g., atiende_clientes) to "No"
+     */
+    public function deleteConditionalResponses($workerId, $formType, array $questionNumbers)
+    {
+        return $this->where('worker_id', $workerId)
+                    ->where('form_type', $formType)
+                    ->whereIn('question_number', $questionNumbers)
+                    ->delete();
+    }
+
+    /**
      * Get worker's overall progress across all forms
      */
     public function getOverallProgress($workerId)

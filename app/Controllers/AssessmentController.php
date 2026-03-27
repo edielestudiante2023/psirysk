@@ -626,6 +626,17 @@ class AssessmentController extends BaseController
         if (!empty($updateData)) {
             $this->workerModel->update($workerId, $updateData);
             log_message('debug', "Campos condicionales actualizados: " . json_encode($updateData));
+
+            // Limpieza de respuestas huérfanas de preguntas condicionales
+            if (isset($updateData['atiende_clientes']) && $updateData['atiende_clientes'] == 0) {
+                $clientQuestions = ($intralaboralType === 'A') ? range(106, 114) : range(89, 97);
+                $this->responseModel->deleteConditionalResponses($workerId, $formType, $clientQuestions);
+                log_message('info', "Batch save: eliminadas respuestas condicionales atiende_clientes para worker {$workerId}");
+            }
+            if ($intralaboralType === 'A' && isset($updateData['es_jefe']) && $updateData['es_jefe'] == 0) {
+                $this->responseModel->deleteConditionalResponses($workerId, $formType, range(115, 123));
+                log_message('info', "Batch save: eliminadas respuestas condicionales es_jefe para worker {$workerId}");
+            }
         }
 
         $savedCount = 0;
@@ -751,6 +762,37 @@ class AssessmentController extends BaseController
                 'message' => 'Error al guardar la respuesta'
             ]);
         }
+    }
+
+    /**
+     * Delete conditional responses when filter question changes to "No"
+     */
+    public function deleteConditionalResponses()
+    {
+        if (!$this->request->isAJAX()) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Solicitud no válida']);
+        }
+
+        $session = session();
+        $workerId = $session->get('assessment_worker_id');
+        $intralaboralType = $session->get('assessment_intralaboral_type');
+
+        if (!$workerId || !$intralaboralType) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Sesión no válida']);
+        }
+
+        $questionNumbers = $this->request->getPost('question_numbers');
+        if (!is_array($questionNumbers) || empty($questionNumbers)) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Números de pregunta no válidos']);
+        }
+
+        $questionNumbers = array_map('intval', $questionNumbers);
+        $formType = 'intralaboral_' . $intralaboralType;
+
+        $this->responseModel->deleteConditionalResponses($workerId, $formType, $questionNumbers);
+        log_message('info', "AJAX: eliminadas respuestas condicionales para worker {$workerId}, preguntas: " . implode(',', $questionNumbers));
+
+        return $this->response->setJSON(['success' => true, 'deleted_questions' => $questionNumbers]);
     }
 
     /**

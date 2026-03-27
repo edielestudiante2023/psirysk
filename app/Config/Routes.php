@@ -151,6 +151,7 @@ $routes->group('assessment', function($routes) {
     $routes->get('intralaboral', 'AssessmentController::intralaboral');
     $routes->post('intralaboral', 'AssessmentController::saveIntralaboral');
     $routes->post('save-question-intralaboral', 'AssessmentController::saveQuestionIntralaboral'); // INLINE EDITING: Auto-guardado pregunta por pregunta
+    $routes->post('delete-conditional-responses', 'AssessmentController::deleteConditionalResponses');
     $routes->get('extralaboral', 'AssessmentController::extralaboral');
     $routes->post('extralaboral', 'AssessmentController::saveExtralaboral');
     $routes->post('save-question-extralaboral', 'AssessmentController::saveQuestionExtralaboral'); // INLINE EDITING: Auto-guardado pregunta por pregunta

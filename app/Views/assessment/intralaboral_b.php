@@ -352,6 +352,17 @@ $conditionalQuestion = IntralaboralB::getConditionalQuestion();
         const clientQuestions = <?= json_encode($conditionalQuestion['controls_questions']) ?>;
         let attendsClients = null;
 
+        // Eliminar respuestas condicionales de la BD cuando el filtro cambia a "No"
+        function deleteConditionalFromDB(questionNumbers) {
+            const formData = new FormData();
+            questionNumbers.forEach(num => formData.append('question_numbers[]', num));
+            fetch('<?= base_url('assessment/delete-conditional-responses') ?>', {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData
+            }).catch(error => console.error('Error eliminando respuestas condicionales:', error));
+        }
+
         // DEFINIR FUNCIONES PRIMERO (antes de usarlas)
         function handleClientQuestionsVisibility(value) {
             const clientQuestionCards = document.querySelectorAll('.client-question');
@@ -377,6 +388,7 @@ $conditionalQuestion = IntralaboralB::getConditionalQuestion();
                     answeredQuestions.delete(num);
                 });
 
+                deleteConditionalFromDB(clientQuestions);
                 updateProgress();
             }
         }

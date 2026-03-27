@@ -585,6 +585,26 @@ $conditionalQuestion2 = IntralaboralA::getConditionalQuestion2();
             }
         }
 
+        // Mostrar alerta informativa al llegar a la pregunta condicional de clientes
+        const conditionalCard1 = document.getElementById('conditional-question-1');
+        if (conditionalCard1) {
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    observer.disconnect();
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Importante',
+                        html: 'Esta pregunta se refiere a la atención de <b>clientes o usuarios externos</b> ' +
+                              '(público, pacientes, ciudadanos, consumidores, etc.).<br><br>' +
+                              '<b>No</b> se refiere al servicio a clientes internos (compañeros de trabajo de otras áreas).',
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#667eea'
+                    });
+                }
+            }, { threshold: 0.5 });
+            observer.observe(conditionalCard1);
+        }
+
         // Handle first conditional question (attends clients)
         document.querySelectorAll('input[name="attends_clients"]').forEach(radio => {
             radio.addEventListener('change', function() {

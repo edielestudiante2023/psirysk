@@ -164,4 +164,20 @@ _modules/*
 #-------------------------
 # Claude Code
 #-------------------------
-.claude/settings.local.json
+.claude/
+
+#-------------------------
+# Archivos de documentacion interna (mover a docs/)
+#-------------------------
+# Los .md sueltos en raiz son notas de desarrollo, no parte del sistema.
+
+#-------------------------
+# Scripts de produccion con credenciales
+#-------------------------
+apply_consent_migration_prod.php
+
+#-------------------------
+# Archivos temporales y basura
+#-------------------------
+*.stackdump
+composer-setup.php

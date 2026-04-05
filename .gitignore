@@ -160,4 +160,24 @@ _modules/*
 
 /results/
 /phpunit*.xml
-.claude/settings.local.json
+
+#-------------------------
+# Claude Code
+#-------------------------
+.claude/
+
+#-------------------------
+# Archivos de documentacion interna (mover a docs/)
+#-------------------------
+# Los .md sueltos en raiz son notas de desarrollo, no parte del sistema.
+
+#-------------------------
+# Scripts de produccion con credenciales
+#-------------------------
+apply_consent_migration_prod.php
+
+#-------------------------
+# Archivos temporales y basura
+#-------------------------
+*.stackdump
+composer-setup.php

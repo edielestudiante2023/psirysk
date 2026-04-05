@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>HARDENING DE REPOSITORIO &mdash; psyrisk</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="hardening-de-repositorio--psyrisk">HARDENING DE REPOSITORIO — psyrisk</h1>
+<p><strong>Fecha:</strong> 2026-04-05
+<strong>Aplicativo:</strong> psyrisk — Sistema de Evaluacion de Riesgo Psicosocial
+<strong>Empresa:</strong> Cycloid Talent
+<strong>Preparado para:</strong> Edwin Lopez (consultor de infraestructura)</p>
+<hr>
+<h2 id="tabla-de-contenido">TABLA DE CONTENIDO</h2>
+<ol>
+<li>Descripcion del aplicativo</li>
+<li>Mapa de base de datos</li>
+<li>Inventario de API Keys y servicios externos</li>
+<li>Documentacion del proyecto (README, CONTRIBUTING, .env.example)</li>
+<li>Ramas de trabajo</li>
+<li>Pipelines CI/CD (Gitea)</li>
+<li>Organizacion del repositorio</li>
+<li>Hallazgos criticos y acciones pendientes</li>
+</ol>
+<hr>
+<h2 id="1-descripcion-del-aplicativo">1. DESCRIPCION DEL APLICATIVO</h2>
+<h3 id="stack-tecnologico">Stack tecnologico</h3>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Tecnologia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backend</td>
+<td>PHP 8.1+ / CodeIgniter 4</td>
+</tr>
+<tr>
+<td>Base de datos</td>
+<td>MySQL 8.0.45 (DigitalOcean Managed, SSL required)</td>
+</tr>
+<tr>
+<td>Servidor web</td>
+<td>Nginx (Ubuntu 24.04, Hetzner LXC)</td>
+</tr>
+<tr>
+<td>Email</td>
+<td>SendGrid API v3 (SMTP relay, click tracking desactivado)</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td>DOMPDF 3.1 (informes ejecutivos con graficos SVG gauge)</td>
+</tr>
+<tr>
+<td>Excel</td>
+<td>PhpSpreadsheet 5.2</td>
+</tr>
+<tr>
+<td>IA</td>
+<td>OpenAI GPT-4o (interpretaciones, secciones de informe, recomendaciones)</td>
+</tr>
+<tr>
+<td>Testing</td>
+<td>PHPUnit 10.5 + Faker</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>Bootstrap + JavaScript vanilla</td>
+</tr>
+</tbody>
+</table>
+<h3 id="modulos-principales-15">Modulos principales (15)</h3>
+<table>
+<thead>
+<tr>
+<th>Modulo</th>
+<th>Descripcion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Autenticacion</td>
+<td>Login, recuperacion de password, gestion de sesiones</td>
+</tr>
+<tr>
+<td>Baterias de servicio</td>
+<td>Creacion y gestion de baterias de evaluacion psicosocial</td>
+</tr>
+<tr>
+<td>Trabajadores</td>
+<td>CRUD, asignacion a baterias, importacion CSV masiva con contingencia</td>
+</tr>
+<tr>
+<td>Evaluacion (Assessment)</td>
+<td>Formularios de 4 dimensiones: Intralaboral A/B, Extralaboral, Estres</td>
+</tr>
+<tr>
+<td>Resultados y reportes</td>
+<td>Analisis consolidado, mapas de calor, informes ejecutivos</td>
+</tr>
+<tr>
+<td>Resultados individuales</td>
+<td>Solicitudes de acceso con aprobacion por revisor</td>
+</tr>
+<tr>
+<td>Maximo riesgo</td>
+<td>Identificacion automatica de trabajadores en riesgo critico</td>
+</tr>
+<tr>
+<td>PDF ejecutivo</td>
+<td>10 controladores de informe PDF con graficos gauge SVG</td>
+</tr>
+<tr>
+<td>PDF nativo</td>
+<td>Generacion alternativa con wkhtmltopdf</td>
+</tr>
+<tr>
+<td>Demograficos</td>
+<td>Analisis e interpretacion IA por segmentos demograficos</td>
+</tr>
+<tr>
+<td>Recomendaciones IA</td>
+<td>Planes de accion generados por OpenAI segun dimension de riesgo</td>
+</tr>
+<tr>
+<td>Encuesta satisfaccion</td>
+<td>Feedback post-evaluacion de servicios</td>
+</tr>
+<tr>
+<td>Bateria publica</td>
+<td>Acceso grupal via QR/link sin necesidad de email</td>
+</tr>
+<tr>
+<td>Comercial</td>
+<td>Gestion de ordenes de venta (equipo Gladiator)</td>
+</tr>
+<tr>
+<td>Portal cliente</td>
+<td>Dashboard readonly para empresas clientes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="roles-de-usuario">Roles de usuario</h3>
+<table>
+<thead>
+<tr>
+<th>Rol</th>
+<th>Acceso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>superadmin</td>
+<td>Todo el sistema + gestion de usuarios + configuracion</td>
+</tr>
+<tr>
+<td>consultor</td>
+<td>Gestion de empresas asignadas + baterias + reportes + IA completo</td>
+</tr>
+<tr>
+<td>cliente_gestor</td>
+<td>Readonly reportes (gestiona multiples empresas)</td>
+</tr>
+<tr>
+<td>cliente_empresa</td>
+<td>Readonly reportes + historial (una empresa)</td>
+</tr>
+<tr>
+<td>director_comercial</td>
+<td>Gestion de ordenes, empresas, baterias, reportes, satisfaccion</td>
+</tr>
+</tbody>
+</table>
+<h3 id="estructura-del-proyecto">Estructura del proyecto</h3>
+<pre><code>psyrisk/
+├── app/
+│   ├── Commands/          # 7 comandos spark (cron jobs, recalculos, debug)
+│   ├── Config/            # Routes.php, Database.php, Email.php, scoring configs
+│   ├── Controllers/       # 25 controladores principales
+│   │   ├── PdfEjecutivo/  # 10 controladores de informe ejecutivo
+│   │   └── PdfNativo/     # 2 controladores de PDF nativo
+│   ├── Database/
+│   │   ├── Migrations/    # 40+ migraciones de esquema
+│   │   └── Seeds/         # Seeders (roles, usuarios, consultores)
+│   ├── Libraries/         # 4 librerias de scoring (IntralaboralA/B, Extralaboral, Estres)
+│   ├── Models/            # 21 modelos
+│   ├── Services/          # 5 servicios (OpenAI, Email, PDF, Demographics, Report)
+│   └── Views/             # 27 directorios de vistas
+├── docs/                  # Documentacion tecnica
+├── public/                # Punto de entrada web
+├── scripts/               # Scripts utilitarios
+├── tests/                 # Tests PHPUnit
+├── writable/              # Logs, cache, sesiones, PDFs, fonts
+├── .env                   # Variables de entorno (NO commitear)
+├── .env.example           # Template de variables
+├── CONTRIBUTING.md        # Guia de contribucion
+├── README.md              # Documentacion principal
+├── composer.json          # Dependencias PHP
+└── spark                  # CLI de CodeIgniter
+</code></pre>
+<h3 id="cron-jobs">Cron jobs</h3>
+<table>
+<thead>
+<tr>
+<th>Comando</th>
+<th>Frecuencia</th>
+<th>Descripcion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>php spark reminders:send</code></td>
+<td>Diario</td>
+<td>Recordatorios de baterias (30 dias, 7 dias, vencidas) via SendGrid</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="2-mapa-de-base-de-datos">2. MAPA DE BASE DE DATOS</h2>
+<p><strong>Motor:</strong> MySQL 8.0.45 (DigitalOcean Managed)
+<strong>Base de datos:</strong> psyrisk
+<strong>Tamano total:</strong> 12.41 MB
+<strong>SSL:</strong> Required</p>
+<h3 id="usuarios-de-base-de-datos">Usuarios de base de datos</h3>
+<table>
+<thead>
+<tr>
+<th>Usuario</th>
+<th>Permisos</th>
+<th>Uso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cycloid_userdb</td>
+<td>Full access</td>
+<td>Aplicacion principal (CRUD)</td>
+</tr>
+<tr>
+<td>cycloid_readonly</td>
+<td>SELECT only</td>
+<td>Consultas de solo lectura</td>
+</tr>
+<tr>
+<td>doadmin</td>
+<td>Administrador</td>
+<td>Gestion DigitalOcean (no usar en app)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="resumen">Resumen</h3>
+<ul>
+<li><strong>23 tablas</strong> (BASE TABLE)</li>
+<li><strong>0 vistas</strong> (VIEW)</li>
+<li><strong>31 foreign keys</strong> definidas</li>
+<li><strong>7 tablas vacias</strong> (30%) — modulos pendientes de activar</li>
+</ul>
+<h3 id="tablas-por-modulo">Tablas por modulo</h3>
+<p><strong>Nucleo (4 tablas):</strong> roles (5 reg), users (10), company_users (0 — vacia), consultants (0 — vacia)</p>
+<p><strong>Empresas y baterias (3 tablas):</strong> companies (8 reg), battery_services (8), battery_schedules (0 — vacia)</p>
+<p><strong>Trabajadores y evaluaciones (3 tablas):</strong> workers (585 reg), worker_demographics (408), responses (61,158 — la mas grande, 8.55 MB)</p>
+<p><strong>Resultados y calculos (3 tablas):</strong> calculated_results (353 reg), max_risk_results (147), validation_results (282)</p>
+<p><strong>Reportes (3 tablas):</strong> reports (0 — vacia), report_sections (297, 1.61 MB), demographics_sections (2)</p>
+<p><strong>Importacion CSV (1 tabla):</strong> csv_imports (5 reg)</p>
+<p><strong>Otros (6 tablas):</strong> action_plans (13), individual_results_requests (5), demographics_interpretations (0 — vacia), password_resets (0 — vacia), service_satisfaction_surveys (0 — vacia), migrations (31)</p>
+<h3 id="tabla-central-battery_services">Tabla central: battery_services</h3>
+<p>10 tablas dependen de <code>battery_services.id</code> via foreign key. Es la entidad central del sistema junto con <code>users</code> (9 FKs) y <code>workers</code> (3 FKs).</p>
+<h3 id="tablas-mas-grandes-por-peso">Tablas mas grandes por peso</h3>
+<table>
+<thead>
+<tr>
+<th>Tabla</th>
+<th>Registros</th>
+<th>Tamano</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>responses</td>
+<td>61,158</td>
+<td>8.55 MB</td>
+</tr>
+<tr>
+<td>report_sections</td>
+<td>297</td>
+<td>1.61 MB</td>
+</tr>
+<tr>
+<td>action_plans</td>
+<td>13</td>
+<td>0.45 MB</td>
+</tr>
+<tr>
+<td>calculated_results</td>
+<td>353</td>
+<td>0.30 MB</td>
+</tr>
+<tr>
+<td>workers</td>
+<td>585</td>
+<td>0.27 MB</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tablas-vacias-7">Tablas vacias (7)</h3>
+<ol>
+<li>battery_schedules — programacion de baterias (pendiente de activar)</li>
+<li>company_users — relacion empresa-usuario portal (pendiente de activar)</li>
+<li>consultants — perfiles de consultores (pendiente de activar)</li>
+<li>demographics_interpretations — interpretaciones IA demograficas (pendiente)</li>
+<li>password_resets — tokens de reset (se limpian automaticamente)</li>
+<li>reports — reportes consolidados (posiblemente obsoleta)</li>
+<li>service_satisfaction_surveys — encuestas de satisfaccion (pendiente)</li>
+</ol>
+<h3 id="foreign-keys-31">Foreign keys (31)</h3>
+<p>Arbol de dependencias principales:</p>
+<pre><code>battery_services (centro)
+├── battery_schedules
+├── calculated_results
+├── csv_imports
+├── demographics_interpretations
+├── demographics_sections
+├── individual_results_requests
+├── max_risk_results
+├── reports
+├── service_satisfaction_surveys
+├── validation_results
+└── workers
+    ├── calculated_results
+    ├── individual_results_requests
+    ├── responses
+    └── worker_demographics
+
+users (autenticacion)
+├── battery_services (consultant_id)
+├── companies (created_by)
+├── company_users
+├── csv_imports (imported_by)
+├── demographics_sections (generated_by)
+├── individual_results_requests (reviewed_by, requester_user_id)
+├── report_sections (approved_by)
+├── service_satisfaction_surveys
+└── validation_results (processed_by)
+
+companies
+├── battery_services
+├── company_users
+└── companies (parent_company_id — auto-referencia)
+
+reports
+└── report_sections
+</code></pre>
+<h3 id="observaciones">Observaciones</h3>
+<ul>
+<li><strong><code>reports</code> tiene 0 registros pero <code>report_sections</code> tiene 297</strong> — posible inconsistencia: las secciones pueden ser huerfanas o el conteo de InnoDB es aproximado.</li>
+<li><strong><code>company_users</code> vacia</strong> — el portal cliente puede no estar en uso activo.</li>
+<li><strong><code>consultants</code> vacia</strong> — los consultores se manejan via tabla <code>users</code> con rol <code>consultor</code>.</li>
+</ul>
+<hr>
+<h2 id="3-inventario-de-api-keys-y-servicios-externos">3. INVENTARIO DE API KEYS Y SERVICIOS EXTERNOS</h2>
+<h3 id="resumen-1">Resumen</h3>
+<table>
+<thead>
+<tr>
+<th>Servicio</th>
+<th>Variable</th>
+<th>Archivos</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SendGrid</td>
+<td><code>email.SMTPPass</code></td>
+<td>6+</td>
+<td>Activa — SMTP relay con click tracking desactivado</td>
+</tr>
+<tr>
+<td>OpenAI</td>
+<td><code>OPENAI_API_KEY</code></td>
+<td>5+</td>
+<td>Activa — GPT-4o para interpretaciones IA</td>
+</tr>
+<tr>
+<td>Encryption</td>
+<td><code>encryption.key</code></td>
+<td>1</td>
+<td>Activa — clave de encriptacion de datos</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sendgrid">SendGrid</h3>
+<p>Usado en 6+ archivos para email transaccional: recuperacion de password, notificaciones de baterias, recordatorios, invitaciones a portal cliente, ordenes comerciales.</p>
+<p><strong>Patron:</strong> SMTP relay via CodeIgniter Email library + SendGrid API directo en algunos archivos.</p>
+<p><strong>Archivos principales:</strong></p>
+<ul>
+<li><code>app/Libraries/EmailService.php</code> — servicio centralizado</li>
+<li><code>app/Commands/SendBatteryReminders.php</code> — recordatorios automaticos</li>
+<li><code>app/Controllers/PasswordResetController.php</code> — recuperacion de password</li>
+<li><code>app/Controllers/ClientUserController.php</code> — invitaciones portal cliente</li>
+<li><code>app/Controllers/CommercialController.php</code> — notificaciones comerciales</li>
+<li><code>app/Controllers/BatteryServiceController.php</code> — notificaciones de bateria</li>
+</ul>
+<h3 id="openai">OpenAI</h3>
+<p>Usado en 5+ archivos para IA generativa: interpretaciones de resultados, secciones de informe ejecutivo, recomendaciones por dimension de riesgo, analisis demografico.</p>
+<p><strong>Patron:</strong> Servicio centralizado <code>OpenAIService.php</code> con cURL a <code>https://api.openai.com/v1/chat/completions</code>
+<strong>Modelo:</strong> gpt-4o (configurable via <code>OPENAI_MODEL</code>)</p>
+<p><strong>Archivos principales:</strong></p>
+<ul>
+<li><code>app/Services/OpenAIService.php</code> — servicio centralizado</li>
+<li><code>app/Services/DemographicsReportService.php</code> — interpretacion demografica</li>
+<li><code>app/Controllers/MaxRiskController.php</code> — analisis de maximo riesgo</li>
+<li><code>app/Controllers/ReportSectionsController.php</code> — secciones de informe</li>
+<li><code>app/Controllers/DemographicsReportController.php</code> — reportes demograficos</li>
+</ul>
+<h3 id="hallazgos-criticos-de-seguridad">HALLAZGOS CRITICOS DE SEGURIDAD</h3>
+<p><strong>CRITICO — Credenciales en .env commiteado:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Credencial</th>
+<th>Problema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>email.SMTPPass</code> (SendGrid)</td>
+<td>API Key completa en .env, commiteado en git</td>
+</tr>
+<tr>
+<td><code>OPENAI_API_KEY</code></td>
+<td>API Key completa en .env, commiteado en git</td>
+</tr>
+<tr>
+<td><code>encryption.key</code></td>
+<td>Clave de encriptacion en .env, commiteado en git</td>
+</tr>
+</tbody>
+</table>
+<p><strong>CRITICO — Repositorio publico:</strong></p>
+<p>El repositorio <code>github.com/edielestudiante2023/psirysk</code> es <strong>PUBLICO</strong>. El <code>.env</code> contiene todas las credenciales en texto plano. Las siguientes claves deben rotarse <strong>INMEDIATAMENTE</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Accion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>email.SMTPPass</code> (SendGrid)</td>
+<td>ROTAR INMEDIATAMENTE</td>
+</tr>
+<tr>
+<td><code>OPENAI_API_KEY</code></td>
+<td>ROTAR INMEDIATAMENTE</td>
+</tr>
+<tr>
+<td><code>encryption.key</code></td>
+<td>Regenerar con <code>php spark key:generate</code></td>
+</tr>
+<tr>
+<td><code>database.default.password</code> (produccion)</td>
+<td>Rotar en DigitalOcean</td>
+</tr>
+</tbody>
+</table>
+<p><strong>ALTO — Script con credenciales de produccion:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Archivo</th>
+<th>Problema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>apply_consent_migration_prod.php</code></td>
+<td>Host y usuario de BD de produccion hardcodeados (password via getenv)</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="4-documentacion-del-proyecto">4. DOCUMENTACION DEL PROYECTO</h2>
+<h3 id="archivos-creados-en-el-repositorio">Archivos creados en el repositorio</h3>
+<table>
+<thead>
+<tr>
+<th>Archivo</th>
+<th>Descripcion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>README.md</code></td>
+<td>Documentacion principal: stack, 15 modulos, 5 roles, estructura, instalacion, cron jobs, deploy</td>
+</tr>
+<tr>
+<td><code>CONTRIBUTING.md</code></td>
+<td>Guia de contribucion: flujo de ramas, convencion de commits, reglas, proceso de revision</td>
+</tr>
+<tr>
+<td><code>.env.example</code></td>
+<td>Template con todas las variables de entorno (sin valores reales)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="readmemd-incluye"><a href="http://README.html">README.md</a> incluye</h3>
+<ul>
+<li>Stack tecnologico completo (9 componentes)</li>
+<li>15 modulos con descripcion</li>
+<li>5 roles de usuario con accesos</li>
+<li>Estructura de carpetas del proyecto</li>
+<li>Requisitos previos e instrucciones de instalacion</li>
+<li>9 variables de entorno documentadas</li>
+<li>1 cron job con frecuencia y descripcion</li>
+<li>Instrucciones de deploy</li>
+<li>Links a documentacion adicional en docs/</li>
+</ul>
+<h3 id="contributingmd-incluye"><a href="http://CONTRIBUTING.html">CONTRIBUTING.md</a> incluye</h3>
+<ul>
+<li>Flujo de ramas (main → develop → feature/ → hotfix/)</li>
+<li>Convencion de commits (feat:, fix:, docs:, refactor:, chore:, test:, style:)</li>
+<li>Convencion de nombres de ramas</li>
+<li>5 reglas (no push directo, no credenciales, no temporales, no destructivos)</li>
+<li>Proceso de revision con pipeline CI/CD</li>
+</ul>
+<h3 id="envexample-incluye">.env.example incluye</h3>
+<ul>
+<li>Variables de entorno para BD principal</li>
+<li>API Keys de email (SendGrid) con instrucciones de obtencion</li>
+<li>API Key de OpenAI con instrucciones</li>
+<li>Clave de encriptacion (placeholder)</li>
+<li>Variables de produccion (comentadas, opcionales)</li>
+<li>Comentarios explicativos por seccion</li>
+</ul>
+<hr>
+<h2 id="5-ramas-de-trabajo">5. RAMAS DE TRABAJO</h2>
+<h3 id="estructura-creada">Estructura creada</h3>
+<pre><code>main          &lt;- Produccion. Solo codigo validado y estable.
+develop       &lt;- Integracion. Aqui se unen los cambios antes de ir a main.
+feature/xxx   &lt;- Nuevas funcionalidades. Se crean desde develop.
+hotfix/xxx    &lt;- Correcciones urgentes. Se crean desde main.
+</code></pre>
+<h3 id="estado-actual">Estado actual</h3>
+<table>
+<thead>
+<tr>
+<th>Rama</th>
+<th>Estado</th>
+<th>Commit actual</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>main</td>
+<td>Existente, en remoto</td>
+<td>Produccion estable</td>
+</tr>
+<tr>
+<td>develop</td>
+<td>Creada, pendiente push a remoto</td>
+<td>Mismo commit que main</td>
+</tr>
+<tr>
+<td>cycloid</td>
+<td>Legacy — sera reemplazada por develop</td>
+<td>Rama de trabajo actual</td>
+</tr>
+</tbody>
+</table>
+<h3 id="proteccion-de-ramas-pendiente-en-gitea">Proteccion de ramas (pendiente en Gitea)</h3>
+<ul>
+<li><strong>main:</strong> protegida, requiere PR, no push directo</li>
+<li><strong>develop:</strong> protegida, requiere PR desde feature/</li>
+</ul>
+<h3 id="flujo-de-trabajo">Flujo de trabajo</h3>
+<ul>
+<li>Nueva funcionalidad: <code>develop</code> → <code>feature/nombre</code> → PR a <code>develop</code> → PR a <code>main</code></li>
+<li>Hotfix urgente: <code>main</code> → <code>hotfix/nombre</code> → PR a <code>main</code> + PR a <code>develop</code></li>
+</ul>
+<hr>
+<h2 id="6-pipelines-cicd">6. PIPELINES CI/CD</h2>
+<h3 id="plataforma-gitea-con-gitea-runner-act_runner">Plataforma: Gitea con Gitea Runner (act_runner)</h3>
+<h3 id="pipeline-1-validar-y-deploy-a-devqa">Pipeline 1: Validar y Deploy a Dev/QA</h3>
+<p><strong>Archivo:</strong> <code>.gitea/workflows/validate-and-deploy-qa.yml</code>
+<strong>Trigger:</strong> Push/PR a develop o feature/*</p>
+<pre><code>git push → Gitea → Runner → Tests + Trivy + Semgrep → Deploy SSH → LXC (Dev/QA)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>Que hace</th>
+<th>Bloquea si falla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test</td>
+<td><code>php -l</code> en todos los .php de app/</td>
+<td>Si</td>
+</tr>
+<tr>
+<td>trivy</td>
+<td>Escaneo de vulnerabilidades en dependencias (HIGH/CRITICAL)</td>
+<td>Si</td>
+</tr>
+<tr>
+<td>semgrep</td>
+<td>Analisis estatico de seguridad (reglas PHP + secrets + security-audit)</td>
+<td>Si</td>
+</tr>
+<tr>
+<td>secrets-scan</td>
+<td>Busca API keys hardcodeadas (SendGrid, OpenAI, Anthropic, DB)</td>
+<td>Si</td>
+</tr>
+<tr>
+<td>deploy-qa</td>
+<td>SSH al LXC Dev/QA y ejecuta deploy</td>
+<td>Solo en push a develop</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pipeline-2-cutover-a-produccion">Pipeline 2: Cutover a Produccion</h3>
+<p><strong>Archivo:</strong> <code>.gitea/workflows/cutover-production.yml</code>
+<strong>Trigger:</strong> Push a main (despues de merge de PR desde develop)</p>
+<pre><code>PR develop → main → Validacion → Trivy → Semgrep → Deploy SSH → Hetzner LXC
+                                                                → Verificacion post-deploy
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>Que hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>validate</td>
+<td>Sintaxis PHP + busqueda de credenciales</td>
+</tr>
+<tr>
+<td>trivy</td>
+<td>Escaneo vulnerabilidades (paralelo con semgrep)</td>
+</tr>
+<tr>
+<td>semgrep</td>
+<td>Analisis estatico seguridad (paralelo con trivy)</td>
+</tr>
+<tr>
+<td>deploy-production</td>
+<td>SSH al Hetzner + deploy + verificacion HTTP post-deploy</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Todo por pipeline, nada manual.</strong></p>
+<h3 id="secrets-necesarios-en-gitea">Secrets necesarios en Gitea</h3>
+<p><strong>Para Dev/QA:</strong> QA_HOST, QA_USER, QA_SSH_KEY, QA_PATH
+<strong>Para Produccion:</strong> PROD_HOST, PROD_USER, PROD_SSH_KEY, PROD_PATH</p>
+<h3 id="flujo-completo">Flujo completo</h3>
+<pre><code>feature/xxx → push → Validacion → PR a develop → Validacion → merge
+                                                                 ↓
+                                          Deploy automatico a LXC Dev/QA
+                                                                 ↓
+                                              Pruebas en QA (manuales o auto)
+                                                                 ↓
+                                          PR develop → main → Validacion → merge
+                                                                             ↓
+                                                     Cutover automatico a Hetzner LXC
+                                                                             ↓
+                                                          Verificacion post-deploy
+                                                                             ↓
+                                                              EN PRODUCCION
+</code></pre>
+<hr>
+<h2 id="7-organizacion-del-repositorio">7. ORGANIZACION DEL REPOSITORIO</h2>
+<h3 id="estado-del-repositorio">Estado del repositorio</h3>
+<table>
+<thead>
+<tr>
+<th>Aspecto</th>
+<th>Estado actual</th>
+<th>Accion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Visibilidad</td>
+<td>PUBLICO en GitHub</td>
+<td>Migrar a Gitea privado</td>
+</tr>
+<tr>
+<td>.gitignore</td>
+<td>Actualizado (excluye .env, credenciales, cache, .claude/)</td>
+<td>OK</td>
+</tr>
+<tr>
+<td>.env.example</td>
+<td>Creado con todas las variables</td>
+<td>OK</td>
+</tr>
+<tr>
+<td>.env commiteado</td>
+<td>Credenciales en texto plano en historial</td>
+<td>Limpiar historial</td>
+</tr>
+<tr>
+<td>Archivos .md sueltos</td>
+<td>34 archivos .md en raiz</td>
+<td>Mover a docs/</td>
+</tr>
+</tbody>
+</table>
+<h3 id="archivos-md-sueltos-en-raiz-34--deberian-moverse-a-docs">Archivos .md sueltos en raiz (34 — deberian moverse a docs/)</h3>
+<p><strong>Auditorias de scoring:</strong></p>
+<ul>
+<li>ANALISIS_REDONDEOS.md, AUDITORIA_DISCREPANCIA_HEATMAPS.md, AUDITORIA_ESTRES.md, AUDITORIA_EXTRALABORAL.md, AUDITORIA_INTRALABORAL_A_B.md, ERRORES_CRITICOS_BAREMOS_ENCONTRADOS.md, ESTRES_SCORING_LOGIC.md, ESTRES_VALIDATION_LOGGING.md, INVENTARIO_BAREMOS_COMPLETO.md, INVESTIGACION_FACTOR_388_vs_396.md, PROCESO_DIAMANTE_AUDITORIA.md, PROCESO_ESMERALDA_AUDITORIA.md, RESUMEN_AUDITORIAS_COMPLETO.md, RESUMEN_CALCULOS_WORKER4.md</li>
+</ul>
+<p><strong>Documentacion de modulos:</strong></p>
+<ul>
+<li>BATTERY_REMINDERS_SETUP.md, DASHBOARD_SATISFACCION_VENDEDORES.md, DOCUMENTACION_MAPA_CALOR.md, ENCUESTA_SATISFACCION.md, FLUJO_ACCESO_BATERIA.md, INDIVIDUAL_RESULTS_ACCESS_SYSTEM.md, INTRALABORAL_DASHBOARD_ARCHITECTURE.md, MODULO_CSV_CONTINGENCIA.md, PLAN_IMPLEMENTACION_PDF_GRAFICOS.md, PROBLEMA_PDF_GAUGES.md, PROYECTO_INFORMES_GLOBALES.md, SOLUCION_ESTADOS_Y_CIERRE.md</li>
+</ul>
+<p><strong>READMEs adicionales:</strong></p>
+<ul>
+<li>README_BAREMOS.md, README_MAPAS_CALOR_DOMPDF.md, README_PDF_DOMPDF.md</li>
+</ul>
+<p><strong>Progreso e implementacion:</strong></p>
+<ul>
+<li>PROGRESO_IMPLEMENTACION.md, RESUMEN_FINAL_IMPLEMENTACION.md, SENDGRID_QUICK_START.md, SINCRONIZACION_PRODUCCION.md, PRUEBA_CONSENTIMIENTO.md</li>
+</ul>
+<h3 id="scripts-con-credenciales-trackeados">Scripts con credenciales trackeados</h3>
+<table>
+<thead>
+<tr>
+<th>Archivo</th>
+<th>Problema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>apply_consent_migration_prod.php</code></td>
+<td>Host y usuario de BD produccion hardcodeados</td>
+</tr>
+</tbody>
+</table>
+<h3 id="archivos-csv-que-si-deben-quedarse-usados-por-la-aplicacion">Archivos CSV que SI deben quedarse (usados por la aplicacion)</h3>
+<ul>
+<li>Templates CSV de importacion de trabajadores (Forma A/B)</li>
+</ul>
+<hr>
+<h2 id="8-hallazgos-criticos-y-acciones-pendientes">8. HALLAZGOS CRITICOS Y ACCIONES PENDIENTES</h2>
+<h3 id="prioridad-critica">Prioridad CRITICA</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Accion</th>
+<th>Responsable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Hacer repo privado o migrar a Gitea</td>
+<td>Consultor/Cliente</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Rotar SendGrid API Key (<code>email.SMTPPass</code>)</td>
+<td>Cliente</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Rotar OpenAI API Key (<code>OPENAI_API_KEY</code>)</td>
+<td>Cliente</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Regenerar encryption key</td>
+<td>Cliente</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Rotar password de BD en DigitalOcean</td>
+<td>Consultor</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Limpiar <code>.env</code> del historial de git (<code>git filter-branch</code> o BFG)</td>
+<td>Consultor</td>
+</tr>
+</tbody>
+</table>
+<h3 id="prioridad-alta">Prioridad ALTA</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Accion</th>
+<th>Responsable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7</td>
+<td>Push de rama <code>develop</code> al remoto</td>
+<td>Cliente</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Configurar proteccion de ramas en Gitea</td>
+<td>Consultor</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Configurar secrets en Gitea para pipelines (QA + Prod)</td>
+<td>Consultor</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Eliminar <code>apply_consent_migration_prod.php</code> del repo</td>
+<td>Cliente</td>
+</tr>
+</tbody>
+</table>
+<h3 id="prioridad-media">Prioridad MEDIA</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Accion</th>
+<th>Responsable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>11</td>
+<td>Mover 34 archivos .md de raiz a docs/</td>
+<td>Cliente</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Investigar tabla <code>reports</code> vacia vs <code>report_sections</code> con 297 registros</td>
+<td>Cliente</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Activar modulo portal cliente (<code>company_users</code> vacia)</td>
+<td>Cliente</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Activar modulo consultores (<code>consultants</code> vacia, se usa <code>users</code>)</td>
+<td>Cliente</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Agregar mas cron jobs (recalculos automaticos, limpieza de sesiones)</td>
+<td>Cliente</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><em>Documento generado el 2026-04-05. Preparado como entregable del proceso de hardening del repositorio psyrisk.</em></p>
+
+            
+            
+        </body>
+        </html>

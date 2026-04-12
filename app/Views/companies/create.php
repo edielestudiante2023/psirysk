@@ -47,8 +47,15 @@
                                            id="nit"
                                            name="nit"
                                            value="<?= old('nit') ?>"
-                                           placeholder="900123456-1"
+                                           placeholder="900123456"
+                                           inputmode="numeric"
+                                           pattern="[0-9]+"
+                                           title="Solo números, sin guiones ni dígito de verificación"
+                                           oninput="this.value = this.value.replace(/\D/g, '')"
                                            required>
+                                    <small class="text-muted">
+                                        Ingrese el NIT <strong>sin dígito de verificación</strong> y sin guiones (solo números enteros).
+                                    </small>
                                 </div>
                             </div>
 

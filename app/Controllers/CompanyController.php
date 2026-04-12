@@ -76,7 +76,7 @@ class CompanyController extends BaseController
         $rules = [
             'name' => 'required|min_length[3]',
             'type' => 'required|in_list[gestor_multicompania,empresa_individual]',
-            'nit' => 'required|is_unique[companies.nit]',
+            'nit' => 'required|numeric|is_unique[companies.nit]',
         ];
 
         if (!$this->validate($rules)) {
@@ -86,7 +86,7 @@ class CompanyController extends BaseController
         $data = [
             'name' => $this->request->getPost('name'),
             'type' => $this->request->getPost('type'),
-            'nit' => $this->request->getPost('nit'),
+            'nit' => preg_replace('/\D/', '', (string) $this->request->getPost('nit')),
             'address' => $this->request->getPost('address'),
             'phone' => $this->request->getPost('phone'),
             'contact_name' => $this->request->getPost('contact_name'),
@@ -160,7 +160,7 @@ class CompanyController extends BaseController
         $rules = [
             'name' => 'required|min_length[3]',
             'type' => 'required|in_list[gestor_multicompania,empresa_individual]',
-            'nit' => "required|is_unique[companies.nit,id,{$id}]",
+            'nit' => "required|numeric|is_unique[companies.nit,id,{$id}]",
         ];
 
         if (!$this->validate($rules)) {
@@ -170,7 +170,7 @@ class CompanyController extends BaseController
         $data = [
             'name' => $this->request->getPost('name'),
             'type' => $this->request->getPost('type'),
-            'nit' => $this->request->getPost('nit'),
+            'nit' => preg_replace('/\D/', '', (string) $this->request->getPost('nit')),
             'address' => $this->request->getPost('address'),
             'phone' => $this->request->getPost('phone'),
             'contact_name' => $this->request->getPost('contact_name'),

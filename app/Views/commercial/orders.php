@@ -336,13 +336,19 @@
                                         </small>
                                     </td>
                                     <td class="text-center">
-                                        <?php
-                                        $formaA = $service['cantidad_forma_a'] ?? 0;
-                                        $formaB = $service['cantidad_forma_b'] ?? 0;
-                                        $total = $formaA + $formaB;
-                                        ?>
-                                        <strong><?= $total ?></strong><br>
-                                        <small class="text-muted">A:<?= $formaA ?> | B:<?= $formaB ?></small>
+                                        <?php if ($service['status'] === 'finalizado'): ?>
+                                            <?php $completados = (int)($service['workers_completados'] ?? 0); ?>
+                                            <strong class="text-success"><?= $completados ?></strong><br>
+                                            <small class="text-success"><i class="fas fa-check-circle"></i> Finalizaron</small>
+                                        <?php else: ?>
+                                            <?php
+                                            $formaA = $service['cantidad_forma_a'] ?? 0;
+                                            $formaB = $service['cantidad_forma_b'] ?? 0;
+                                            $total = $formaA + $formaB;
+                                            ?>
+                                            <strong><?= $total ?></strong><br>
+                                            <small class="text-muted">A:<?= $formaA ?> | B:<?= $formaB ?></small>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <span class="status-badge status-<?= $service['status'] ?>">

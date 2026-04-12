@@ -85,12 +85,15 @@ class CommercialController extends BaseController
 
         // Obtener todas las órdenes de servicio
         $services = $this->batteryServiceModel
-            ->select('battery_services.*,
+            ->select("battery_services.*,
                       companies.name as company_name,
                       companies.nit as company_nit,
                       parent.name as parent_company_name,
                       users.name as consultant_name,
-                      users.email as consultant_email')
+                      users.email as consultant_email,
+                      (SELECT COUNT(*) FROM workers
+                          WHERE workers.battery_service_id = battery_services.id
+                            AND workers.status = 'completado') as workers_completados")
             ->join('companies', 'companies.id = battery_services.company_id')
             ->join('companies as parent', 'parent.id = companies.parent_company_id', 'left')
             ->join('users', 'users.id = battery_services.consultant_id')

@@ -337,9 +337,13 @@
                                     </td>
                                     <td class="text-center">
                                         <?php if ($service['status'] === 'finalizado'): ?>
-                                            <?php $completados = (int)($service['workers_completados'] ?? 0); ?>
+                                            <?php
+                                            $completados = (int)($service['workers_completados'] ?? 0);
+                                            $presencial = (int)($service['workers_presencial'] ?? 0);
+                                            $virtual = (int)($service['workers_virtual'] ?? 0);
+                                            ?>
                                             <strong class="text-success"><?= $completados ?></strong><br>
-                                            <small class="text-success"><i class="fas fa-check-circle"></i> Finalizaron</small>
+                                            <small class="text-success">P:<?= $presencial ?> | V:<?= $virtual ?></small>
                                         <?php else: ?>
                                             <?php
                                             $formaA = $service['cantidad_forma_a'] ?? 0;

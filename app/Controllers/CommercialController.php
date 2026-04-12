@@ -93,7 +93,15 @@ class CommercialController extends BaseController
                       users.email as consultant_email,
                       (SELECT COUNT(*) FROM workers
                           WHERE workers.battery_service_id = battery_services.id
-                            AND workers.status = 'completado') as workers_completados")
+                            AND workers.status = 'completado') as workers_completados,
+                      (SELECT COUNT(*) FROM workers
+                          WHERE workers.battery_service_id = battery_services.id
+                            AND workers.status = 'completado'
+                            AND workers.application_mode = 'presencial') as workers_presencial,
+                      (SELECT COUNT(*) FROM workers
+                          WHERE workers.battery_service_id = battery_services.id
+                            AND workers.status = 'completado'
+                            AND workers.application_mode = 'virtual') as workers_virtual")
             ->join('companies', 'companies.id = battery_services.company_id')
             ->join('companies as parent', 'parent.id = companies.parent_company_id', 'left')
             ->join('users', 'users.id = battery_services.consultant_id')

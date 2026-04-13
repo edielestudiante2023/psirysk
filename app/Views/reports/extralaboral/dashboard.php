@@ -801,7 +801,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                             <th>Cargo</th>
                             <th>Tipo Cargo</th>
                             <th>Puntaje Total</th>
-                            <th>Nivel Riesgo</th>
+                            <th id="colNivelRiesgoHeader">Nivel Riesgo</th>
                             <th>Acciones</th>
                         </tr>
                         <tr>
@@ -1882,7 +1882,15 @@ function filterTable() {
     // Limpiar tabla y reconstruir con resultados filtrados
     dataTable.clear();
 
+    // Si hay dimensión seleccionada, las columnas Puntaje y Nivel muestran
+    // el valor de esa dimensión en lugar del total extralaboral (WYSIWYG).
+    const currentDimension = $('#filter_dimension').val();
+    const dimCol = currentDimension ? dimensionMapping[currentDimension] : null;
+
     filteredResults.forEach(r => {
+        const puntaje = dimCol ? parseFloat(r[dimCol + '_puntaje'] || 0) : parseFloat(r.extralaboral_total_puntaje || 0);
+        const nivel   = dimCol ? (r[dimCol + '_nivel'] || 'sin_riesgo') : (r.extralaboral_total_nivel || 'sin_riesgo');
+
         // Crear nodo TR
         const $row = $('<tr>')
             .append($('<td>').text(r.worker_name || 'N/A'))
@@ -1891,16 +1899,19 @@ function filterTable() {
             .append($('<td>').text(r.department || 'N/A'))
             .append($('<td>').text(r.position || 'N/A'))
             .append($('<td>').text(r.position_type || 'N/A'))
-            .append($('<td>').html('<strong>' + parseFloat(r.extralaboral_total_puntaje || 0).toFixed(1) + '</strong>'))
+            .append($('<td>').html('<strong>' + puntaje.toFixed(1) + '</strong>'))
             .append($('<td>').html(
-                '<span class="risk-badge" style="' + getBadgeClass(r.extralaboral_total_nivel || 'sin_riesgo') + '">' +
-                    getRiskLabel(r.extralaboral_total_nivel || 'sin_riesgo') +
+                '<span class="risk-badge" style="' + getBadgeClass(nivel) + '">' +
+                    getRiskLabel(nivel) +
                 '</span>'
             ))
             .append($('<td>').html(getActionButton(r.worker_id)));
 
         dataTable.row.add($row);
     });
+
+    // Actualizar header de la columna "Nivel Riesgo" con el contexto activo
+    updateNivelColumnHeader(currentDimension);
 
     // Dibujar UNA SOLA VEZ después de agregar todas las filas
     dataTable.draw(false);
@@ -2088,6 +2099,19 @@ function updateFilterOptionsCounts(filters) {
             option.style.color = n === 0 ? '#adb5bd' : '';
         });
     });
+}
+
+// Actualiza el texto del header de la columna "Nivel Riesgo" para reflejar
+// el contexto activo (dimensión), usando la etiqueta visible del option.
+function updateNivelColumnHeader(dimension) {
+    const th = document.getElementById('colNivelRiesgoHeader');
+    if (!th) return;
+    let label = 'Nivel Riesgo';
+    if (dimension) {
+        const opt = document.querySelector(`#filter_dimension option[value="${dimension}"]`);
+        if (opt) label = 'Nivel ' + opt.textContent.trim();
+    }
+    th.textContent = label;
 }
 
 function syncRiskCardsActiveState(activeNivel) {

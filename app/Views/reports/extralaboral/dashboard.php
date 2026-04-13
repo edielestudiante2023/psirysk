@@ -137,6 +137,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
     <!-- Chart.js 4.4.0 with DataLabels -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         :root {
@@ -595,7 +596,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
             $textColor = ($card['nivel'] === 'riesgo_medio') ? '#333' : '#fff';
         ?>
         <div class="col-md-6 col-lg-2 mb-3">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card border-0 shadow-sm h-100 risk-filter-card" data-risk-nivel="<?= $card['nivel'] ?>" style="cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;">
                 <div class="card-body text-center rounded" style="background-color: <?= $card['color'] ?>; color: <?= $textColor ?>;">
                     <h6 class="mb-2 text-uppercase" style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px;"><?= $card['label'] ?></h6>
                     <h1 class="fw-bold mb-1" style="font-size: 3rem;" data-stat-risk="<?= $card['nivel'] ?>"><?= $count ?></h1>
@@ -1684,7 +1685,10 @@ function updateStats(data) {
         totalCard.setAttribute('title', 'Puntaje: ' + totalAvg.toFixed(1));
     }
 
-    // Distribución de riesgos
+    // Distribución de riesgos — contextual: si hay dimensión seleccionada,
+    // cuenta por el nivel de esa dimensión para que el número de la card
+    // coincida con las filas que filtra applyFilters (regla WYSIWYG).
+    const currentDimension = $('#filter_dimension').val();
     const riskCounts = {
         'sin_riesgo': 0,
         'riesgo_bajo': 0,
@@ -1694,8 +1698,10 @@ function updateStats(data) {
     };
 
     data.forEach(r => {
-        const nivel = r.extralaboral_total_nivel || 'sin_riesgo';
-        riskCounts[nivel]++;
+        const nivel = getContextualNivel(r, currentDimension);
+        if (riskCounts[nivel] !== undefined) {
+            riskCounts[nivel]++;
+        }
     });
 
     Object.keys(riskCounts).forEach(nivel => {
@@ -1768,16 +1774,20 @@ function applyFilters() {
     console.log('Active filters:', filters);
 
     filteredResults = allResults.filter(result => {
-        // Filtro de nivel de riesgo
-        if (filters.risk_level && result.extralaboral_total_nivel !== filters.risk_level) {
-            return false;
-        }
-
-        // Filtro de dimensión - Este filtro es especial porque filtra por nivel de riesgo en una dimensión específica
+        // Filtro de dimensión — mantiene a los workers que tengan la dimensión evaluada
         if (filters.dimension) {
             const dbColumnName = dimensionMapping[filters.dimension];
             const dimNivel = result[dbColumnName + '_nivel'] || '';
             if (!dimNivel) return false;
+        }
+
+        // Filtro de nivel de riesgo — contextual: si hay dimensión seleccionada,
+        // se evalúa contra el nivel de esa dimensión (no contra el total extralaboral),
+        // para que el número de la card coincida con las filas de la tabla.
+        if (filters.risk_level) {
+            if (getContextualNivel(result, filters.dimension) !== filters.risk_level) {
+                return false;
+            }
         }
 
         // Filtros demográficos
@@ -1810,6 +1820,28 @@ function applyFilters() {
 
     // Filtrar tabla
     filterTable();
+
+    // Recalcular contadores (N) en opciones de los demás selects
+    updateFilterOptionsCounts(filters);
+
+    // Sincronizar estado visual de cards con el nivel activo
+    syncRiskCardsActiveState(filters.risk_level);
+
+    // Feedback cuando la combinación no produce resultados
+    if (filteredResults.length === 0 && hasAnyFilterActive(filters)) {
+        if (window.Swal) {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'info',
+                title: 'Sin resultados',
+                text: 'Ninguna combinación de filtros coincide con registros.',
+                showConfirmButton: false,
+                timer: 2800,
+                timerProgressBar: true
+            });
+        }
+    }
 }
 
 // ============================================
@@ -1912,7 +1944,143 @@ $(document).ready(function() {
     $('select[id^="filter_"]').on('change', function() {
         applyFilters();
     });
+
+    // Click en cards de nivel de riesgo → setea filter_risk_level (toggle)
+    $('.risk-filter-card').on('click', function() {
+        const nivel = $(this).data('risk-nivel');
+        const $select = $('#filter_risk_level');
+        if (!$select.length) return;
+        $select.val($select.val() === nivel ? '' : nivel);
+        applyFilters();
+    });
+
+    // Inicialización: aplicar counts en primera carga
+    updateFilterOptionsCounts({
+        risk_level: '', dimension: '', gender: '', department: '',
+        position_type: '', position: '', education: '', marital_status: '',
+        contract_type: '', city: '', stratum: '', housing_type: '', time_in_company: ''
+    });
 });
+
+// ============================================
+// HELPERS: Interconexión de filtros (cards clickeables + counts facetados)
+// ============================================
+
+function hasAnyFilterActive(filters) {
+    return Object.values(filters).some(v => v && v !== '');
+}
+
+// Nivel de riesgo aplicable a un worker según contexto:
+// - con dimensión seleccionada → nivel de esa dimensión (precalculado en BD)
+// - sin dimensión              → nivel total extralaboral
+function getContextualNivel(r, dimension) {
+    if (dimension && dimensionMapping[dimension]) {
+        const dbCol = dimensionMapping[dimension];
+        return r[dbCol + '_nivel'] || 'sin_riesgo';
+    }
+    return r.extralaboral_total_nivel || 'sin_riesgo';
+}
+
+// Mapa de selects para búsqueda facetada.
+// kind 'equals' → compara campo igualitario. kind 'risk_level' → usa getContextualNivel.
+// kind 'dimension' → filtra por presencia de nivel en la dimensión (no entra en counts).
+const FILTER_FIELD_MAP = {
+    filter_risk_level:      { kind: 'risk_level' },
+    filter_dimension:       { kind: 'dimension' },
+    filter_gender:          { field: 'gender',              kind: 'equals' },
+    filter_department:      { field: 'department',          kind: 'equals' },
+    filter_position_type:   { field: 'position_type',       kind: 'equals' },
+    filter_position:        { field: 'position',            kind: 'equals' },
+    filter_education:       { field: 'education_level',     kind: 'equals' },
+    filter_marital_status:  { field: 'marital_status',      kind: 'equals' },
+    filter_contract_type:   { field: 'contract_type',       kind: 'equals' },
+    filter_city:            { field: 'city_residence',      kind: 'equals' },
+    filter_stratum:         { field: 'stratum',             kind: 'equals' },
+    filter_housing_type:    { field: 'housing_type',        kind: 'equals' },
+    filter_time_in_company: { field: 'time_in_company_type', kind: 'equals' }
+};
+
+// Aplica todos los filtros excepto el "excluido" — base para calcular counts
+function filterResultsExcluding(filters, excludedId) {
+    return allResults.filter(r => {
+        for (const [selectId, cfg] of Object.entries(FILTER_FIELD_MAP)) {
+            if (selectId === excludedId) continue;
+            const key = selectId.replace('filter_', '');
+            const val = filters[key];
+            if (!val) continue;
+            if (cfg.kind === 'equals') {
+                if (cfg.field === 'stratum') {
+                    if (String(r[cfg.field]) !== String(val)) return false;
+                } else if (r[cfg.field] !== val) return false;
+            } else if (cfg.kind === 'dimension') {
+                const dbCol = dimensionMapping[val];
+                if (!dbCol || !r[dbCol + '_nivel']) return false;
+            } else if (cfg.kind === 'risk_level') {
+                const ctxDimension = (excludedId === 'filter_dimension') ? '' : filters.dimension;
+                if (getContextualNivel(r, ctxDimension) !== val) return false;
+            }
+        }
+        return true;
+    });
+}
+
+function getOriginalOptionLabel(option) {
+    if (!option.dataset.originalLabel) {
+        option.dataset.originalLabel = option.textContent.replace(/\s*\(\d+\)\s*$/, '');
+    }
+    return option.dataset.originalLabel;
+}
+
+function updateFilterOptionsCounts(filters) {
+    Object.keys(FILTER_FIELD_MAP).forEach(selectId => {
+        const select = document.getElementById(selectId);
+        if (!select) return;
+        const cfg = FILTER_FIELD_MAP[selectId];
+
+        // La cascada especial de dimensión no lleva counts
+        if (cfg.kind === 'dimension') return;
+
+        const baseResults = filterResultsExcluding(filters, selectId);
+
+        const counts = {};
+        baseResults.forEach(r => {
+            let v;
+            if (cfg.kind === 'equals') {
+                v = r[cfg.field];
+            } else if (cfg.kind === 'risk_level') {
+                v = getContextualNivel(r, filters.dimension);
+            }
+            if (v !== undefined && v !== null && v !== '') {
+                counts[v] = (counts[v] || 0) + 1;
+            }
+        });
+
+        Array.from(select.options).forEach(option => {
+            const original = getOriginalOptionLabel(option);
+            if (option.value === '') {
+                option.textContent = original;
+                option.style.color = '';
+                return;
+            }
+            const n = counts[option.value] || 0;
+            option.textContent = `${original} (${n})`;
+            option.style.color = n === 0 ? '#adb5bd' : '';
+        });
+    });
+}
+
+function syncRiskCardsActiveState(activeNivel) {
+    document.querySelectorAll('.risk-filter-card').forEach(card => {
+        const nivel = card.dataset.riskNivel;
+        if (activeNivel && nivel === activeNivel) {
+            card.style.transform = 'scale(1.05)';
+            card.style.boxShadow = '0 0 0 3px #0d6efd, 0 6px 16px rgba(0,0,0,0.2)';
+        } else {
+            card.style.transform = '';
+            card.style.boxShadow = '';
+        }
+    });
+}
 </script>
 
 </body>

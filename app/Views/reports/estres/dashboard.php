@@ -1604,7 +1604,11 @@ $(document).ready(function() {
                 extend: 'excelHtml5',
                 text: '<i class="fas fa-file-excel me-1"></i> Descargar Excel',
                 className: 'btn btn-success btn-sm',
-                title: 'Reporte Estres - <?= esc($service['service_name']) ?>',
+                title: function() {
+                    const base = 'Reporte Estres - <?= esc($service['service_name']) ?>';
+                    const desc = getActiveFiltersDescription();
+                    return desc ? base + ' | ' + desc : base;
+                },
                 filename: function() {
                     const svc = '<?= esc($service['service_name']) ?>'.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
                     const date = new Date().toISOString().slice(0, 10);
@@ -1641,7 +1645,11 @@ $(document).ready(function() {
                 extend: 'excelHtml5',
                 text: '<i class="fas fa-file-excel me-1"></i> Descargar Excel',
                 className: 'btn btn-success btn-sm',
-                title: 'Sintomas Estres - <?= esc($service['service_name']) ?>',
+                title: function() {
+                    const base = 'Sintomas Estres - <?= esc($service['service_name']) ?>';
+                    const desc = getActiveFiltersDescription();
+                    return desc ? base + ' | ' + desc : base;
+                },
                 filename: function() {
                     const svc = '<?= esc($service['service_name']) ?>'.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
                     const date = new Date().toISOString().slice(0, 10);
@@ -1720,6 +1728,42 @@ $(document).ready(function() {
 
 function hasAnyFilterActive(filters) {
     return Object.values(filters).some(v => v && v !== '');
+}
+
+// Orden lógico para describir los filtros aplicados en el título del Excel.
+const FILTER_LABELS_ORDER = [
+    ['filter_risk_level',      'Nivel de Estrés'],
+    ['filter_symptom_question', 'Pregunta'],
+    ['filter_gender',          'Género'],
+    ['filter_department',      'Departamento'],
+    ['filter_position_type',   'Tipo de Cargo'],
+    ['filter_position',        'Cargo'],
+    ['filter_education',       'Nivel Estudios'],
+    ['filter_marital_status',  'Estado Civil'],
+    ['filter_contract_type',   'Tipo Contrato'],
+    ['filter_city',            'Ciudad'],
+    ['filter_stratum',         'Estrato'],
+    ['filter_housing_type',    'Tipo Vivienda'],
+    ['filter_time_in_company', 'Antigüedad']
+];
+
+function getActiveFiltersDescription() {
+    const parts = [];
+    FILTER_LABELS_ORDER.forEach(([id, label]) => {
+        const select = document.getElementById(id);
+        if (!select || !select.value) return;
+        const option = select.querySelector(`option[value="${select.value}"]`);
+        const text = option
+            ? option.textContent.replace(/\s*\(\d+\)\s*$/, '').trim()
+            : select.value;
+        parts.push(`${label}: ${text}`);
+    });
+    // Incluir también el filtro de frecuencia de síntomas (radio input)
+    const freq = document.querySelector('input[name="filter_symptom_frequency"]:checked');
+    if (freq && freq.value) {
+        parts.push(`Frecuencia: ${freq.value}`);
+    }
+    return parts.length ? 'Filtrado por: ' + parts.join(' + ') : '';
 }
 
 // Mapa de selects para búsqueda facetada.

@@ -2936,9 +2936,8 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
 
             // Filtrar resultados por TODOS los filtros (demográficos, dominio, dimensión, nivel de riesgo)
             const filteredResults = allResults.filter(r => {
-                // Filtros demográficos y de nivel de riesgo
-                const basicFilter = (!filters.nivel_riesgo || r.intralaboral_total_nivel === filters.nivel_riesgo) &&
-                       (!filters.gender || r.gender === filters.gender) &&
+                // Filtros demográficos (nivel_riesgo se evalúa aparte con lógica contextual)
+                const basicFilter = (!filters.gender || r.gender === filters.gender) &&
                        (!filters.form_type || r.intralaboral_form_type === filters.form_type) &&
                        (!filters.department || r.department === filters.department) &&
                        (!filters.position || r.position === filters.position) &&
@@ -2953,16 +2952,23 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
 
                 if (!basicFilter) return false;
 
-                // Filtro de dominio
+                // Filtro de dominio (presencia de puntaje)
                 if (filters.dominio) {
                     const dominioPuntajeKey = 'dom_' + filters.dominio + '_puntaje';
                     if (!r[dominioPuntajeKey] || r[dominioPuntajeKey] === 0) return false;
                 }
 
-                // Filtro de dimensión
+                // Filtro de dimensión (presencia de puntaje)
                 if (filters.dimension) {
                     const dimensionPuntajeKey = filters.dimension + '_puntaje';
                     if (!r[dimensionPuntajeKey] || r[dimensionPuntajeKey] === 0) return false;
+                }
+
+                // Nivel de riesgo: contextual — si hay dominio/dimensión seleccionado,
+                // el nivel se evalúa contra ese contexto (no contra el total intralaboral).
+                // Así el click en una card refleja exactamente lo que el usuario ve.
+                if (filters.nivel_riesgo) {
+                    if (getContextualNivel(r, filters.dominio, filters.dimension) !== filters.nivel_riesgo) return false;
                 }
 
                 return true;
@@ -3043,9 +3049,28 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
             return Object.values(filters).some(v => v && v !== '');
         }
 
+        // Devuelve el nivel de riesgo aplicable a un worker según el contexto:
+        // - con dimensión seleccionada → nivel de esa dimensión
+        // - con dominio seleccionado  → nivel de ese dominio
+        // - sin contexto              → nivel total intralaboral
+        // Debe mantenerse sincronizado con la lógica de updateCharts (L2608-2634).
+        function getContextualNivel(r, dominio, dimension) {
+            if (dimension) {
+                const puntaje = parseFloat(r[dimension + '_puntaje'] || 0);
+                const dimInfo = Object.values(dimensionsData).flat().find(d => d.key === dimension);
+                if (!dimInfo) return null;
+                return getDomainRiskLevel(puntaje, dimInfo.domain);
+            }
+            if (dominio) {
+                const puntaje = parseFloat(r['dom_' + dominio + '_puntaje'] || 0);
+                return getDomainRiskLevel(puntaje, dominio);
+            }
+            return r.intralaboral_total_nivel || 'sin_riesgo';
+        }
+
         // Mapea cada id de select al campo correspondiente en allResults y al tipo de evaluación
         const FILTER_FIELD_MAP = {
-            filter_nivel_riesgo:    { field: 'intralaboral_total_nivel', kind: 'equals' },
+            filter_nivel_riesgo:    { kind: 'nivel_riesgo' },
             filter_gender:          { field: 'gender',                   kind: 'equals' },
             filter_form_type:       { field: 'intralaboral_form_type',   kind: 'equals' },
             filter_department:      { field: 'department',               kind: 'equals' },
@@ -3078,6 +3103,11 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                     } else if (cfg.kind === 'dimension') {
                         const k = val + '_puntaje';
                         if (!r[k] || r[k] === 0) return false;
+                    } else if (cfg.kind === 'nivel_riesgo') {
+                        // Usa el dominio/dimensión vigentes en el contexto excluido
+                        const ctxDominio   = (excludedId === 'filter_dominio')   ? '' : filters.dominio;
+                        const ctxDimension = (excludedId === 'filter_dimension') ? '' : filters.dimension;
+                        if (getContextualNivel(r, ctxDominio, ctxDimension) !== val) return false;
                     }
                 }
                 return true;
@@ -3098,15 +3128,20 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                 if (!select) return;
                 const cfg = FILTER_FIELD_MAP[selectId];
 
-                // Para dominio/dimension no hacemos count (ya tienen cascada especial)
-                if (cfg.kind !== 'equals') return;
+                // Dominio/dimensión tienen cascada especial aparte; no les ponemos counts
+                if (cfg.kind === 'dominio' || cfg.kind === 'dimension') return;
 
                 const baseResults = filterResultsExcluding(filters, selectId);
 
-                // Contar ocurrencias del campo en baseResults
+                // Contar ocurrencias del valor correspondiente en baseResults
                 const counts = {};
                 baseResults.forEach(r => {
-                    const v = r[cfg.field];
+                    let v;
+                    if (cfg.kind === 'equals') {
+                        v = r[cfg.field];
+                    } else if (cfg.kind === 'nivel_riesgo') {
+                        v = getContextualNivel(r, filters.dominio, filters.dimension);
+                    }
                     if (v !== undefined && v !== null && v !== '') {
                         counts[v] = (counts[v] || 0) + 1;
                     }

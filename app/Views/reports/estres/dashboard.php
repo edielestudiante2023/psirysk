@@ -114,6 +114,7 @@ $estresQuestions = [
 
     <!-- DataTables -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
 
     <!-- Chart.js 4.4.0 -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
@@ -817,6 +818,9 @@ $estresQuestions = [
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 
 <script>
 // ============================================
@@ -1593,7 +1597,25 @@ $(document).ready(function() {
         pageLength: 25,
         order: [[6, 'desc']],
         orderCellsTop: true,
-        fixedHeader: true
+        fixedHeader: true,
+        dom: '<"row mb-2"<"col-sm-12 col-md-6"lB><"col-sm-12 col-md-6"f>>rtip',
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: '<i class="fas fa-file-excel me-1"></i> Descargar Excel',
+                className: 'btn btn-success btn-sm',
+                title: 'Reporte Estres - <?= esc($service['service_name']) ?>',
+                filename: function() {
+                    const svc = '<?= esc($service['service_name']) ?>'.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
+                    const date = new Date().toISOString().slice(0, 10);
+                    return 'estres_' + svc + '_' + date;
+                },
+                exportOptions: {
+                    columns: ':not(:last-child)',
+                    modifier: { search: 'applied', order: 'applied', page: 'all' }
+                }
+            }
+        ]
     });
 
     // Activar filtros por columna en thead
@@ -1613,7 +1635,23 @@ $(document).ready(function() {
         pageLength: 31, // Mostrar todas las 31 preguntas por defecto
         order: [[0, 'asc']], // Ordenar por número de pregunta
         orderCellsTop: true,
-        dom: 'frtip', // Solo filtro, tabla, info y paginación
+        dom: '<"row mb-2"<"col-sm-12 col-md-6"B><"col-sm-12 col-md-6"f>>rtip',
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: '<i class="fas fa-file-excel me-1"></i> Descargar Excel',
+                className: 'btn btn-success btn-sm',
+                title: 'Sintomas Estres - <?= esc($service['service_name']) ?>',
+                filename: function() {
+                    const svc = '<?= esc($service['service_name']) ?>'.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
+                    const date = new Date().toISOString().slice(0, 10);
+                    return 'estres_sintomas_' + svc + '_' + date;
+                },
+                exportOptions: {
+                    modifier: { search: 'applied', order: 'applied', page: 'all' }
+                }
+            }
+        ],
         columnDefs: [
             {
                 // Columnas 2-6 (Siempre, Casi Siempre, A Veces, Nunca, Crítico) son numéricas

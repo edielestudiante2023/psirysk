@@ -144,6 +144,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -1332,6 +1333,9 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
     <script src="<?= base_url('js/satisfaction-check.js') ?>"></script>
     <script src="<?= base_url('js/reports/filters.js') ?>"></script>
 
@@ -1526,7 +1530,25 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
             pageLength: 25,
             order: [[0, 'asc']],
             orderCellsTop: true,
-            fixedHeader: true
+            fixedHeader: true,
+            dom: '<"row mb-2"<"col-sm-12 col-md-6"lB><"col-sm-12 col-md-6"f>>rtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    text: '<i class="fas fa-file-excel me-1"></i> Descargar Excel',
+                    className: 'btn btn-success btn-sm',
+                    title: 'Reporte Intralaboral - <?= esc($service['service_name']) ?>',
+                    filename: function() {
+                        const svc = '<?= esc($service['service_name']) ?>'.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
+                        const date = new Date().toISOString().slice(0, 10);
+                        return 'intralaboral_' + svc + '_' + date;
+                    },
+                    exportOptions: {
+                        columns: ':not(:last-child)',
+                        modifier: { search: 'applied', order: 'applied', page: 'all' }
+                    }
+                }
+            ]
         });
 
         // Activar filtros por columna en thead
@@ -3199,9 +3221,6 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
             updateFilterOptionsCounts(initialFilters);
         });
 
-        function exportToExcel() {
-            alert('Funcionalidad de exportación a Excel en desarrollo');
-        }
     </script>
 </body>
 </html>

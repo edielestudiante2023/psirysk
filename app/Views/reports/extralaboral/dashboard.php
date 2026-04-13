@@ -133,6 +133,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
 
     <!-- DataTables -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
 
     <!-- Chart.js 4.4.0 with DataLabels -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
@@ -899,6 +900,9 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
 
 <script>
 // ============================================
@@ -1917,9 +1921,26 @@ $(document).ready(function() {
         },
         pageLength: 25,
         order: [[6, 'desc']], // Ordenar por puntaje total descendente
-        dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rtip',
+        dom: '<"row mb-2"<"col-sm-12 col-md-6"lB><"col-sm-12 col-md-6"f>>rtip',
         orderCellsTop: true,
-        fixedHeader: true
+        fixedHeader: true,
+        buttons: [
+            {
+                extend: 'excelHtml5',
+                text: '<i class="fas fa-file-excel me-1"></i> Descargar Excel',
+                className: 'btn btn-success btn-sm',
+                title: 'Reporte Extralaboral - <?= esc($service['service_name']) ?>',
+                filename: function() {
+                    const svc = '<?= esc($service['service_name']) ?>'.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
+                    const date = new Date().toISOString().slice(0, 10);
+                    return 'extralaboral_' + svc + '_' + date;
+                },
+                exportOptions: {
+                    columns: ':not(:last-child)',
+                    modifier: { search: 'applied', order: 'applied', page: 'all' }
+                }
+            }
+        ]
     });
 
     // Activar filtros por columna en thead

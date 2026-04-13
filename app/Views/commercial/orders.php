@@ -339,11 +339,13 @@
                                         <?php if ($service['status'] === 'finalizado'): ?>
                                             <?php
                                             $completados = (int)($service['workers_completados'] ?? 0);
-                                            $presencial = (int)($service['workers_presencial'] ?? 0);
-                                            $virtual = (int)($service['workers_virtual'] ?? 0);
+                                            $ap = (int)($service['workers_ap'] ?? 0);
+                                            $av = (int)($service['workers_av'] ?? 0);
+                                            $bp = (int)($service['workers_bp'] ?? 0);
+                                            $bv = (int)($service['workers_bv'] ?? 0);
                                             ?>
                                             <strong class="text-success"><?= $completados ?></strong><br>
-                                            <small class="text-success">P:<?= $presencial ?> | V:<?= $virtual ?></small>
+                                            <small class="text-success" style="font-size: 0.7rem;">A-P:<?= $ap ?> | A-V:<?= $av ?><br>B-P:<?= $bp ?> | B-V:<?= $bv ?></small>
                                         <?php else: ?>
                                             <?php
                                             $formaA = $service['cantidad_forma_a'] ?? 0;

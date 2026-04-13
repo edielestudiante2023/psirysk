@@ -146,6 +146,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             background-color: #f8f9fa;
@@ -828,7 +829,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                 $textColor = ($card['nivel'] === 'riesgo_medio') ? '#333' : '#fff';
             ?>
             <div class="col-md-6 col-lg-2 mb-3">
-                <div class="card border-0 shadow-sm h-100">
+                <div class="card border-0 shadow-sm h-100 risk-filter-card" data-risk-nivel="<?= $card['nivel'] ?>" style="cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;">
                     <div class="card-body text-center rounded" style="background-color: <?= $card['color'] ?>; color: <?= $textColor ?>;">
                         <h6 class="mb-2 text-uppercase" style="font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px;"><?= $card['label'] ?></h6>
                         <h1 class="fw-bold mb-1" style="font-size: 3rem;" data-stat-risk="<?= $card['nivel'] ?>"><?= $count ?></h1>
@@ -3014,7 +3015,154 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
 
             // Actualizar gráficos con los mismos resultados filtrados
             updateCharts(filteredResults, filters.dominio, filters.dimension);
+
+            // Recalcular contadores (N) en opciones de los demás selects
+            updateFilterOptionsCounts(filters);
+
+            // Sincronizar estado visual de cards de riesgo con el filtro activo
+            syncRiskCardsActiveState(filters.nivel_riesgo);
+
+            // Feedback si la combinación no produce resultados
+            if (filteredResults.length === 0 && hasAnyFilterActive(filters)) {
+                if (window.Swal) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: 'Sin resultados',
+                        text: 'Ninguna combinación de filtros coincide con registros.',
+                        showConfirmButton: false,
+                        timer: 2800,
+                        timerProgressBar: true
+                    });
+                }
+            }
         }
+
+        function hasAnyFilterActive(filters) {
+            return Object.values(filters).some(v => v && v !== '');
+        }
+
+        // Mapea cada id de select al campo correspondiente en allResults y al tipo de evaluación
+        const FILTER_FIELD_MAP = {
+            filter_nivel_riesgo:    { field: 'intralaboral_total_nivel', kind: 'equals' },
+            filter_gender:          { field: 'gender',                   kind: 'equals' },
+            filter_form_type:       { field: 'intralaboral_form_type',   kind: 'equals' },
+            filter_department:      { field: 'department',               kind: 'equals' },
+            filter_position:        { field: 'position',                 kind: 'equals' },
+            filter_position_type:   { field: 'position_type',            kind: 'equals' },
+            filter_education:       { field: 'education_level',          kind: 'equals' },
+            filter_marital_status:  { field: 'marital_status',           kind: 'equals' },
+            filter_contract_type:   { field: 'contract_type',            kind: 'equals' },
+            filter_city:            { field: 'city_residence',           kind: 'equals' },
+            filter_stratum:         { field: 'stratum',                  kind: 'equals' },
+            filter_housing_type:    { field: 'housing_type',             kind: 'equals' },
+            filter_time_in_company: { field: 'time_in_company_type',     kind: 'equals' },
+            filter_dominio:         { kind: 'dominio' },
+            filter_dimension:       { kind: 'dimension' }
+        };
+
+        // Aplica todos los filtros excepto uno (el "excluido") — base para calcular counts
+        function filterResultsExcluding(filters, excludedId) {
+            return allResults.filter(r => {
+                for (const [selectId, cfg] of Object.entries(FILTER_FIELD_MAP)) {
+                    if (selectId === excludedId) continue;
+                    const key = selectId.replace('filter_', '');
+                    const val = filters[key];
+                    if (!val) continue;
+                    if (cfg.kind === 'equals') {
+                        if (r[cfg.field] !== val) return false;
+                    } else if (cfg.kind === 'dominio') {
+                        const k = 'dom_' + val + '_puntaje';
+                        if (!r[k] || r[k] === 0) return false;
+                    } else if (cfg.kind === 'dimension') {
+                        const k = val + '_puntaje';
+                        if (!r[k] || r[k] === 0) return false;
+                    }
+                }
+                return true;
+            });
+        }
+
+        // Cachea el label original de cada <option> la primera vez que se procesa
+        function getOriginalOptionLabel(option) {
+            if (!option.dataset.originalLabel) {
+                option.dataset.originalLabel = option.textContent.replace(/\s*\(\d+\)\s*$/, '');
+            }
+            return option.dataset.originalLabel;
+        }
+
+        function updateFilterOptionsCounts(filters) {
+            Object.keys(FILTER_FIELD_MAP).forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (!select) return;
+                const cfg = FILTER_FIELD_MAP[selectId];
+
+                // Para dominio/dimension no hacemos count (ya tienen cascada especial)
+                if (cfg.kind !== 'equals') return;
+
+                const baseResults = filterResultsExcluding(filters, selectId);
+
+                // Contar ocurrencias del campo en baseResults
+                const counts = {};
+                baseResults.forEach(r => {
+                    const v = r[cfg.field];
+                    if (v !== undefined && v !== null && v !== '') {
+                        counts[v] = (counts[v] || 0) + 1;
+                    }
+                });
+
+                Array.from(select.options).forEach(option => {
+                    const original = getOriginalOptionLabel(option);
+                    if (option.value === '') {
+                        // Opción "Todos" — sin contador
+                        option.textContent = original;
+                        option.disabled = false;
+                        option.style.color = '';
+                        return;
+                    }
+                    const n = counts[option.value] || 0;
+                    option.textContent = `${original} (${n})`;
+                    // No deshabilitar: mostrar contador (0) visible pero atenuado
+                    option.style.color = n === 0 ? '#adb5bd' : '';
+                });
+            });
+        }
+
+        function syncRiskCardsActiveState(activeNivel) {
+            document.querySelectorAll('.risk-filter-card').forEach(card => {
+                const nivel = card.dataset.riskNivel;
+                if (activeNivel && nivel === activeNivel) {
+                    card.style.transform = 'scale(1.05)';
+                    card.style.boxShadow = '0 0 0 3px #0d6efd, 0 6px 16px rgba(0,0,0,0.2)';
+                } else {
+                    card.style.transform = '';
+                    card.style.boxShadow = '';
+                }
+            });
+        }
+
+        // Click en cards de riesgo → setea filter_nivel_riesgo (toggle) y refiltra
+        document.querySelectorAll('.risk-filter-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const nivel = this.dataset.riskNivel;
+                const select = document.getElementById('filter_nivel_riesgo');
+                if (!select) return;
+                select.value = (select.value === nivel) ? '' : nivel;
+                applyFilters();
+            });
+        });
+
+        // Inicialización: aplicar counts en primera carga
+        document.addEventListener('DOMContentLoaded', function() {
+            const initialFilters = {
+                dominio: '', dimension: '', nivel_riesgo: '', gender: '', form_type: '',
+                department: '', position: '', position_type: '', education: '',
+                marital_status: '', contract_type: '', city: '', stratum: '',
+                housing_type: '', time_in_company: ''
+            };
+            updateFilterOptionsCounts(initialFilters);
+        });
 
         function exportToExcel() {
             alert('Funcionalidad de exportación a Excel en desarrollo');

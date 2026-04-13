@@ -1537,7 +1537,11 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                     extend: 'excelHtml5',
                     text: '<i class="fas fa-file-excel me-1"></i> Descargar Excel',
                     className: 'btn btn-success btn-sm',
-                    title: 'Reporte Intralaboral - <?= esc($service['service_name']) ?>',
+                    title: function() {
+                        const base = 'Reporte Intralaboral - <?= esc($service['service_name']) ?>';
+                        const desc = getActiveFiltersDescription();
+                        return desc ? base + ' | ' + desc : base;
+                    },
                     filename: function() {
                         const svc = '<?= esc($service['service_name']) ?>'.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
                         const date = new Date().toISOString().slice(0, 10);
@@ -3075,6 +3079,39 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
 
         function hasAnyFilterActive(filters) {
             return Object.values(filters).some(v => v && v !== '');
+        }
+
+        // Orden lógico para describir los filtros aplicados en el título del Excel.
+        const FILTER_LABELS_ORDER = [
+            ['filter_dominio',         'Dominio'],
+            ['filter_dimension',       'Dimensión'],
+            ['filter_nivel_riesgo',    'Nivel de Riesgo'],
+            ['filter_form_type',       'Tipo Formulario'],
+            ['filter_gender',          'Género'],
+            ['filter_department',      'Departamento'],
+            ['filter_position_type',   'Tipo de Cargo'],
+            ['filter_position',        'Cargo'],
+            ['filter_education',       'Nivel Estudios'],
+            ['filter_marital_status',  'Estado Civil'],
+            ['filter_contract_type',   'Tipo Contrato'],
+            ['filter_city',            'Ciudad'],
+            ['filter_stratum',         'Estrato'],
+            ['filter_housing_type',    'Tipo Vivienda'],
+            ['filter_time_in_company', 'Antigüedad']
+        ];
+
+        function getActiveFiltersDescription() {
+            const parts = [];
+            FILTER_LABELS_ORDER.forEach(([id, label]) => {
+                const select = document.getElementById(id);
+                if (!select || !select.value) return;
+                const option = select.querySelector(`option[value="${select.value}"]`);
+                const text = option
+                    ? option.textContent.replace(/\s*\(\d+\)\s*$/, '').trim()
+                    : select.value;
+                parts.push(`${label}: ${text}`);
+            });
+            return parts.length ? 'Filtrado por: ' + parts.join(' + ') : '';
         }
 
         // Devuelve el nivel de riesgo aplicable a un worker según el contexto:

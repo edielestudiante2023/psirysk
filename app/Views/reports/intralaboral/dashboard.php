@@ -1207,10 +1207,10 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                                         <th>Tipo Form</th>
                                         <th>Cargo</th>
                                         <th>Departamento</th>
-                                        <th id="colNivelIntralaboralHeader">Nivel Intralaboral</th>
+                                        <th id="colNivelIntralaboralHeader">Nivel Total Intralaboral</th>
                                         <th>Nivel Extralaboral</th>
                                         <th>Nivel Estrés</th>
-                                        <th>Nivel Total</th>
+                                        <th>Nivel Total General</th>
                                         <th class="text-center">Acciones</th>
                                     </tr>
                                     <tr>
@@ -3198,7 +3198,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
         function updateNivelColumnHeader(dominio, dimension) {
             const th = document.getElementById('colNivelIntralaboralHeader');
             if (!th) return;
-            let label = 'Nivel Intralaboral';
+            let label = 'Nivel Total Intralaboral';
             if (dimension) {
                 const opt = document.querySelector(`#filter_dimension option[value="${dimension}"]`);
                 if (opt) label = 'Nivel ' + opt.textContent.trim();

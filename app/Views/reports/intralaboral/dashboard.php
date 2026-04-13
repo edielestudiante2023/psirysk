@@ -1207,7 +1207,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                                         <th>Tipo Form</th>
                                         <th>Cargo</th>
                                         <th>Departamento</th>
-                                        <th>Nivel Intralaboral</th>
+                                        <th id="colNivelIntralaboralHeader">Nivel Intralaboral</th>
                                         <th>Nivel Extralaboral</th>
                                         <th>Nivel Estrés</th>
                                         <th>Nivel Total</th>
@@ -3023,6 +3023,9 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                     estresBadge = '<span class="badge bg-secondary">N/A</span>';
                 }
 
+                // Nivel contextual para la columna "Nivel Intralaboral": si hay dominio
+                // o dimensión seleccionada, muestra el nivel de ese contexto en lugar del total.
+                const nivelIntra = getContextualNivel(r, filters.dominio, filters.dimension);
                 const row = `<tr>
                     <td>${r.worker_name || ''}</td>
                     <td>${r.worker_document || ''}</td>
@@ -3030,7 +3033,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                     <td><span class="badge bg-secondary">${r.intralaboral_form_type || ''}</span></td>
                     <td>${r.position || ''}</td>
                     <td>${r.department || ''}</td>
-                    <td><span class="risk-badge risk-${r.intralaboral_total_nivel}">${r.intralaboral_total_nivel.replace(/_/g, ' ')}</span></td>
+                    <td><span class="risk-badge risk-${nivelIntra}">${nivelIntra.replace(/_/g, ' ')}</span></td>
                     <td><span class="risk-badge risk-${r.extralaboral_total_nivel}">${r.extralaboral_total_nivel.replace(/_/g, ' ')}</span></td>
                     <td>${estresBadge}</td>
                     <td><span class="risk-badge risk-${r.puntaje_total_general_nivel}">${r.puntaje_total_general_nivel.replace(/_/g, ' ')}</span></td>
@@ -3049,6 +3052,9 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
 
             // Sincronizar estado visual de cards de riesgo con el filtro activo
             syncRiskCardsActiveState(filters.nivel_riesgo);
+
+            // Actualizar header de la columna "Nivel Intralaboral" con el contexto
+            updateNivelColumnHeader(filters.dominio, filters.dimension);
 
             // Feedback si la combinación no produce resultados
             if (filteredResults.length === 0 && hasAnyFilterActive(filters)) {
@@ -3184,6 +3190,23 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                     option.style.color = n === 0 ? '#adb5bd' : '';
                 });
             });
+        }
+
+        // Actualiza el texto del header de la columna "Nivel Intralaboral" para
+        // reflejar el contexto activo (dimensión o dominio), usando la etiqueta
+        // visible del option seleccionado en cada filtro.
+        function updateNivelColumnHeader(dominio, dimension) {
+            const th = document.getElementById('colNivelIntralaboralHeader');
+            if (!th) return;
+            let label = 'Nivel Intralaboral';
+            if (dimension) {
+                const opt = document.querySelector(`#filter_dimension option[value="${dimension}"]`);
+                if (opt) label = 'Nivel ' + opt.textContent.trim();
+            } else if (dominio) {
+                const opt = document.querySelector(`#filter_dominio option[value="${dominio}"]`);
+                if (opt) label = 'Nivel ' + opt.textContent.trim();
+            }
+            th.textContent = label;
         }
 
         function syncRiskCardsActiveState(activeNivel) {

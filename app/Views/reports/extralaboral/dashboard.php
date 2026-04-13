@@ -801,7 +801,7 @@ function formatMaxRiskHTML($data, $showOtherForm = false) {
                             <th>Cargo</th>
                             <th>Tipo Cargo</th>
                             <th>Puntaje Total</th>
-                            <th id="colNivelRiesgoHeader">Nivel Riesgo</th>
+                            <th id="colNivelRiesgoHeader">Nivel Total Extralaboral</th>
                             <th>Acciones</th>
                         </tr>
                         <tr>
@@ -2106,7 +2106,7 @@ function updateFilterOptionsCounts(filters) {
 function updateNivelColumnHeader(dimension) {
     const th = document.getElementById('colNivelRiesgoHeader');
     if (!th) return;
-    let label = 'Nivel Riesgo';
+    let label = 'Nivel Total Extralaboral';
     if (dimension) {
         const opt = document.querySelector(`#filter_dimension option[value="${dimension}"]`);
         if (opt) label = 'Nivel ' + opt.textContent.trim();

@@ -304,7 +304,7 @@ class BatteryServiceController extends BaseController
                         <h3 style='color: #0d6efd; margin-top: 0;'>📊 PRÓXIMOS PASOS</h3>
                         <p>Los resultados de la evaluación ya se encuentran disponibles en la plataforma. Puede acceder a los informes ingresando a:</p>
                         <p style='text-align: center;'>
-                            <a href='https://psirysk.cycloidtalent.com/login' style='background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;'>🔗 Acceder a la Plataforma</a>
+                            <a href='https://psyrisk.cycloidtalent.com/login' style='background-color: #0d6efd; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;'>🔗 Acceder a la Plataforma</a>
                         </p>
                         <p>Desde su panel podrá visualizar:</p>
                         <ul>

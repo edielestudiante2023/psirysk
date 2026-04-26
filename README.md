@@ -101,7 +101,7 @@ psyrisk/
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/edielestudiante2023/psirysk.git psyrisk
+git clone https://github.com/edielestudiante2023/psyrisk.git
 cd psyrisk
 
 # 2. Instalar dependencias PHP

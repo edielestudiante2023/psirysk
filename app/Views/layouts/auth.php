@@ -319,7 +319,7 @@
     <!-- Sidebar izquierdo -->
     <aside class="sidebar-logos sidebar-left">
         <div class="logo-item">
-            <img src="<?= base_url('images/logos/logo_psirysk.png') ?>" alt="PsyRisk" title="PsyRisk">
+            <img src="<?= base_url('images/logos/logo_psyrisk.png') ?>" alt="PsyRisk" title="PsyRisk">
         </div>
         <div class="logo-item">
             <img src="<?= base_url('images/logos/logoenterprisesstobscuro.png') ?>" alt="Enterprisesst" title="Desarrollado por Enterprisesst">

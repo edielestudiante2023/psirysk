@@ -116,7 +116,7 @@ class PortadaController extends PdfEjecutivoBaseController
     {
         $logos = [
             'cycloidgrissinfondo.png',
-            'logo_psirysk.png',
+            'logo_psyrisk.png',
             'logo_rps.png',
         ];
 

@@ -266,7 +266,7 @@ Usado en 5+ archivos para IA generativa: interpretaciones de resultados, seccion
 
 **CRITICO — Repositorio publico:**
 
-El repositorio `github.com/edielestudiante2023/psirysk` es **PUBLICO**. El `.env` contiene todas las credenciales en texto plano. Las siguientes claves deben rotarse **INMEDIATAMENTE**:
+El repositorio `github.com/edielestudiante2023/psyrisk` es **PUBLICO**. El `.env` contiene todas las credenciales en texto plano. Las siguientes claves deben rotarse **INMEDIATAMENTE**:
 
 | Variable | Accion |
 |----------|--------|

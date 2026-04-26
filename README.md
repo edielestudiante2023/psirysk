@@ -156,7 +156,7 @@ El deploy se realiza via SSH al servidor de produccion:
 
 ```bash
 ssh root@66.29.154.174
-cd /www/wwwroot/psirysk
+cd /www/wwwroot/psyrisk
 git pull origin main
 composer install --no-dev --optimize-autoloader
 php spark migrate

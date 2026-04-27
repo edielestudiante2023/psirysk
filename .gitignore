@@ -181,3 +181,37 @@ apply_consent_migration_prod.php
 #-------------------------
 *.stackdump
 composer-setup.php
+
+#-------------------------
+# Backups creados manual o por scripts (*.bak, *.bak.20260426_*, etc.)
+#-------------------------
+*.bak
+*.bak.*
+
+#-------------------------
+# aapanel: gestionado por el panel, NO por git
+#-------------------------
+.user.ini
+public/.well-known/
+
+#-------------------------
+# Páginas de error / default (en la raíz del proyecto, no /public/error)
+#-------------------------
+/404.html
+/502.html
+/index.html
+
+#-------------------------
+# Diagnóstico PHP (nunca debe ir en producción, mucho menos en git)
+#-------------------------
+public/info.php
+phpinfo.php
+test.php
+
+#-------------------------
+# Uploads dinámicos generados por usuarios (datos, no código)
+#-------------------------
+public/uploads/firmas/*
+!public/uploads/firmas/.gitkeep
+public/uploads/logos/companies/*
+!public/uploads/logos/companies/.gitkeep

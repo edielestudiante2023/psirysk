@@ -6,6 +6,11 @@ use CodeIgniter\Model;
 
 class TenantModel extends Model
 {
+    // El trait expone withoutTenantScope() para uso uniforme con los demás modelos.
+    // NO se registra scopeToTenant ni injectTenantId en callbacks porque la tabla
+    // `tenants` no tiene columna `tenant_id` (ella ES la tabla de tenants).
+    use \App\Traits\TenantScopedTrait;
+
     protected $table            = 'tenants';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;

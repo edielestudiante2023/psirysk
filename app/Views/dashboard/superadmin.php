@@ -4,6 +4,9 @@
 <a class="nav-link active" href="<?= base_url('dashboard') ?>">
     <i class="fas fa-home me-2"></i> Dashboard
 </a>
+<a class="nav-link" href="<?= base_url('tenants') ?>">
+    <i class="fas fa-layer-group me-2"></i> Tenants <small class="badge bg-warning text-dark ms-1">SaaS</small>
+</a>
 <a class="nav-link" href="<?= base_url('users') ?>" target="_blank">
     <i class="fas fa-users me-2"></i> Usuarios
 </a>

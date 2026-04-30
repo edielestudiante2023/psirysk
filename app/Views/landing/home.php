@@ -33,7 +33,7 @@
 <nav class="navbar navbar-expand-lg navbar-light sticky-top">
     <div class="container">
         <a class="navbar-brand" href="<?= base_url('/') ?>">
-            <img src="<?= base_url('images/logos/logo_psirysk.png') ?>" alt="psyrisk" style="height: 40px;">
+            <img src="<?= base_url('images/logos/logo_psyrisk.png') ?>" alt="psyrisk" style="height: 40px;">
         </a>
         <div class="ms-auto">
             <a href="#features" class="nav-link d-inline-block">Ventajas</a>
@@ -180,7 +180,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-4">
-                <img src="<?= base_url('images/logos/logo_psirysk.png') ?>" alt="psyrisk" style="height: 40px; filter: brightness(0) invert(1);">
+                <img src="<?= base_url('images/logos/logo_psyrisk.png') ?>" alt="psyrisk" style="height: 40px; filter: brightness(0) invert(1);">
                 <p class="mt-3 small">Plataforma de evaluación de Riesgo Psicosocial automatizada para Colombia.</p>
             </div>
             <div class="col-md-3">

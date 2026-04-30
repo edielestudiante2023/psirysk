@@ -51,7 +51,7 @@ if (!function_exists('tenant_logo_url')) {
         if ($tenant && !empty($tenant['logo_path'])) {
             return base_url($tenant['logo_path']);
         }
-        return base_url('images/logos/logo_psirysk.png');
+        return base_url('images/logos/logo_psyrisk.png');
     }
 }
 
@@ -146,6 +146,6 @@ if (!function_exists('platform_logo_url')) {
      */
     function platform_logo_url(): string
     {
-        return base_url('images/logos/logo_psirysk.png');
+        return base_url('images/logos/logo_psyrisk.png');
     }
 }

@@ -60,9 +60,9 @@ INSERT INTO `tenants` (
 ) ON DUPLICATE KEY UPDATE `legal_name` = VALUES(`legal_name`), `updated_at` = NOW();
 
 -- Crea un usuario consultor por cada tenant ficticio.
--- Password: 'PsyRisk2026!' (hasheado bcrypt) — CAMBIAR INMEDIATAMENTE EN PRIMERA SESIÓN
--- Hash generado con: password_hash('PsyRisk2026!', PASSWORD_DEFAULT)
-SET @pass_hash = '$2y$10$ABCDEFGHIJKLMNOPQRSTUuO0vqVZE5QvW5vKxBGgEVyIJjKxYzPLW';
+-- Password: 'PsyRisk2026!' (hasheado bcrypt) — CAMBIAR INMEDIATAMENTE EN PRIMERA SESION
+-- Hash generado con: password_hash('PsyRisk2026!', PASSWORD_BCRYPT)
+SET @pass_hash = '$2y$12$acLOQCbpYLnYmr8x9WXTNei2IxwBksP.FLaLThq0rJMFGs0sPXL56';
 
 INSERT INTO `users` (`tenant_id`, `email`, `password`, `role_id`, `name`, `status`, `created_at`, `updated_at`)
 SELECT t.id, t.contact_email, @pass_hash, 2, t.contact_name, 'active', NOW(), NOW()

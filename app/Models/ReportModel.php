@@ -6,6 +6,8 @@ use CodeIgniter\Model;
 
 class ReportModel extends Model
 {
+    use \App\Traits\TenantScopedTrait;
+
     protected $table            = 'reports';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
@@ -13,6 +15,7 @@ class ReportModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
+        'tenant_id',
         'battery_service_id',
         'company_id',
         'report_type',
@@ -43,11 +46,11 @@ class ReportModel extends Model
 
     // Callbacks
     protected $allowCallbacks = true;
-    protected $beforeInsert   = [];
+    protected $beforeInsert   = ['injectTenantId'];
     protected $afterInsert    = [];
     protected $beforeUpdate   = [];
     protected $afterUpdate    = [];
-    protected $beforeFind     = [];
+    protected $beforeFind     = ['scopeToTenant'];
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $title ?? 'Informe' ?> - RPS Cycloid</title>
+    <title><?= $title ?? 'Informe' ?> - <?= tenant_brand_name() ?></title>
     <style>
         @page {
             margin: 20mm 15mm 25mm 15mm;
@@ -39,7 +39,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 15px 0;
-            border-bottom: 3px solid #667eea;
+            border-bottom: 3px solid <?= tenant_primary_color() ?>;
             margin-bottom: 30px;
         }
         .report-header-left {
@@ -183,14 +183,14 @@
     <!-- Header -->
     <header class="report-header">
         <div class="report-header-left">
-            <img src="<?= base_url('images/logos/cycloidgrissinfondo.png') ?>" alt="Cycloid Talent">
+            <img src="<?= tenant_logo_url() ?>" alt="<?= esc(tenant_brand_name()) ?>">
             <div>
-                <strong style="color: #667eea;">Cycloid Talent SAS</strong><br>
-                <small style="color: #666;">Gestion del Talento Humano</small>
+                <strong style="color: <?= tenant_primary_color() ?>;"><?= esc(tenant_legal_name()) ?></strong><br>
+                <small style="color: #666;">NIT <?= esc(tenant_nit()) ?></small>
             </div>
         </div>
         <div class="report-header-right">
-            <img src="<?= base_url('images/logos/logo_rps.png') ?>" alt="RPS">
+            <img src="<?= platform_logo_url() ?>" alt="psyrisk" style="opacity: 0.6;">
         </div>
     </header>
 
@@ -211,20 +211,15 @@
     <!-- Footer -->
     <footer class="report-footer">
         <div class="report-footer-logos">
-            <img src="<?= base_url('images/logos/cycloidgrissinfondo.png') ?>" alt="Cycloid" title="Cycloid Talent SAS">
-            <img src="<?= base_url('images/logos/logo_rps.png') ?>" alt="RPS" title="Portafolio RPS">
-            <img src="<?= base_url('images/logos/logo_psicloid_method.png') ?>" alt="Psicloid Method" title="Metodologia Psicloid">
+            <img src="<?= tenant_logo_url() ?>" alt="<?= esc(tenant_brand_name()) ?>" title="<?= esc(tenant_legal_name()) ?>">
+            <img src="<?= platform_logo_url() ?>" alt="psyrisk" title="Powered by psyrisk" style="opacity: 0.6;">
         </div>
         <div class="report-footer-text">
-            <p><strong>Cycloid Talent SAS</strong> - NIT: XXXXXXXXX-X</p>
-            <p>Metodologia Psicloid - Portafolio RPS</p>
-            <p>
-                <img src="<?= base_url('images/logos/logoenterprisesstobscuro.jpg') ?>" alt="STOB" style="height: 15px; vertical-align: middle;">
-                Desarrollado por Enterprisesst
-            </p>
+            <p><strong><?= esc(tenant_legal_name()) ?></strong> - NIT: <?= esc(tenant_nit()) ?></p>
+            <p><?= esc(tenant_pdf_footer_text()) ?></p>
+            <p style="font-size: 8pt; opacity: 0.7;">Powered by psyrisk</p>
         </div>
         <div class="confidential-notice">
-            <i class="fas fa-lock"></i>
             DOCUMENTO CONFIDENCIAL - Este informe contiene informacion sensible protegida por la Ley 1581 de 2012.
             Su uso, reproduccion o divulgacion no autorizada esta prohibida.
         </div>

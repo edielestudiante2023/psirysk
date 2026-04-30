@@ -1500,6 +1500,17 @@ class WorkerController extends BaseController
         ];
 
         if ($this->batteryServiceModel->update($serviceId, $updateData)) {
+            // Consumir créditos del tenant: 1 crédito por trabajador completado
+            $tenantId = $service['tenant_id'] ?? session()->get('tenant_id');
+            if ($tenantId && $completados > 0) {
+                (new \App\Services\CreditConsumptionService())->consume(
+                    (int) $tenantId,
+                    (int) $completados,
+                    'evaluation_consumed',
+                    ['type' => 'battery_service', 'id' => (int) $serviceId]
+                );
+            }
+
             // Enviar notificaciones por email
             $this->sendClosureNotifications($service, $completados, $total, $percent);
 

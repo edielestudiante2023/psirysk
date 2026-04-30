@@ -6,13 +6,15 @@ use CodeIgniter\Model;
 
 class CompanyModel extends Model
 {
+    use \App\Traits\TenantScopedTrait;
+
     protected $table            = 'companies';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['name', 'type', 'nit', 'address', 'phone', 'contact_name', 'contact_email', 'logo_path', 'parent_company_id', 'created_by', 'status'];
+    protected $allowedFields    = ['tenant_id', 'name', 'type', 'nit', 'address', 'phone', 'contact_name', 'contact_email', 'logo_path', 'parent_company_id', 'created_by', 'status'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
@@ -35,11 +37,11 @@ class CompanyModel extends Model
 
     // Callbacks
     protected $allowCallbacks = true;
-    protected $beforeInsert   = [];
+    protected $beforeInsert   = ['injectTenantId'];
     protected $afterInsert    = [];
     protected $beforeUpdate   = [];
     protected $afterUpdate    = [];
-    protected $beforeFind     = [];
+    protected $beforeFind     = ['scopeToTenant'];
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];

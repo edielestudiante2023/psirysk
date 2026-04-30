@@ -12,8 +12,13 @@ if (isset($_SERVER['REQUEST_URI']) && ENVIRONMENT === 'development') {
     log_message('debug', '🌐 [ROUTES.PHP] REQUEST_METHOD: ' . $_SERVER['REQUEST_METHOD']);
 }
 
-// Ruta principal redirige al login
-$routes->get('/', 'AuthController::index');
+// Sitio comercial publico (landing page)
+$routes->get('/', 'LandingController::home');
+$routes->get('home', 'LandingController::home');
+$routes->get('pricing', 'LandingController::pricing');
+$routes->get('legal/politica', 'LandingController::legalPolitica');
+$routes->get('legal/aviso', 'LandingController::legalAviso');
+$routes->get('legal/terminos', 'LandingController::legalTerminos');
 
 // Rutas de autenticación
 $routes->get('login', 'AuthController::index');
@@ -26,6 +31,49 @@ $routes->get('logout', 'AuthController::logout');
 // ============================================
 $routes->get('bateria/(:segment)', 'BateriaPublicaController::acceso/$1');
 $routes->post('bateria/validar', 'BateriaPublicaController::validarDocumento');
+
+// ============================================
+// RUTAS PUBLICAS - SIGNUP MULTI-TENANT
+// ============================================
+$routes->get('signup', 'SignupController::index');
+$routes->post('signup', 'SignupController::submit');
+$routes->get('signup/pending', 'SignupController::pending');
+$routes->get('signup/verify/(:segment)', 'SignupController::verify/$1');
+
+// ============================================
+// RUTAS DE ONBOARDING (post-verificación)
+// ============================================
+$routes->group('onboarding', function($routes) {
+    $routes->get('welcome', 'OnboardingController::welcome');
+    $routes->get('branding', 'OnboardingController::branding');
+    $routes->post('branding', 'OnboardingController::saveBranding');
+    $routes->get('finish', 'OnboardingController::finish');
+});
+
+// ============================================
+// RUTAS DE SUSCRIPCION Y COBROS WOMPI
+// ============================================
+$routes->group('subscription', function($routes) {
+    $routes->get('/', 'SubscriptionController::index');
+    $routes->post('checkout-subscription', 'SubscriptionController::checkoutSubscription');
+    $routes->get('buy-credits/(:num)', 'SubscriptionController::buyCredits/$1');
+    $routes->get('return', 'SubscriptionController::returnFromWompi');
+});
+// Webhook de Wompi (PUBLICO, sin auth, solo valida firma)
+$routes->post('subscription/webhook', 'SubscriptionController::webhook');
+
+// ============================================
+// RUTAS DE GESTION DE TENANTS (solo superadmin)
+// ============================================
+$routes->group('tenants', function($routes) {
+    $routes->get('/', 'TenantController::index');
+    $routes->get('create', 'TenantController::create');
+    $routes->post('store', 'TenantController::store');
+    $routes->get('edit/(:num)', 'TenantController::edit/$1');
+    $routes->post('update/(:num)', 'TenantController::update/$1');
+    $routes->post('suspend/(:num)', 'TenantController::suspend/$1');
+    $routes->post('activate/(:num)', 'TenantController::activate/$1');
+});
 
 // Rutas de recuperación de contraseña
 $routes->get('forgot-password', 'PasswordResetController::forgotPassword');

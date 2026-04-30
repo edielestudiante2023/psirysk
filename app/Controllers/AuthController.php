@@ -29,6 +29,20 @@ class AuthController extends BaseController
         $user = $userModel->getUserByEmail($email);
 
         if ($user && password_verify($password, $user['password'])) {
+            // Verificar estado del tenant antes de crear sesión
+            $tenantId = $user['tenant_id'] ?? null;
+            if ($tenantId !== null) {
+                $tenantModel = new \App\Models\TenantModel();
+                $tenant = $tenantModel->withoutTenantScope()->find($tenantId);
+                if (!$tenant || in_array($tenant['status'], ['suspended', 'cancelled'], true)) {
+                    $session->setFlashdata('error',
+                        'Tu cuenta de tenant está ' .
+                        (!$tenant ? 'inactiva' : ($tenant['status'] === 'suspended' ? 'suspendida' : 'cancelada')) .
+                        '. Contacta al administrador.');
+                    return redirect()->back()->withInput();
+                }
+            }
+
             // Actualizar último login
             $userModel->update($user['id'], ['last_login' => date('Y-m-d H:i:s')]);
 
@@ -40,6 +54,7 @@ class AuthController extends BaseController
                 'role_id'     => $user['role_id'],
                 'role_name'   => $user['role_name'],
                 'company_id'  => $user['company_id'] ?? null,
+                'tenant_id'   => $tenantId,
                 'isLoggedIn'  => true,
             ];
             $session->set($sessionData);

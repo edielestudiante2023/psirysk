@@ -6,13 +6,15 @@ use CodeIgniter\Model;
 
 class UserModel extends Model
 {
+    use \App\Traits\TenantScopedTrait;
+
     protected $table            = 'users';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
-    protected $allowedFields    = ['email', 'password', 'role_id', 'company_id', 'name', 'phone', 'status', 'last_login'];
+    protected $allowedFields    = ['email', 'password', 'role_id', 'tenant_id', 'company_id', 'name', 'phone', 'status', 'last_login'];
 
     protected bool $allowEmptyInserts = false;
     protected bool $updateOnlyChanged = true;
@@ -54,11 +56,11 @@ class UserModel extends Model
 
     // Callbacks
     protected $allowCallbacks = true;
-    protected $beforeInsert   = ['hashPassword'];
+    protected $beforeInsert   = ['hashPassword', 'injectTenantId'];
     protected $afterInsert    = [];
     protected $beforeUpdate   = ['hashPassword'];
     protected $afterUpdate    = [];
-    protected $beforeFind     = [];
+    protected $beforeFind     = ['scopeToTenant'];
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
@@ -81,7 +83,11 @@ class UserModel extends Model
 
     public function getUserByEmail($email)
     {
-        return $this->select('users.*, roles.name as role_name')
+        // En login todavía no hay sesión: usamos withoutTenantScope para que
+        // el scopeToTenant no aplique (igual no aplicaría porque no hay session,
+        // pero lo hacemos explícito por seguridad).
+        return $this->withoutTenantScope()
+                    ->select('users.*, roles.name as role_name')
                     ->join('roles', 'roles.id = users.role_id')
                     ->where('users.email', $email)
                     ->first();

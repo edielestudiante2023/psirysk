@@ -21,8 +21,9 @@ ALTER TABLE `companies`
     ADD COLUMN `tenant_id` INT UNSIGNED NULL AFTER `id`;
 
 ALTER TABLE `users`
-    ADD COLUMN `tenant_id` INT UNSIGNED NULL AFTER `id`
-    COMMENT 'NULL = platform admin (superadmin), no pertenece a ningún tenant';
+    ADD COLUMN `tenant_id` INT UNSIGNED NULL
+    COMMENT 'NULL = platform admin (superadmin), no pertenece a ningun tenant'
+    AFTER `id`;
 
 ALTER TABLE `battery_services`
     ADD COLUMN `tenant_id` INT UNSIGNED NULL AFTER `id`;

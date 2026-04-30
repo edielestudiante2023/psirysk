@@ -6,6 +6,8 @@ use CodeIgniter\Model;
 
 class ActionPlanModel extends Model
 {
+    use \App\Traits\TenantScopedTrait;
+
     protected $table            = 'action_plans';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
@@ -13,6 +15,7 @@ class ActionPlanModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
+        'tenant_id',
         'dimension_code',
         'dimension_name',
         'domain_code',
@@ -48,11 +51,11 @@ class ActionPlanModel extends Model
 
     // Callbacks
     protected $allowCallbacks = true;
-    protected $beforeInsert   = [];
+    protected $beforeInsert   = ['injectTenantId'];
     protected $afterInsert    = [];
     protected $beforeUpdate   = [];
     protected $afterUpdate    = [];
-    protected $beforeFind     = [];
+    protected $beforeFind     = ['scopeToTenant'];
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];

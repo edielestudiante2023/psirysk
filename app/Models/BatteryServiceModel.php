@@ -6,6 +6,8 @@ use CodeIgniter\Model;
 
 class BatteryServiceModel extends Model
 {
+    use \App\Traits\TenantScopedTrait;
+
     protected $table            = 'battery_services';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
@@ -13,6 +15,7 @@ class BatteryServiceModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
+        'tenant_id',
         'company_id',
         'consultant_id',
         'notify_parent_company',
@@ -58,11 +61,11 @@ class BatteryServiceModel extends Model
 
     // Callbacks
     protected $allowCallbacks = true;
-    protected $beforeInsert   = [];
+    protected $beforeInsert   = ['injectTenantId'];
     protected $afterInsert    = [];
     protected $beforeUpdate   = [];
     protected $afterUpdate    = [];
-    protected $beforeFind     = [];
+    protected $beforeFind     = ['scopeToTenant'];
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];

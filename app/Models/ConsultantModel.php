@@ -6,12 +6,15 @@ use CodeIgniter\Model;
 
 class ConsultantModel extends Model
 {
+    use \App\Traits\TenantScopedTrait;
+
     protected $table = 'consultants';
     protected $primaryKey = 'id';
     protected $useAutoIncrement = true;
     protected $returnType = 'array';
     protected $useSoftDeletes = false;
     protected $allowedFields = [
+        'tenant_id',
         'nombre_completo',
         'tipo_documento',
         'numero_documento',
@@ -27,6 +30,9 @@ class ConsultantModel extends Model
     protected $useTimestamps = true;
     protected $createdField = 'created_at';
     protected $updatedField = 'updated_at';
+
+    protected $beforeInsert = ['injectTenantId'];
+    protected $beforeFind   = ['scopeToTenant'];
 
     protected $validationRules = [
         'nombre_completo' => 'required|min_length[3]|max_length[150]',

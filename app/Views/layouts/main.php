@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $title ?? 'PsyRisk' ?> - RPS Cycloid</title>
+    <title><?= $title ?? 'psyrisk' ?> - <?= tenant_brand_name() ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-gradient: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            --primary-gradient: linear-gradient(180deg, <?= tenant_primary_color() ?> 0%, <?= tenant_secondary_color() ?> 100%);
+            --tenant-primary: <?= tenant_primary_color() ?>;
+            --tenant-secondary: <?= tenant_secondary_color() ?>;
             --sidebar-width: 260px;
         }
         body {
@@ -125,7 +127,7 @@
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-logo">
-            <img src="<?= base_url('images/logos/logo_psirysk.png') ?>" alt="PsyRisk">
+            <img src="<?= tenant_logo_url() ?>" alt="<?= esc(tenant_brand_name()) ?>">
         </div>
         <div class="sidebar-user">
             <div class="d-flex align-items-center">
@@ -189,14 +191,14 @@
         <!-- Footer -->
         <footer class="main-footer">
             <div class="footer-logos mb-3">
-                <img src="<?= base_url('images/logos/cycloidgrissinfondo.png') ?>" alt="Cycloid Talent" title="Cycloid Talent SAS">
-                <img src="<?= base_url('images/logos/logo_rps.png') ?>" alt="RPS" title="Portafolio RPS">
-                <img src="<?= base_url('images/logos/logo_psicloid_method.png') ?>" alt="Psicloid Method" title="Metodologia Psicloid" class="logo-psicloid">
-                <img src="<?= base_url('images/logos/logoenterprisesstobscuro.png') ?>" alt="Enterprisesst" title="Desarrollado por Enterprisesst">
+                <?php if (tenant_context()): ?>
+                    <img src="<?= tenant_logo_url() ?>" alt="<?= esc(tenant_brand_name()) ?>" title="<?= esc(tenant_legal_name()) ?>" style="height: 70px;">
+                <?php endif; ?>
+                <img src="<?= platform_logo_url() ?>" alt="psyrisk" title="psyrisk - plataforma de evaluacion psicosocial" style="height: 50px; opacity: 0.7;">
             </div>
             <div class="text-center text-muted small">
-                <p class="mb-0">&copy; <?= date('Y') ?> Cycloid Talent SAS. Todos los derechos reservados.</p>
-                <p class="mb-0">Desarrollado por Enterprisesst</p>
+                <p class="mb-0">&copy; <?= date('Y') ?> <?= esc(tenant_legal_name()) ?>. Todos los derechos reservados.</p>
+                <p class="mb-0">Powered by psyrisk</p>
             </div>
         </footer>
     </main>

@@ -6,6 +6,8 @@ use CodeIgniter\Model;
 
 class IndividualResultRequestModel extends Model
 {
+    use \App\Traits\TenantScopedTrait;
+
     protected $table            = 'individual_results_requests';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
@@ -13,6 +15,7 @@ class IndividualResultRequestModel extends Model
     protected $useSoftDeletes   = false;
     protected $protectFields    = true;
     protected $allowedFields    = [
+        'tenant_id',
         'service_id',
         'worker_id',
         'requester_user_id',
@@ -64,11 +67,11 @@ class IndividualResultRequestModel extends Model
 
     // Callbacks
     protected $allowCallbacks = true;
-    protected $beforeInsert   = ['generateAccessToken'];
+    protected $beforeInsert   = ['generateAccessToken', 'injectTenantId'];
     protected $afterInsert    = [];
     protected $beforeUpdate   = [];
     protected $afterUpdate    = [];
-    protected $beforeFind     = [];
+    protected $beforeFind     = ['scopeToTenant'];
     protected $afterFind      = [];
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
